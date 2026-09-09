@@ -1,0 +1,18 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  border-bottom: 2px solid;
+  padding-bottom: 12px;
+}
+
+.header small {
+  display: block;
+  color: #777;
+  margin-top: 3px;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+}

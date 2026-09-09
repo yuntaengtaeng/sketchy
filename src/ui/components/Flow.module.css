@@ -1,0 +1,20 @@
+.connection {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px;
+  border: 1px solid #999;
+  margin-bottom: 8px;
+}
+
+.connection span {
+  display: grid;
+  text-align: center;
+  font-size: 20px;
+}
+
+.connection small {
+  font-size: 10px;
+  color: #777;
+}
