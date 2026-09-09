@@ -44,7 +44,7 @@ export default function App() {
           onScreenChange={setScreenId}
         />
       )}
-      {tab === "flow" && <Flow project={project} />}
+      {tab === "flow" && <Flow project={project} selectedScreenId={screenId} />}
       {tab === "spec" && <Spec project={project} screen={screen} />}
     </main>
   );

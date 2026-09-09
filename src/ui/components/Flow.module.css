@@ -8,6 +8,12 @@
   margin-bottom: 8px;
 }
 
+.divider {
+  border: 0;
+  border-top: 1px solid var(--figma-color-border, #999);
+  margin: 16px 0;
+}
+
 .connection span {
   display: grid;
   text-align: center;
