@@ -1,20 +1,28 @@
 import type { PluginMessage, Project } from "../shared";
 import {
-  createInteraction,
   createScreen,
   deleteElement,
   insertBlock,
   selectScreen,
+  saveFeature,
   updateElement,
   updateScreen,
-} from "./canvas";
-import { renderFlow } from "./flow-map";
-import { cleanProject, readProject } from "./project";
+} from "./commands/canvas";
+import { renderFlow } from "./commands/render-flow";
+import { cleanProject, readProject } from "./storage/project";
 
 figma.showUI(__html__, { width: 360, height: 620, themeColors: true });
 
 let suppressDocumentChange = false;
 let redrawTimer: ReturnType<typeof setTimeout>;
+
+function errorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object" && "message" in error)
+    return String(error.message);
+  return String(error);
+}
 
 function selection() {
   const node = figma.currentPage.selection[0];
@@ -60,19 +68,16 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         await updateScreen(message.screenId, message.name, message.purpose),
         true,
       );
-    if (message.type === "CREATE_INTERACTION")
+    if (message.type === "SAVE_FEATURE")
       await sync(
-        await createInteraction(
-          message.sourceElementId,
-          message.destinationScreenId,
-        ),
+        await saveFeature(message.sourceElementId, message.action),
         true,
       );
     if (message.type === "SELECT_SCREEN") await selectScreen(message.screenId);
   } catch (error) {
     figma.ui.postMessage({
       type: "ERROR",
-      message: error instanceof Error ? error.message : "Something went wrong.",
+      message: errorMessage(error),
     });
   }
 };

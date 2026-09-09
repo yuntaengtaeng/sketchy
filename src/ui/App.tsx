@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import type { Project, UiMessage } from "../shared";
-import Build from "./components/Build";
-import Flow from "./components/Flow";
 import Header, { type Tab } from "./components/Header";
-import Spec from "./components/Spec";
+import Build from "./features/build/Build";
+import Flow from "./features/flow/Flow";
+import Spec from "./features/spec/Spec";
 import { post } from "./plugin";
 
-const empty: Project = { screens: [], elements: [], interactions: [] };
+const empty: Project = { screens: [], elements: [], states: [], features: [] };
 
 export default function App() {
   const [project, setProject] = useState(empty);

@@ -24,3 +24,10 @@
   font-size: 10px;
   color: var(--figma-color-text-secondary, #777);
 }
+
+.connection > div {
+  display: grid;
+  place-content: center;
+  min-height: 32px;
+  text-align: center;
+}

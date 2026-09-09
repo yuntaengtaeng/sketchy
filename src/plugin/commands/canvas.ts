@@ -1,6 +1,6 @@
-import type { BlockType } from "../shared";
-import { readProject, saveProject } from "./project";
-import { updateNavigation } from "./reactions";
+import { BLOCK_TRIGGERS, type BlockType } from "../../shared";
+import { readProject, saveProject } from "../storage/project";
+import { updateNavigation } from "./sync-prototype";
 
 const id = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -111,6 +111,18 @@ export async function updateElement(
   if (!element || !node) return project;
   element.name = name;
   element.description = description;
+  const feature = project.features.find(
+    (item) => item.trigger?.elementId === elementId,
+  );
+  if (feature) {
+    feature.name = name;
+    feature.description = description;
+    const action = feature.action;
+    if (action.type === "set-state") {
+      const state = project.states.find((item) => item.id === action.stateId);
+      if (state) state.name = name;
+    }
+  }
   node.name = name;
   await loadFont();
   if (node.type === "TEXT") node.characters = name;
@@ -129,8 +141,10 @@ export async function deleteElement(elementId: string) {
   const node = await figma.getNodeByIdAsync(element.nodeId);
   node?.remove();
   project.elements = project.elements.filter((item) => item.id !== elementId);
-  project.interactions = project.interactions.filter(
-    (item) => item.sourceElementId !== elementId,
+  project.features = project.features.map((item) =>
+    item.trigger?.elementId === elementId
+      ? { ...item, trigger: undefined }
+      : item,
   );
   saveProject(project);
   return project;
@@ -155,47 +169,104 @@ export async function updateScreen(
   return project;
 }
 
-export async function createInteraction(
+export async function saveFeature(
   sourceElementId: string,
-  destinationScreenId: string,
+  input:
+    | { type: "navigate"; destinationScreenId?: string }
+    | { type: "set-state"; stateName: string; value: boolean },
 ) {
   const project = readProject();
   const element = project.elements.find((item) => item.id === sourceElementId);
-  const destination = project.screens.find(
-    (item) => item.id === destinationScreenId,
-  );
+  const destination =
+    input.type === "navigate"
+      ? project.screens.find((item) => item.id === input.destinationScreenId)
+      : undefined;
   const source = element && (await figma.getNodeByIdAsync(element.nodeId));
   if (
     !element ||
-    element.type !== "button" ||
+    !BLOCK_TRIGGERS[element.type].includes("click") ||
     !source ||
     !("setReactionsAsync" in source)
   )
     throw new Error("Select a Sketchy button.");
-  if (destinationScreenId && !destination)
+  if (input.type === "navigate" && input.destinationScreenId && !destination)
     throw new Error("Select an existing destination screen.");
-  const previous = project.interactions.find(
-    (item) => item.sourceElementId === sourceElementId,
+  const previous = project.features.find(
+    (item) => item.trigger?.elementId === sourceElementId,
   );
-  const previousDestination = project.screens.find(
-    (item) => item.id === previous?.destinationScreenId,
+  const previousAction = previous?.action;
+  const previousDestination =
+    previousAction?.type === "navigate"
+      ? project.screens.find(
+          (item) => item.id === previousAction.destinationScreenId,
+        )
+      : undefined;
+  const previousState =
+    previousAction?.type === "set-state"
+      ? project.states.find((item) => item.id === previousAction.stateId)
+      : undefined;
+  let reactions = updateNavigation(
+    source.reactions,
+    previousDestination?.nodeId,
   );
-  await source.setReactionsAsync(
-    updateNavigation(
-      source.reactions,
-      previousDestination?.nodeId,
-      destination?.nodeId,
-    ),
+  project.features = project.features.filter(
+    (item) => item.trigger?.elementId !== sourceElementId,
   );
-  project.interactions = project.interactions.filter(
-    (item) => item.sourceElementId !== sourceElementId,
-  );
-  if (destination)
-    project.interactions.push({
-      id: id(),
-      sourceElementId,
-      destinationScreenId,
+  if (input.type === "navigate") {
+    if (source.type === "FRAME")
+      source.children
+        .find(
+          (child) => child.getPluginData("sketchy:role") === "state-indicator",
+        )
+        ?.remove();
+    await source.setReactionsAsync(
+      updateNavigation(reactions, undefined, destination?.nodeId),
+    );
+    project.features.push({
+      id: previous?.id || id(),
+      screenId: element.screenId,
+      trigger: { type: "click", elementId: sourceElementId },
+      name: element.name,
+      description: element.description,
+      action: {
+        type: "navigate",
+        destinationScreenId: destination?.id,
+      },
     });
+  } else if (input.type === "set-state" && input.stateName.trim()) {
+    const state = previousState ||
+      project.states.find(
+        (item) =>
+          item.screenId === element.screenId &&
+          item.name === input.stateName.trim(),
+      ) || {
+        id: id(),
+        screenId: element.screenId,
+        name: input.stateName.trim(),
+        type: "boolean" as const,
+        initialValue: false,
+      };
+    state.name = input.stateName.trim();
+    if (!project.states.includes(state)) project.states.push(state);
+    await source.setReactionsAsync(reactions);
+    if (source.type === "FRAME") {
+      source.children
+        .find(
+          (child) => child.getPluginData("sketchy:role") === "state-indicator",
+        )
+        ?.remove();
+    }
+    project.features.push({
+      id: previous?.id || id(),
+      screenId: element.screenId,
+      trigger: { type: "click", elementId: sourceElementId },
+      name: element.name,
+      description: element.description,
+      action: { type: "set-state", stateId: state.id, value: input.value },
+    });
+  } else {
+    await source.setReactionsAsync(reactions);
+  }
   saveProject(project);
   return project;
 }

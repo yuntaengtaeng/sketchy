@@ -1,5 +1,11 @@
 export type BlockType = "text" | "button" | "input";
 
+export const BLOCK_TRIGGERS: Record<BlockType, FeatureTrigger["type"][]> = {
+  text: [],
+  button: ["click"],
+  input: [],
+};
+
 export type Screen = {
   id: string;
   nodeId: string;
@@ -14,18 +20,40 @@ export type Element = {
   name: string;
   description?: string;
   type: BlockType;
+  order?: number;
 };
 
-export type Interaction = {
+export type ScreenState = {
   id: string;
-  sourceElementId: string;
-  destinationScreenId: string;
+  screenId: string;
+  name: string;
+  type: "boolean";
+  initialValue: boolean;
+};
+
+export type FeatureAction =
+  | { type: "navigate"; destinationScreenId?: string }
+  | { type: "set-state"; stateId: string; value: boolean };
+
+export type FeatureTrigger =
+  | { type: "click"; elementId: string }
+  | { type: "change"; elementId: string }
+  | { type: "submit"; elementId?: string };
+
+export type Feature = {
+  id: string;
+  screenId: string;
+  name: string;
+  description?: string;
+  trigger?: FeatureTrigger;
+  action: FeatureAction;
 };
 
 export type Project = {
   screens: Screen[];
   elements: Element[];
-  interactions: Interaction[];
+  states: ScreenState[];
+  features: Feature[];
 };
 
 export type PluginMessage =
@@ -42,9 +70,11 @@ export type PluginMessage =
       description: string;
     }
   | {
-      type: "CREATE_INTERACTION";
+      type: "SAVE_FEATURE";
       sourceElementId: string;
-      destinationScreenId: string;
+      action:
+        | { type: "navigate"; destinationScreenId?: string }
+        | { type: "set-state"; stateName: string; value: boolean };
     };
 
 export type UiMessage =

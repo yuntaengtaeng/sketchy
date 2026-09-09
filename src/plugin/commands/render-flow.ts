@@ -1,4 +1,4 @@
-import type { Project, Screen } from "../shared";
+import type { Project, Screen } from "../../shared";
 import { loadFont } from "./canvas";
 
 const GENERATED = "sketchy:flow-generated";
@@ -48,14 +48,17 @@ export async function renderFlow(project: Project) {
     for (const child of [...node.children])
       if (child.getPluginData("sketchy:role").startsWith("screen-"))
         child.remove();
-    if (!screen.purpose) continue;
+    const features = project.features.filter(
+      (feature) => feature.screenId === screen.id,
+    );
+    if (!screen.purpose && !features.length) continue;
     const note = figma.createFrame();
     mark(note);
     node.parent.appendChild(note);
     note.name = `${screen.name} · Purpose`;
     note.x = node.x + node.width + 16;
     note.y = node.y + 12;
-    note.resize(180, 116);
+    note.resize(220, Math.max(92, 72 + features.length * 32));
     note.layoutMode = "VERTICAL";
     note.primaryAxisSizingMode = note.counterAxisSizingMode = "FIXED";
     note.paddingTop =
@@ -72,19 +75,38 @@ export async function renderFlow(project: Project) {
     title.characters = screen.name;
     title.fontSize = 14;
     note.appendChild(title);
-    const purpose = figma.createText();
-    purpose.characters = screen.purpose;
-    purpose.fontSize = 11;
-    purpose.resize(152, 56);
-    purpose.opacity = 0.8;
-    note.appendChild(purpose);
+    if (screen.purpose) {
+      const purpose = figma.createText();
+      purpose.characters = screen.purpose;
+      purpose.fontSize = 11;
+      purpose.resize(192, 32);
+      purpose.opacity = 0.8;
+      note.appendChild(purpose);
+    }
+    for (const feature of features) {
+      const behavior = figma.createText();
+      const action = feature.action;
+      const result =
+        action.type === "navigate"
+          ? `go to ${project.screens.find((item) => item.id === action.destinationScreenId)?.name || "choose destination"}`
+          : feature.description ||
+            `${action.value ? "" : "not "}${project.states.find((item) => item.id === action.stateId)?.name || "missing state"}`;
+      behavior.characters = `- ${feature.name} click → ${result}`;
+      behavior.fontSize = 11;
+      behavior.resize(192, 24);
+      behavior.textAutoResize = "HEIGHT";
+      note.appendChild(behavior);
+    }
+    note.primaryAxisSizingMode = "AUTO";
   }
-  for (const link of project.interactions) {
+  for (const link of project.features) {
+    if (link.action.type !== "navigate") continue;
+    if (!link.action.destinationScreenId) continue;
     const element = project.elements.find(
-      (item) => item.id === link.sourceElementId,
+      (item) => item.id === link.trigger?.elementId,
     );
     const sourceScreen = element && nodes.get(element.screenId);
-    const destination = nodes.get(link.destinationScreenId);
+    const destination = nodes.get(link.action.destinationScreenId);
     const source = element && (await figma.getNodeByIdAsync(element.nodeId));
     if (
       !element ||
@@ -138,7 +160,7 @@ export async function renderFlow(project: Project) {
     const label = figma.createText();
     mark(label);
     sourceScreen.parent.appendChild(label);
-    label.characters = element.name;
+    label.characters = link.name;
     label.fontSize = 12;
     label.x = startX + dx / 2 - label.width / 2;
     label.y = startY + dy / 2 - 22;

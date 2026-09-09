@@ -3,8 +3,9 @@ import type {
   Element as SketchyElement,
   Project,
   Screen,
-} from "../../shared";
-import { post } from "../plugin";
+} from "../../../shared";
+import { BLOCK_TRIGGERS } from "../../../shared";
+import { post } from "../../plugin";
 import styles from "./Build.module.css";
 
 type Props = {
@@ -20,6 +21,9 @@ export default function Build({
   element,
   onScreenChange,
 }: Props) {
+  const feature = element
+    ? project.features.find((item) => item.trigger?.elementId === element.id)
+    : undefined;
   return (
     <>
       <section>
@@ -92,53 +96,80 @@ export default function Build({
               }
             />
           </label>
-          {element.type === "button" && (
+          {BLOCK_TRIGGERS[element.type].includes("click") && (
             <>
               <label>
-                Go to
+                What happens?
                 <select
-                  defaultValue={
-                    project.interactions.find(
-                      (item) => item.sourceElementId === element.id,
-                    )?.destinationScreenId || ""
-                  }
-                  disabled={project.screens.length < 2}
-                  onChange={(event) =>
-                    post({
-                      type: "CREATE_INTERACTION",
-                      sourceElementId: element.id,
-                      destinationScreenId: event.target.value,
-                    })
-                  }
+                  value={feature?.action.type || ""}
+                  onChange={(event) => {
+                    if (event.target.value === "set-state")
+                      post({
+                        type: "SAVE_FEATURE",
+                        sourceElementId: element.id,
+                        action: {
+                          type: "set-state",
+                          stateName: element.name,
+                          value: true,
+                        },
+                      });
+                    if (event.target.value === "navigate")
+                      post({
+                        type: "SAVE_FEATURE",
+                        sourceElementId: element.id,
+                        action: { type: "navigate" },
+                      });
+                  }}
                 >
-                  <option value="">Choose destination</option>
-                  {project.screens
-                    .filter((item) => item.id !== element.screenId)
-                    .map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.name}
-                      </option>
-                    ))}
+                  <option value="">Choose action</option>
+                  <option value="navigate">Go to screen</option>
+                  <option value="set-state">Change state</option>
                 </select>
               </label>
-              {project.screens.length < 2 && (
-                <p className="muted">Create another screen to connect.</p>
+              {feature?.action.type === "navigate" && (
+                <label>
+                  Destination
+                  <select
+                    value={feature.action.destinationScreenId || ""}
+                    onChange={(event) =>
+                      post({
+                        type: "SAVE_FEATURE",
+                        sourceElementId: element.id,
+                        action: {
+                          type: "navigate",
+                          destinationScreenId: event.target.value,
+                        },
+                      })
+                    }
+                  >
+                    <option value="">Choose destination</option>
+                    {project.screens
+                      .filter((item) => item.id !== element.screenId)
+                      .map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name}
+                        </option>
+                      ))}
+                  </select>
+                </label>
               )}
-              <details className={styles.more}>
-                <summary>Description</summary>
-                <textarea
-                  defaultValue={element.description || ""}
-                  placeholder="What happens when users click?"
-                  onBlur={(event) =>
-                    post({
-                      type: "UPDATE_ELEMENT",
-                      elementId: element.id,
-                      name: element.name,
-                      description: event.target.value,
-                    })
-                  }
-                />
-              </details>
+              {feature?.action.type === "set-state" && (
+                <label>
+                  When clicked
+                  <textarea
+                    defaultValue={element.description || ""}
+                    placeholder="e.g. Add this item to favorites"
+                    onBlur={(event) =>
+                      post({
+                        type: "UPDATE_ELEMENT",
+                        elementId: element.id,
+                        name: element.name,
+                        description: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+              )}
             </>
           )}
           <button
