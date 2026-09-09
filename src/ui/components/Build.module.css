@@ -31,25 +31,26 @@
 .block[data-block="input"] .preview {
   border: 1px solid currentColor;
   border-radius: 2px;
+  font-size: 9px;
+  font-weight: 400;
 }
 
 .block[data-block="button"] .preview {
-  background: currentColor;
+  width: 70%;
+  justify-self: center;
+  justify-content: center;
+  background: var(--sketchy-ink);
+  color: var(--figma-color-bg, #fafafa);
 }
 
 .block[data-block="button"] .preview::after {
-  content: "";
-  width: 45%;
-  border-top: 2px solid var(--figma-color-bg, #fafafa);
-  margin: auto;
+  content: "Button";
 }
 
 .block[data-block="input"] .preview::after {
-  content: "";
-  width: 55%;
-  border-top: 1px solid currentColor;
+  content: "Type...";
   margin-left: 7px;
-  opacity: 0.45;
+  opacity: 0.55;
 }
 
 .more {
@@ -67,4 +68,21 @@
 
 .more textarea {
   margin-top: 8px;
+}
+
+.delete {
+  display: block;
+  margin: 14px auto 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--figma-color-text-secondary, #777);
+  text-decoration: underline;
+}
+
+.delete:hover,
+.delete:active {
+  background: transparent;
 }
