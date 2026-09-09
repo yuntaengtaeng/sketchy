@@ -3,6 +3,23 @@ import { loadFont } from "./canvas";
 
 const GENERATED = "sketchy:flow-generated";
 const mark = (node: SceneNode) => node.setPluginData(GENERATED, "true");
+function drawLine(
+  parent: PageNode,
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+) {
+  const line = figma.createLine();
+  mark(line);
+  parent.appendChild(line);
+  line.x = startX;
+  line.y = startY;
+  line.resize(Math.hypot(endX - startX, endY - startY), 0);
+  line.rotation = (-Math.atan2(endY - startY, endX - startX) * 180) / Math.PI;
+  line.strokes = [{ type: "SOLID", color: { r: 0.2, g: 0.42, b: 0.9 } }];
+  line.strokeWeight = 3;
+}
 async function screenNode(screen: Screen) {
   const node = await figma.getNodeByIdAsync(screen.nodeId);
   return node?.type === "FRAME" ? node : undefined;
@@ -105,16 +122,16 @@ export async function renderFlow(project: Project) {
           : to.y + to.height,
       dx = endX - startX,
       dy = endY - startY;
-    const line = figma.createLine();
-    mark(line);
-    sourceScreen.parent.appendChild(line);
-    line.x = startX;
-    line.y = startY;
-    line.resize(Math.hypot(dx, dy), 0);
-    line.rotation = (-Math.atan2(dy, dx) * 180) / Math.PI;
-    line.strokes = [{ type: "SOLID", color: { r: 0.2, g: 0.42, b: 0.9 } }];
-    line.strokeWeight = 3;
-    line.strokeCap = "ARROW_LINES";
+    drawLine(sourceScreen.parent, startX, startY, endX, endY);
+    const angle = Math.atan2(dy, dx);
+    for (const offset of [-Math.PI / 6, Math.PI / 6])
+      drawLine(
+        sourceScreen.parent,
+        endX - 10 * Math.cos(angle + offset),
+        endY - 10 * Math.sin(angle + offset),
+        endX,
+        endY,
+      );
     const label = figma.createText();
     mark(label);
     sourceScreen.parent.appendChild(label);

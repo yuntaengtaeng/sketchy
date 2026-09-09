@@ -151,7 +151,6 @@ export default function Build({
                     )?.destinationScreenId || ""
                   }
                   onChange={(event) =>
-                    event.target.value &&
                     post({
                       type: "CREATE_INTERACTION",
                       sourceElementId: element.id,

@@ -153,28 +153,38 @@ export async function createInteraction(
     !element ||
     element.type !== "button" ||
     !source ||
-    !("setReactionsAsync" in source) ||
-    !destination
+    !("setReactionsAsync" in source)
   )
-    throw new Error("Select a Sketchy button and destination screen.");
-  await source.setReactionsAsync([
-    {
-      trigger: { type: "ON_CLICK" },
-      actions: [
-        {
-          type: "NODE",
-          destinationId: destination.nodeId,
-          navigation: "NAVIGATE" as never,
-          transition: null,
-          preserveScrollPosition: false,
-        },
-      ],
-    },
-  ]);
+    throw new Error("Select a Sketchy button.");
+  if (destinationScreenId && !destination)
+    throw new Error("Select an existing destination screen.");
+  await source.setReactionsAsync(
+    destination
+      ? [
+          {
+            trigger: { type: "ON_CLICK" },
+            actions: [
+              {
+                type: "NODE",
+                destinationId: destination.nodeId,
+                navigation: "NAVIGATE" as never,
+                transition: null,
+                preserveScrollPosition: false,
+              },
+            ],
+          },
+        ]
+      : [],
+  );
   project.interactions = project.interactions.filter(
     (item) => item.sourceElementId !== sourceElementId,
   );
-  project.interactions.push({ id: id(), sourceElementId, destinationScreenId });
+  if (destination)
+    project.interactions.push({
+      id: id(),
+      sourceElementId,
+      destinationScreenId,
+    });
   saveProject(project);
   return project;
 }
