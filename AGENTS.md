@@ -1,6 +1,6 @@
 # Sketchy development rules
 
-Use Ponytail-style development for this repository only.
+Use the project-local `.agents/skills/ponytail/SKILL.md` skill at full intensity for every coding task in this repository.
 
 - Understand the affected flow before editing; fix root causes in the shared path.
 - Reuse existing code, then standard APIs, then installed dependencies.
