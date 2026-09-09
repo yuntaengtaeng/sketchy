@@ -63,23 +63,51 @@ export async function renderFlow(project: Project) {
     const element = project.elements.find(
       (item) => item.id === link.sourceElementId,
     );
-    const source = element && nodes.get(element.screenId);
+    const sourceScreen = element && nodes.get(element.screenId);
     const destination = nodes.get(link.destinationScreenId);
+    const source = element && (await figma.getNodeByIdAsync(element.nodeId));
     if (
       !element ||
+      !sourceScreen ||
       !source ||
+      !("absoluteBoundingBox" in source) ||
+      !source.absoluteBoundingBox ||
       !destination ||
-      source.parent !== destination.parent ||
-      source.parent?.type !== "PAGE"
+      !destination.absoluteBoundingBox ||
+      sourceScreen.parent !== destination.parent ||
+      sourceScreen.parent?.type !== "PAGE"
     )
       continue;
-    const startX = source.x + source.width,
-      startY = source.y + source.height / 2;
-    const dx = destination.x - startX,
-      dy = destination.y + destination.height / 2 - startY;
+    const from = source.absoluteBoundingBox;
+    const to = destination.absoluteBoundingBox;
+    const centerDx = to.x + to.width / 2 - (from.x + from.width / 2);
+    const centerDy = to.y + to.height / 2 - (from.y + from.height / 2);
+    const horizontal = Math.abs(centerDx) >= Math.abs(centerDy);
+    const startX = horizontal
+        ? centerDx >= 0
+          ? from.x + from.width
+          : from.x
+        : from.x + from.width / 2,
+      startY = horizontal
+        ? from.y + from.height / 2
+        : centerDy >= 0
+          ? from.y + from.height
+          : from.y,
+      endX = horizontal
+        ? centerDx >= 0
+          ? to.x
+          : to.x + to.width
+        : to.x + to.width / 2,
+      endY = horizontal
+        ? to.y + to.height / 2
+        : centerDy >= 0
+          ? to.y
+          : to.y + to.height,
+      dx = endX - startX,
+      dy = endY - startY;
     const line = figma.createLine();
     mark(line);
-    source.parent.appendChild(line);
+    sourceScreen.parent.appendChild(line);
     line.x = startX;
     line.y = startY;
     line.resize(Math.hypot(dx, dy), 0);
@@ -89,7 +117,7 @@ export async function renderFlow(project: Project) {
     line.strokeCap = "ARROW_LINES";
     const label = figma.createText();
     mark(label);
-    source.parent.appendChild(label);
+    sourceScreen.parent.appendChild(label);
     label.characters = element.name;
     label.fontSize = 12;
     label.x = startX + dx / 2 - label.width / 2;

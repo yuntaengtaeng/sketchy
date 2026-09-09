@@ -12,6 +12,9 @@ import { cleanProject, readProject } from "./project";
 
 figma.showUI(__html__, { width: 360, height: 620, themeColors: true });
 
+let suppressDocumentChange = false;
+let redrawTimer: ReturnType<typeof setTimeout>;
+
 function selection() {
   const node = figma.currentPage.selection[0];
   return {
@@ -22,7 +25,14 @@ function selection() {
 
 async function sync(project: Project = readProject(), draw = false) {
   project = await cleanProject(project);
-  if (draw) await renderFlow(project);
+  if (draw) {
+    suppressDocumentChange = true;
+    try {
+      await renderFlow(project);
+    } finally {
+      setTimeout(() => (suppressDocumentChange = false), 200);
+    }
+  }
   figma.ui.postMessage({ type: "STATE", project, ...selection() });
 }
 
@@ -65,3 +75,8 @@ figma.ui.onmessage = async (message: PluginMessage) => {
 };
 
 figma.on("selectionchange", () => sync());
+figma.on("documentchange", () => {
+  if (suppressDocumentChange) return;
+  clearTimeout(redrawTimer);
+  redrawTimer = setTimeout(() => sync(readProject(), true), 200);
+});
