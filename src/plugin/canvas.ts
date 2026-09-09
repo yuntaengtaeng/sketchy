@@ -1,5 +1,6 @@
 import type { BlockType } from "../shared";
 import { readProject, saveProject } from "./project";
+import { updateNavigation } from "./reactions";
 
 const id = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -159,23 +160,18 @@ export async function createInteraction(
     throw new Error("Select a Sketchy button.");
   if (destinationScreenId && !destination)
     throw new Error("Select an existing destination screen.");
+  const previous = project.interactions.find(
+    (item) => item.sourceElementId === sourceElementId,
+  );
+  const previousDestination = project.screens.find(
+    (item) => item.id === previous?.destinationScreenId,
+  );
   await source.setReactionsAsync(
-    destination
-      ? [
-          {
-            trigger: { type: "ON_CLICK" },
-            actions: [
-              {
-                type: "NODE",
-                destinationId: destination.nodeId,
-                navigation: "NAVIGATE" as never,
-                transition: null,
-                preserveScrollPosition: false,
-              },
-            ],
-          },
-        ]
-      : [],
+    updateNavigation(
+      source.reactions,
+      previousDestination?.nodeId,
+      destination?.nodeId,
+    ),
   );
   project.interactions = project.interactions.filter(
     (item) => item.sourceElementId !== sourceElementId,
