@@ -11,15 +11,13 @@ export default function Header({
 }) {
   return (
     <header className={styles.header}>
-      <div>
-        <b>Sketchy</b>
-        <small>Keep your wireframes sketchy.</small>
-      </div>
-      <nav className={styles.tabs}>
+      <b>Sketchy</b>
+      <nav className={styles.tabs} aria-label="Views">
         {(["build", "flow", "spec"] as Tab[]).map((item) => (
           <button
             key={item}
             className={tab === item ? "active" : ""}
+            aria-pressed={tab === item}
             onClick={() => onChange(item)}
           >
             {item}

@@ -17,8 +17,8 @@ function drawLine(
   line.y = startY;
   line.resize(Math.hypot(endX - startX, endY - startY), 0);
   line.rotation = (-Math.atan2(endY - startY, endX - startX) * 180) / Math.PI;
-  line.strokes = [{ type: "SOLID", color: { r: 0.2, g: 0.42, b: 0.9 } }];
-  line.strokeWeight = 3;
+  line.strokes = [{ type: "SOLID", color: { r: 0.25, g: 0.25, b: 0.25 } }];
+  line.strokeWeight = 2;
 }
 async function screenNode(screen: Screen) {
   const node = await figma.getNodeByIdAsync(screen.nodeId);
@@ -48,6 +48,7 @@ export async function renderFlow(project: Project) {
     for (const child of [...node.children])
       if (child.getPluginData("sketchy:role").startsWith("screen-"))
         child.remove();
+    if (!screen.purpose) continue;
     const note = figma.createFrame();
     mark(note);
     node.parent.appendChild(note);
@@ -64,16 +65,18 @@ export async function renderFlow(project: Project) {
         14;
     note.itemSpacing = 8;
     note.cornerRadius = 3;
-    note.fills = [{ type: "SOLID", color: { r: 1, g: 0.92, b: 0.55 } }];
+    note.fills = [{ type: "SOLID", color: { r: 0.96, g: 0.96, b: 0.94 } }];
+    note.strokes = [{ type: "SOLID", color: { r: 0.55, g: 0.55, b: 0.55 } }];
+    note.strokeWeight = 1;
     const title = figma.createText();
     title.characters = screen.name;
     title.fontSize = 14;
     note.appendChild(title);
     const purpose = figma.createText();
-    purpose.characters = screen.purpose || "Purpose not written yet";
+    purpose.characters = screen.purpose;
     purpose.fontSize = 11;
     purpose.resize(152, 56);
-    purpose.opacity = screen.purpose ? 0.8 : 0.5;
+    purpose.opacity = 0.8;
     note.appendChild(purpose);
   }
   for (const link of project.interactions) {

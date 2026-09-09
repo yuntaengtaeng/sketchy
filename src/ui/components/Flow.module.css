@@ -4,13 +4,13 @@
   align-items: center;
   gap: 8px;
   padding: 14px 10px;
-  border: 1px solid #999;
+  border: 1px solid var(--sketchy-line);
   margin-bottom: 8px;
 }
 
 .divider {
   border: 0;
-  border-top: 1px solid var(--figma-color-border, #999);
+  border-top: 2px solid var(--sketchy-ink);
   margin: 16px 0;
 }
 
@@ -22,5 +22,5 @@
 
 .connection small {
   font-size: 10px;
-  color: #777;
+  color: var(--figma-color-text-secondary, #777);
 }

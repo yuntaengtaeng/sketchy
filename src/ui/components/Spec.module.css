@@ -1,5 +1,5 @@
 .spec h1 {
   font-size: 20px;
-  border-bottom: 3px solid;
+  border-bottom: 2px solid var(--sketchy-ink);
   padding-bottom: 8px;
 }

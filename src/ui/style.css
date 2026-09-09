@@ -2,6 +2,8 @@
   font-family: Inter, system-ui, sans-serif;
   color: var(--figma-color-text, #222);
   background: var(--figma-color-bg, #fafafa);
+  --sketchy-ink: var(--figma-color-text, #222);
+  --sketchy-line: var(--figma-color-border, #888);
 }
 
 * {
@@ -17,6 +19,8 @@ body {
 }
 main {
   padding: 16px;
+  max-width: 420px;
+  margin: auto;
 }
 
 button,
@@ -25,24 +29,35 @@ select,
 textarea {
   font: inherit;
   color: inherit;
-  border: 1px solid #999;
-  border-radius: 3px;
+  border: 1px solid var(--sketchy-line);
+  border-radius: 2px;
   background: transparent;
-  padding: 8px;
+  padding: 9px;
 }
 
 button {
   cursor: pointer;
   text-transform: capitalize;
+  min-height: 34px;
 }
 button:hover,
 button.active {
-  background: #222;
-  color: #fff;
+  background: var(--figma-color-bg-hover, #eee);
+  color: var(--sketchy-ink);
+}
+button:active {
+  background: var(--figma-color-bg-pressed, #ddd);
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px dashed var(--sketchy-ink);
+  outline-offset: 2px;
 }
 section {
-  padding: 14px 0;
-  border-bottom: 1px dashed #aaa;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--sketchy-line);
 }
 h1,
 h2,
@@ -52,8 +67,7 @@ p {
 }
 h2 {
   font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
 }
 h3 {
   font-size: 13px;
@@ -62,7 +76,7 @@ label {
   display: grid;
   gap: 5px;
   margin-top: 10px;
-  color: #666;
+  color: var(--figma-color-text-secondary, #666);
 }
 input,
 select,
@@ -75,7 +89,7 @@ textarea {
   min-height: 56px;
 }
 .muted {
-  color: #888;
+  color: var(--figma-color-text-secondary, #777);
 }
 .error {
   padding: 9px;

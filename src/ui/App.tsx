@@ -35,7 +35,11 @@ export default function App() {
   return (
     <main>
       <Header tab={tab} onChange={setTab} />
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
       {tab === "build" && (
         <Build
           project={project}
