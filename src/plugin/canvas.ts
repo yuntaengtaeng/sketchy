@@ -86,6 +86,7 @@ export async function insertBlock(screenId: string, block: BlockType) {
   node.setPluginData("sketchy:screen-id", screenId);
   node.setPluginData("sketchy:element-id", elementId);
   frame.appendChild(node);
+  if (node.type === "FRAME") node.layoutSizingHorizontal = "FILL";
   project.elements.push({
     id: elementId,
     nodeId: node.id,

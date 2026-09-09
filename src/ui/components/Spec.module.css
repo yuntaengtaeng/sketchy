@@ -3,14 +3,3 @@
   border-bottom: 3px solid;
   padding-bottom: 8px;
 }
-
-.title {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.title h1 {
-  flex: 1;
-}
