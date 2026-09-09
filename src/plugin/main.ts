@@ -75,8 +75,10 @@ figma.ui.onmessage = async (message: PluginMessage) => {
 };
 
 figma.on("selectionchange", () => sync());
-figma.on("documentchange", () => {
-  if (suppressDocumentChange) return;
-  clearTimeout(redrawTimer);
-  redrawTimer = setTimeout(() => sync(readProject(), true), 200);
-});
+void figma.loadAllPagesAsync().then(() =>
+  figma.on("documentchange", () => {
+    if (suppressDocumentChange) return;
+    clearTimeout(redrawTimer);
+    redrawTimer = setTimeout(() => sync(readProject(), true), 200);
+  }),
+);
