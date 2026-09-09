@@ -1,0 +1,25 @@
+{
+  "name": "sketchy",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build && vite build --config vite.plugin.config.ts",
+    "check": "tsc --noEmit && prettier --check .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@figma/plugin-typings": "latest",
+    "vite-plugin-singlefile": "latest",
+    "prettier": "latest"
+  },
+  "devDependencies": {}
+}

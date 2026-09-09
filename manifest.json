@@ -1,0 +1,9 @@
+{
+  "name": "Sketchy",
+  "id": "sketchy-local-development",
+  "api": "1.0.0",
+  "documentAccess": "dynamic-page",
+  "main": "dist/plugin.js",
+  "ui": "dist/index.html",
+  "editorType": ["figma"]
+}
