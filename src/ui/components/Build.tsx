@@ -141,6 +141,14 @@ export default function Build({
               </details>
             </>
           )}
+          <button
+            className={styles.delete}
+            onClick={() =>
+              post({ type: "DELETE_ELEMENT", elementId: element.id })
+            }
+          >
+            Delete
+          </button>
         </section>
       )}
 

@@ -122,6 +122,20 @@ export async function updateElement(
   return project;
 }
 
+export async function deleteElement(elementId: string) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  if (!element) return project;
+  const node = await figma.getNodeByIdAsync(element.nodeId);
+  node?.remove();
+  project.elements = project.elements.filter((item) => item.id !== elementId);
+  project.interactions = project.interactions.filter(
+    (item) => item.sourceElementId !== elementId,
+  );
+  saveProject(project);
+  return project;
+}
+
 export async function updateScreen(
   screenId: string,
   name: string,

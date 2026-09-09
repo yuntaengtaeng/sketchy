@@ -34,6 +34,7 @@ export type PluginMessage =
   | { type: "SELECT_SCREEN"; screenId: string }
   | { type: "UPDATE_SCREEN"; screenId: string; name: string; purpose: string }
   | { type: "INSERT_BLOCK"; screenId: string; block: BlockType }
+  | { type: "DELETE_ELEMENT"; elementId: string }
   | {
       type: "UPDATE_ELEMENT";
       elementId: string;
