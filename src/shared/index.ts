@@ -1,9 +1,13 @@
-export type BlockType = "text" | "button" | "input";
+export type BlockType =
+  "text" | "button" | "input" | "image" | "divider" | "section";
 
 export const BLOCK_TRIGGERS: Record<BlockType, FeatureTrigger["type"][]> = {
   text: [],
   button: ["click"],
   input: [],
+  image: [],
+  divider: [],
+  section: [],
 };
 
 export type Screen = {
@@ -20,8 +24,28 @@ export type Element = {
   name: string;
   description?: string;
   type: BlockType;
+  parentElementId?: string;
+  buttonVariant?: "filled" | "outline";
+  direction?: "vertical" | "horizontal";
   order?: number;
 };
+
+export function elementTreeIds(elements: Element[], rootId: string) {
+  const ids = new Set([rootId]);
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const element of elements)
+      if (
+        element.parentElementId &&
+        ids.has(element.parentElementId) &&
+        !ids.has(element.id)
+      ) {
+        ids.add(element.id);
+        changed = true;
+      }
+  }
+  return ids;
+}
 
 export type ScreenState = {
   id: string;
@@ -61,13 +85,29 @@ export type PluginMessage =
   | { type: "CREATE_SCREEN"; name: string }
   | { type: "SELECT_SCREEN"; screenId: string }
   | { type: "UPDATE_SCREEN"; screenId: string; name: string; purpose: string }
-  | { type: "INSERT_BLOCK"; screenId: string; block: BlockType }
+  | {
+      type: "INSERT_BLOCK";
+      screenId: string;
+      block: BlockType;
+      parentElementId?: string;
+      buttonVariant?: "filled" | "outline";
+    }
   | { type: "DELETE_ELEMENT"; elementId: string }
   | {
       type: "UPDATE_ELEMENT";
       elementId: string;
       name: string;
       description: string;
+    }
+  | {
+      type: "SET_BUTTON_VARIANT";
+      elementId: string;
+      variant: "filled" | "outline";
+    }
+  | {
+      type: "SET_SECTION_DIRECTION";
+      elementId: string;
+      direction: "vertical" | "horizontal";
     }
   | {
       type: "SAVE_FEATURE";

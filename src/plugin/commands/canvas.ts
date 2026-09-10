@@ -1,4 +1,4 @@
-import { BLOCK_TRIGGERS, type BlockType } from "../../shared";
+import { BLOCK_TRIGGERS, elementTreeIds, type BlockType } from "../../shared";
 import { readProject, saveProject } from "../storage/project";
 import { updateNavigation } from "./sync-prototype";
 
@@ -39,13 +39,29 @@ export async function createScreen(name: string) {
   return project;
 }
 
-export async function insertBlock(screenId: string, block: BlockType) {
+export async function insertBlock(
+  screenId: string,
+  block: BlockType,
+  parentElementId?: string,
+  buttonVariant: "filled" | "outline" = "filled",
+) {
   await loadFont();
   const project = readProject();
   const screen = project.screens.find((item) => item.id === screenId);
   const frame = screen && (await figma.getNodeByIdAsync(screen.nodeId));
   if (!frame || frame.type !== "FRAME")
     throw new Error("Select an existing Sketchy screen.");
+  const parentElement = project.elements.find(
+    (item) => item.id === parentElementId && item.screenId === screenId,
+  );
+  const parentNode = parentElement
+    ? await figma.getNodeByIdAsync(parentElement.nodeId)
+    : frame;
+  if (
+    parentElement &&
+    (parentElement.type !== "section" || parentNode?.type !== "FRAME")
+  )
+    throw new Error("Select a Sketchy section.");
   const elementId = id();
   const node = block === "text" ? figma.createText() : figma.createFrame();
   node.name = block[0].toUpperCase() + block.slice(1);
@@ -53,40 +69,60 @@ export async function insertBlock(screenId: string, block: BlockType) {
     node.characters = "Text";
     node.fontSize = 16;
   } else {
-    node.resize(272, 40);
-    node.layoutMode = "HORIZONTAL";
-    node.primaryAxisAlignItems = "CENTER";
+    const isSection = block === "section";
+    const isImage = block === "image";
+    const isDivider = block === "divider";
+    node.resize(272, isSection ? 64 : isImage ? 160 : isDivider ? 1 : 40);
+    node.layoutMode = isSection ? "VERTICAL" : "HORIZONTAL";
+    node.primaryAxisAlignItems = isSection ? "MIN" : "CENTER";
     node.counterAxisAlignItems = block === "button" ? "CENTER" : "MIN";
-    node.paddingLeft = node.paddingRight = 12;
-    node.cornerRadius = 4;
-    node.strokes = [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.2 } }];
+    node.itemSpacing = isSection ? 12 : 0;
+    node.paddingTop = node.paddingBottom = isSection ? 12 : 0;
+    node.paddingLeft = node.paddingRight = isSection
+      ? 12
+      : block === "input" || block === "button"
+        ? 12
+        : 0;
+    node.cornerRadius = isDivider ? 0 : 4;
+    node.strokes = isSection
+      ? [{ type: "SOLID", color: { r: 0.75, g: 0.75, b: 0.75 } }]
+      : isImage || block === "button" || block === "input"
+        ? [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.2 } }]
+        : [];
+    if (isSection) node.dashPattern = [4, 4];
+    const filledButton = block === "button" && buttonVariant === "filled";
     node.fills = [
       {
         type: "SOLID",
         color:
-          block === "button"
+          isDivider || filledButton
             ? { r: 0.15, g: 0.15, b: 0.15 }
-            : { r: 1, g: 1, b: 1 },
+            : isImage
+              ? { r: 0.92, g: 0.92, b: 0.9 }
+              : { r: 1, g: 1, b: 1 },
       },
     ];
-    const label = figma.createText();
-    label.characters = block === "button" ? "Button" : "Input";
-    label.fontSize = 14;
-    label.fills = [
-      {
-        type: "SOLID",
-        color:
-          block === "button"
+    if (!isDivider && !isSection) {
+      const label = figma.createText();
+      label.characters =
+        block === "button" ? "Button" : block === "image" ? "Image" : "Input";
+      label.fontSize = 14;
+      label.fills = [
+        {
+          type: "SOLID",
+          color: filledButton
             ? { r: 1, g: 1, b: 1 }
             : { r: 0.35, g: 0.35, b: 0.35 },
-      },
-    ];
-    node.appendChild(label);
+        },
+      ];
+      node.appendChild(label);
+    }
+    if (isSection) node.primaryAxisSizingMode = "AUTO";
   }
   node.setPluginData("sketchy:type", "element");
   node.setPluginData("sketchy:screen-id", screenId);
   node.setPluginData("sketchy:element-id", elementId);
-  frame.appendChild(node);
+  (parentNode as FrameNode).appendChild(node);
   if (node.type === "FRAME") node.layoutSizingHorizontal = "FILL";
   project.elements.push({
     id: elementId,
@@ -94,6 +130,9 @@ export async function insertBlock(screenId: string, block: BlockType) {
     screenId,
     name: node.name,
     type: block,
+    parentElementId: parentElement?.id,
+    buttonVariant: block === "button" ? buttonVariant : undefined,
+    direction: block === "section" ? "vertical" : undefined,
   });
   saveProject(project);
   figma.currentPage.selection = [node];
@@ -126,7 +165,11 @@ export async function updateElement(
   node.name = name;
   await loadFont();
   if (node.type === "TEXT") node.characters = name;
-  if (node.type === "FRAME") {
+  if (
+    node.type === "FRAME" &&
+    element.type !== "section" &&
+    element.type !== "divider"
+  ) {
     const label = node.children.find((child) => child.type === "TEXT");
     if (label?.type === "TEXT") label.characters = name;
   }
@@ -140,12 +183,57 @@ export async function deleteElement(elementId: string) {
   if (!element) return project;
   const node = await figma.getNodeByIdAsync(element.nodeId);
   node?.remove();
-  project.elements = project.elements.filter((item) => item.id !== elementId);
+  const removed = elementTreeIds(project.elements, elementId);
+  project.elements = project.elements.filter((item) => !removed.has(item.id));
   project.features = project.features.map((item) =>
-    item.trigger?.elementId === elementId
+    item.trigger?.elementId && removed.has(item.trigger.elementId)
       ? { ...item, trigger: undefined }
       : item,
   );
+  saveProject(project);
+  return project;
+}
+
+export async function setButtonVariant(
+  elementId: string,
+  variant: "filled" | "outline",
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "button" || node?.type !== "FRAME")
+    return project;
+  element.buttonVariant = variant;
+  const filled = variant === "filled";
+  node.fills = [
+    {
+      type: "SOLID",
+      color: filled ? { r: 0.15, g: 0.15, b: 0.15 } : { r: 1, g: 1, b: 1 },
+    },
+  ];
+  const label = node.children.find((child) => child.type === "TEXT");
+  if (label?.type === "TEXT")
+    label.fills = [
+      {
+        type: "SOLID",
+        color: filled ? { r: 1, g: 1, b: 1 } : { r: 0.15, g: 0.15, b: 0.15 },
+      },
+    ];
+  saveProject(project);
+  return project;
+}
+
+export async function setSectionDirection(
+  elementId: string,
+  direction: "vertical" | "horizontal",
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "section" || node?.type !== "FRAME")
+    return project;
+  element.direction = direction;
+  node.layoutMode = direction === "vertical" ? "VERTICAL" : "HORIZONTAL";
   saveProject(project);
   return project;
 }

@@ -53,6 +53,54 @@
   opacity: 0.55;
 }
 
+.block[data-block="image"] .preview {
+  border: 1px solid currentColor;
+  background: linear-gradient(
+    to top right,
+    transparent 49%,
+    currentColor 50%,
+    transparent 51%
+  );
+}
+
+.block[data-block="divider"] .preview {
+  height: 1px;
+  margin-top: 12px;
+  background: currentColor;
+}
+
+.block[data-block="section"] .preview {
+  border: 1px dashed var(--figma-color-border-disabled, #bbb);
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 6px;
+}
+
+.sectionHeader h2,
+.sectionHeader p {
+  margin: 0;
+}
+
+.sectionHeader small {
+  color: var(--figma-color-text-secondary, #777);
+}
+
+.back {
+  width: fit-content;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sectionCanvas {
+  margin: 0 -8px;
+  padding-right: 8px;
+  padding-left: 8px;
+  border: 1px dashed var(--figma-color-border-disabled, #bbb);
+}
+
 .more {
   margin-top: 10px;
 }

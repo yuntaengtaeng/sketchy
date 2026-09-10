@@ -3,6 +3,8 @@ import {
   createScreen,
   deleteElement,
   insertBlock,
+  setButtonVariant,
+  setSectionDirection,
   selectScreen,
   saveFeature,
   updateElement,
@@ -51,7 +53,20 @@ figma.ui.onmessage = async (message: PluginMessage) => {
     if (message.type === "CREATE_SCREEN")
       await sync(await createScreen(message.name), true);
     if (message.type === "INSERT_BLOCK")
-      await sync(await insertBlock(message.screenId, message.block));
+      await sync(
+        await insertBlock(
+          message.screenId,
+          message.block,
+          message.parentElementId,
+          message.buttonVariant,
+        ),
+      );
+    if (message.type === "SET_BUTTON_VARIANT")
+      await sync(await setButtonVariant(message.elementId, message.variant));
+    if (message.type === "SET_SECTION_DIRECTION")
+      await sync(
+        await setSectionDirection(message.elementId, message.direction),
+      );
     if (message.type === "DELETE_ELEMENT")
       await sync(await deleteElement(message.elementId), true);
     if (message.type === "UPDATE_ELEMENT")

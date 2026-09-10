@@ -1,9 +1,13 @@
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: var(--figma-color-bg, #fafafa);
   border-bottom: 2px solid var(--sketchy-ink);
-  padding-bottom: 12px;
+  padding: 16px 0 12px;
 }
 
 .header b {

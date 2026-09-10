@@ -1,6 +1,6 @@
 import { updateNavigation } from "./commands/sync-prototype.ts";
 import { describeFeature } from "../ui/features/spec/describe.ts";
-import type { Project } from "../shared/index.ts";
+import { elementTreeIds, type Project } from "../shared/index.ts";
 import { readingOrder } from "./reading-order.ts";
 
 const manual = {
@@ -60,3 +60,41 @@ const ordered = readingOrder([
 ]).map(({ item }) => item);
 if (ordered.join() !== "left,right,below")
   throw new Error("Elements must follow top-to-bottom reading order.");
+
+const sectionTree = elementTreeIds(
+  [
+    {
+      id: "section",
+      nodeId: "1",
+      screenId: "home",
+      name: "Section",
+      type: "section",
+    },
+    {
+      id: "child",
+      nodeId: "2",
+      screenId: "home",
+      name: "Button",
+      type: "button",
+      parentElementId: "section",
+    },
+    {
+      id: "nested",
+      nodeId: "3",
+      screenId: "home",
+      name: "Text",
+      type: "text",
+      parentElementId: "child",
+    },
+    {
+      id: "sibling",
+      nodeId: "4",
+      screenId: "home",
+      name: "Text",
+      type: "text",
+    },
+  ],
+  "section",
+);
+if ([...sectionTree].join() !== "section,child,nested")
+  throw new Error("Removing a section must include its nested elements only.");
