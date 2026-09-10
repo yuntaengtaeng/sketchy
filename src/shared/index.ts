@@ -1,14 +1,19 @@
-export type BlockType =
-  "text" | "button" | "input" | "image" | "divider" | "section";
-
-export const BLOCK_TRIGGERS: Record<BlockType, FeatureTrigger["type"][]> = {
-  text: [],
-  button: ["click"],
-  input: [],
-  image: [],
-  divider: [],
-  section: [],
+type BlockDefinition = {
+  label: string;
+  canAddToSection: boolean;
+  triggers: FeatureTrigger["type"][];
 };
+
+export const BLOCK_DEFINITIONS = {
+  text: { label: "Text", canAddToSection: true, triggers: [] },
+  button: { label: "Button", canAddToSection: true, triggers: ["click"] },
+  input: { label: "Input", canAddToSection: true, triggers: [] },
+  image: { label: "Image", canAddToSection: true, triggers: [] },
+  divider: { label: "Divider", canAddToSection: true, triggers: [] },
+  section: { label: "Section", canAddToSection: false, triggers: [] },
+} satisfies Record<string, BlockDefinition>;
+
+export type BlockType = keyof typeof BLOCK_DEFINITIONS;
 
 export type Screen = {
   id: string;
@@ -16,6 +21,19 @@ export type Screen = {
   name: string;
   purpose: string;
 };
+
+export type ScreenPreset = "mobile" | "tablet" | "desktop";
+
+export const SCREEN_PRESETS: Record<
+  ScreenPreset,
+  { label: string; width: number; height: number }
+> = {
+  mobile: { label: "Mobile", width: 390, height: 844 },
+  tablet: { label: "Tablet", width: 768, height: 1024 },
+  desktop: { label: "Desktop", width: 1440, height: 1024 },
+};
+
+export type ProjectSettings = { screenPreset: ScreenPreset };
 
 export type Element = {
   id: string;
@@ -88,16 +106,27 @@ export type Feature = {
 };
 
 export type Project = {
+  settings: ProjectSettings;
   screens: Screen[];
   elements: Element[];
   states: ScreenState[];
   features: Feature[];
 };
 
+export const createEmptyProject = (): Project => ({
+  settings: { screenPreset: "mobile" },
+  screens: [],
+  elements: [],
+  states: [],
+  features: [],
+});
+
 export type PluginMessage =
   | { type: "READY" }
+  | { type: "UPDATE_PROJECT_SETTINGS"; settings: ProjectSettings }
   | { type: "CREATE_SCREEN"; name: string }
   | { type: "SELECT_SCREEN"; screenId: string }
+  | { type: "SELECT_ELEMENT"; elementId: string }
   | { type: "UPDATE_SCREEN"; screenId: string; name: string; purpose: string }
   | {
       type: "INSERT_BLOCK";

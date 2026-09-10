@@ -1,5 +1,10 @@
 import type { Project, Screen } from "../../../shared";
-import { describeFeature, title } from "./describe";
+import {
+  describeFeature,
+  outlineElements,
+  title,
+  type ElementOutline,
+} from "./describe";
 import styles from "./Spec.module.css";
 
 export default function Spec({
@@ -9,9 +14,10 @@ export default function Spec({
   project: Project;
   screen?: Screen;
 }) {
-  const elements = project.elements
-    .filter((element) => element.screenId === screen?.id)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const elements = project.elements.filter(
+    (element) => element.screenId === screen?.id,
+  );
+  const outline = outlineElements(elements);
   const features = project.features.filter(
     (feature) => feature.screenId === screen?.id,
   );
@@ -27,14 +33,8 @@ export default function Spec({
             </>
           )}
           <h2>Visible elements · top to bottom</h2>
-          {elements.length ? (
-            <ol>
-              {elements.map((element) => (
-                <li key={element.id}>
-                  {element.name} ({title(element.type)})
-                </li>
-              ))}
-            </ol>
+          {outline.length ? (
+            <ElementList items={outline} />
           ) : (
             <p className="muted">No elements yet.</p>
           )}
@@ -51,5 +51,20 @@ export default function Spec({
         </>
       )}
     </section>
+  );
+}
+
+function ElementList({ items }: { items: ElementOutline[] }) {
+  return (
+    <ol className={styles.elements}>
+      {items.map(({ element, number, children }) => (
+        <li key={element.id}>
+          <span>
+            {number}. {element.name} ({title(element.type)})
+          </span>
+          {!!children.length && <ElementList items={children} />}
+        </li>
+      ))}
+    </ol>
   );
 }

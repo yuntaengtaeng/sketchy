@@ -1,6 +1,11 @@
 import { updateNavigation } from "./commands/sync-prototype.ts";
-import { describeFeature } from "../ui/features/spec/describe.ts";
 import {
+  describeFeature,
+  outlineElements,
+} from "../ui/features/spec/describe.ts";
+import {
+  BLOCK_DEFINITIONS,
+  createEmptyProject,
   elementTreeIds,
   sectionLayout,
   type Project,
@@ -33,6 +38,7 @@ if (!blocked)
   throw new Error("Manual click interactions must not be replaced.");
 
 const project = {
+  settings: { screenPreset: "mobile" },
   screens: [{ id: "home", nodeId: "1", name: "Home", purpose: "" }],
   elements: [
     {
@@ -111,3 +117,34 @@ if (
   throw new Error(
     "A horizontal section must keep its width and hug its height.",
   );
+
+if (createEmptyProject().settings.screenPreset !== "mobile")
+  throw new Error("New projects must default to a mobile screen.");
+
+const outline = outlineElements([
+  {
+    id: "section",
+    nodeId: "1",
+    screenId: "home",
+    name: "Section",
+    type: "section",
+    order: 0,
+  },
+  {
+    id: "button",
+    nodeId: "2",
+    screenId: "home",
+    name: "Button",
+    type: "button",
+    parentElementId: "section",
+    order: 1,
+  },
+]);
+if (outline[0]?.number !== "1" || outline[0]?.children[0]?.number !== "1-1")
+  throw new Error("Section elements must use hierarchical numbering.");
+
+if (
+  BLOCK_DEFINITIONS.section.canAddToSection ||
+  !BLOCK_DEFINITIONS.button.triggers.includes("click")
+)
+  throw new Error("Block behavior must come from the shared registry.");

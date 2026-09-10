@@ -1,6 +1,30 @@
-import type { Feature, Project } from "../../../shared";
+import type { Element, Feature, Project } from "../../../shared";
 
 export const title = (value: string) => value[0].toUpperCase() + value.slice(1);
+
+export type ElementOutline = {
+  element: Element;
+  number: string;
+  children: ElementOutline[];
+};
+
+export function outlineElements(
+  elements: Element[],
+  parentElementId?: string,
+  prefix = "",
+): ElementOutline[] {
+  return elements
+    .filter((element) => element.parentElementId === parentElementId)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map((element, index) => {
+      const number = prefix ? `${prefix}-${index + 1}` : `${index + 1}`;
+      return {
+        element,
+        number,
+        children: outlineElements(elements, element.id, number),
+      };
+    });
+}
 
 export function describeFeature(project: Project, feature: Feature) {
   const element = project.elements.find(

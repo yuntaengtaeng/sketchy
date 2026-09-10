@@ -3,3 +3,15 @@
   border-bottom: 2px solid var(--sketchy-ink);
   padding-bottom: 8px;
 }
+
+.elements {
+  display: grid;
+  gap: 6px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.elements .elements {
+  margin-top: 6px;
+  padding-left: 18px;
+}

@@ -1,6 +1,7 @@
 import {
-  BLOCK_TRIGGERS,
+  BLOCK_DEFINITIONS,
   elementTreeIds,
+  SCREEN_PRESETS,
   sectionLayout,
   type BlockType,
 } from "../../shared";
@@ -17,8 +18,9 @@ export async function createScreen(name: string) {
   const project = readProject();
   const frame = figma.createFrame();
   const screenId = id();
+  const preset = SCREEN_PRESETS[project.settings.screenPreset];
   frame.name = name || `Screen ${project.screens.length + 1}`;
-  frame.resize(320, 568);
+  frame.resize(preset.width, preset.height);
   frame.layoutMode = "VERTICAL";
   frame.primaryAxisSizingMode = frame.counterAxisSizingMode = "FIXED";
   frame.itemSpacing = 16;
@@ -27,11 +29,21 @@ export async function createScreen(name: string) {
     frame.paddingBottom =
     frame.paddingLeft =
       24;
-  frame.fills = [{ type: "SOLID", color: { r: 0.97, g: 0.97, b: 0.95 } }];
+  frame.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
   frame.strokes = [{ type: "SOLID", color: { r: 0.25, g: 0.25, b: 0.25 } }];
   frame.setPluginData("sketchy:type", "screen");
   frame.setPluginData("sketchy:screen-id", screenId);
-  frame.x = project.screens.length * 560;
+  const existing = (
+    await Promise.all(
+      project.screens.map((screen) => figma.getNodeByIdAsync(screen.nodeId)),
+    )
+  ).filter(
+    (node): node is FrameNode =>
+      node?.type === "FRAME" && node.parent === figma.currentPage,
+  );
+  frame.x = existing.length
+    ? Math.max(...existing.map((node) => node.x + node.width)) + 240
+    : 0;
   project.screens.push({
     id: screenId,
     nodeId: frame.id,
@@ -69,7 +81,7 @@ export async function insertBlock(
     throw new Error("Select a Sketchy section.");
   const elementId = id();
   const node = block === "text" ? figma.createText() : figma.createFrame();
-  node.name = block[0].toUpperCase() + block.slice(1);
+  node.name = BLOCK_DEFINITIONS[block].label;
   if (node.type === "TEXT") {
     node.characters = "Text";
     node.fontSize = 16;
@@ -148,7 +160,9 @@ export async function insertBlock(
     direction: block === "section" ? "vertical" : undefined,
   });
   saveProject(project);
-  figma.currentPage.selection = [node];
+  figma.currentPage.selection = parentElement
+    ? [parentNode as FrameNode]
+    : [node];
   return project;
 }
 
@@ -304,7 +318,9 @@ export async function saveFeature(
   const source = element && (await figma.getNodeByIdAsync(element.nodeId));
   if (
     !element ||
-    !BLOCK_TRIGGERS[element.type].includes("click") ||
+    !BLOCK_DEFINITIONS[element.type].triggers.some(
+      (trigger) => trigger === "click",
+    ) ||
     !source ||
     !("setReactionsAsync" in source)
   )
@@ -394,6 +410,16 @@ export async function saveFeature(
 export async function selectScreen(screenId: string) {
   const screen = readProject().screens.find((item) => item.id === screenId);
   const node = screen && (await figma.getNodeByIdAsync(screen.nodeId));
+  if (!node || !("visible" in node)) return;
+  if (node.parent?.type === "PAGE")
+    await figma.setCurrentPageAsync(node.parent);
+  figma.currentPage.selection = [node];
+  figma.viewport.scrollAndZoomIntoView([node]);
+}
+
+export async function selectElement(elementId: string) {
+  const element = readProject().elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
   if (!node || !("visible" in node)) return;
   if (node.parent?.type === "PAGE")
     await figma.setCurrentPageAsync(node.parent);

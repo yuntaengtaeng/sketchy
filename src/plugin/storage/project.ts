@@ -1,10 +1,18 @@
-import type { Feature, Project, ScreenState } from "../../shared";
+import {
+  createEmptyProject,
+  SCREEN_PRESETS,
+  type Feature,
+  type Project,
+  type ProjectSettings,
+  type ScreenState,
+} from "../../shared";
 import { readingOrder } from "../reading-order";
 
 const KEY = "sketchy:project";
 export function readProject(): Project {
   try {
     const stored = JSON.parse(figma.root.getPluginData(KEY)) || {};
+    const screenPreset = stored.settings?.screenPreset;
     const features: Feature[] = stored.features
       ? stored.features.map(
           (feature: Feature & { sourceElementId?: string }) => ({
@@ -49,6 +57,12 @@ export function readProject(): Project {
           }),
         );
     return {
+      settings: {
+        screenPreset:
+          typeof screenPreset === "string" && screenPreset in SCREEN_PRESETS
+            ? (screenPreset as keyof typeof SCREEN_PRESETS)
+            : "mobile",
+      },
       screens: stored.screens || [],
       elements: stored.elements || [],
       states: (stored.states || []).map((state: ScreenState) => ({
@@ -59,11 +73,17 @@ export function readProject(): Project {
       features,
     };
   } catch {
-    return { screens: [], elements: [], states: [], features: [] };
+    return createEmptyProject();
   }
 }
 export const saveProject = (project: Project) =>
   figma.root.setPluginData(KEY, JSON.stringify(project));
+export function updateProjectSettings(settings: ProjectSettings) {
+  const project = readProject();
+  project.settings = settings;
+  saveProject(project);
+  return project;
+}
 export async function cleanProject(project: Project) {
   const exists = async <T extends { nodeId: string }>(item: T) =>
     (await figma.getNodeByIdAsync(item.nodeId)) ? item : undefined;
@@ -118,7 +138,13 @@ export async function cleanProject(project: Project) {
     features.length !== project.features.length ||
     features.some((feature, index) => feature !== project.features[index])
   ) {
-    project = { screens, elements, states, features };
+    project = {
+      settings: project.settings,
+      screens,
+      elements,
+      states,
+      features,
+    };
     saveProject(project);
   }
   return project;

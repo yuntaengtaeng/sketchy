@@ -1,0 +1,26 @@
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.preset {
+  display: grid;
+  gap: 4px;
+  text-align: left;
+}
+
+.preset[aria-pressed="true"] {
+  background: var(--sketchy-ink);
+  color: var(--figma-color-bg, #fafafa);
+}
+
+.preset small {
+  font-size: 10px;
+}
+
+.note {
+  margin-top: 12px;
+  color: var(--figma-color-text-secondary, #777);
+  font-size: 11px;
+}

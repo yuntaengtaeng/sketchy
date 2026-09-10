@@ -73,32 +73,30 @@
   border: 1px dashed var(--figma-color-border-disabled, #bbb);
 }
 
-.sectionHeader {
-  display: grid;
-  gap: 6px;
-}
-
-.sectionHeader h2,
-.sectionHeader p {
-  margin: 0;
-}
-
-.sectionHeader small {
-  color: var(--figma-color-text-secondary, #777);
-}
-
-.back {
-  width: fit-content;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-}
-
 .sectionCanvas {
   margin: 0 -8px;
   padding-right: 8px;
   padding-left: 8px;
   border: 1px dashed var(--figma-color-border-disabled, #bbb);
+}
+
+.nodes {
+  display: grid;
+  gap: 6px;
+}
+
+.nodes button {
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.nodes button[aria-pressed="true"] {
+  background: var(--figma-color-bg-selected, #e5e5e5);
+}
+
+.nodes small {
+  color: var(--figma-color-text-secondary, #777);
 }
 
 .more {

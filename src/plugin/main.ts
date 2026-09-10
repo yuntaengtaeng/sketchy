@@ -5,13 +5,18 @@ import {
   insertBlock,
   setButtonVariant,
   setSectionDirection,
+  selectElement,
   selectScreen,
   saveFeature,
   updateElement,
   updateScreen,
 } from "./commands/canvas";
 import { renderFlow } from "./commands/render-flow";
-import { cleanProject, readProject } from "./storage/project";
+import {
+  cleanProject,
+  readProject,
+  updateProjectSettings,
+} from "./storage/project";
 
 figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
 
@@ -50,6 +55,8 @@ async function sync(project: Project = readProject(), draw = false) {
 figma.ui.onmessage = async (message: PluginMessage) => {
   try {
     if (message.type === "READY") await sync(readProject(), true);
+    if (message.type === "UPDATE_PROJECT_SETTINGS")
+      await sync(updateProjectSettings(message.settings));
     if (message.type === "CREATE_SCREEN")
       await sync(await createScreen(message.name), true);
     if (message.type === "INSERT_BLOCK")
@@ -89,6 +96,8 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         true,
       );
     if (message.type === "SELECT_SCREEN") await selectScreen(message.screenId);
+    if (message.type === "SELECT_ELEMENT")
+      await selectElement(message.elementId);
   } catch (error) {
     figma.ui.postMessage({
       type: "ERROR",

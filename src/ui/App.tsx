@@ -1,22 +1,28 @@
 import { useEffect, useState } from "react";
-import type { Project, UiMessage } from "../shared";
+import { createEmptyProject, type UiMessage } from "../shared";
 import Header, { type Tab } from "./components/Header";
 import Build from "./features/build/Build";
 import Flow from "./features/flow/Flow";
 import Spec from "./features/spec/Spec";
+import Settings from "./features/settings/Settings";
 import { post } from "./plugin";
 
-const empty: Project = { screens: [], elements: [], states: [], features: [] };
+type Route = { name: "workspace" } | { name: "settings" };
 
 export default function App() {
-  const [project, setProject] = useState(empty);
+  const [project, setProject] = useState(createEmptyProject);
   const [screenId, setScreenId] = useState<string>();
   const [elementId, setElementId] = useState<string>();
   const [tab, setTab] = useState<Tab>("build");
+  const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
   const screen =
     project.screens.find((item) => item.id === screenId) || project.screens[0];
   const element = project.elements.find((item) => item.id === elementId);
+  const section =
+    element?.type === "section"
+      ? element
+      : project.elements.find((item) => item.id === element?.parentElementId);
 
   useEffect(() => {
     onmessage = ({ data }) => {
@@ -34,13 +40,35 @@ export default function App() {
 
   return (
     <main>
-      <Header tab={tab} onChange={setTab} />
+      <Header
+        tab={tab}
+        context={
+          route.name === "settings"
+            ? {
+                title: "Settings",
+                onBack: () => setRoute({ name: "workspace" }),
+              }
+            : section && screen
+              ? {
+                  title: "Section",
+                  onBack: () =>
+                    post({ type: "SELECT_SCREEN", screenId: screen.id }),
+                }
+              : undefined
+        }
+        onChange={(nextTab) => {
+          setTab(nextTab);
+          setRoute({ name: "workspace" });
+        }}
+        onSettings={() => setRoute({ name: "settings" })}
+      />
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
-      {tab === "build" && (
+      {route.name === "settings" && <Settings settings={project.settings} />}
+      {route.name === "workspace" && tab === "build" && (
         <Build
           project={project}
           screen={screen}
@@ -48,8 +76,12 @@ export default function App() {
           onScreenChange={setScreenId}
         />
       )}
-      {tab === "flow" && <Flow project={project} selectedScreenId={screenId} />}
-      {tab === "spec" && <Spec project={project} screen={screen} />}
+      {route.name === "workspace" && tab === "flow" && (
+        <Flow project={project} selectedScreenId={screenId} />
+      )}
+      {route.name === "workspace" && tab === "spec" && (
+        <Spec project={project} screen={screen} />
+      )}
     </main>
   );
 }
