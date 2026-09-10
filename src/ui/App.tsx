@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createEmptyProject, type UiMessage } from "../shared";
-import Header, { type Tab } from "./components/Header";
+import { BackNavigation, Header, type Tab } from "./components/header";
 import Build from "./features/build/Build";
 import Flow from "./features/flow/Flow";
 import Spec from "./features/spec/Spec";
@@ -23,6 +23,15 @@ export default function App() {
     element?.type === "section"
       ? element
       : project.elements.find((item) => item.id === element?.parentElementId);
+  const context =
+    route.name === "settings"
+      ? { title: "Settings", onBack: () => setRoute({ name: "workspace" }) }
+      : section && screen
+        ? {
+            title: "Section",
+            onBack: () => post({ type: "SELECT_SCREEN", screenId: screen.id }),
+          }
+        : undefined;
 
   useEffect(() => {
     onmessage = ({ data }) => {
@@ -40,28 +49,18 @@ export default function App() {
 
   return (
     <main>
-      <Header
-        tab={tab}
-        context={
-          route.name === "settings"
-            ? {
-                title: "Settings",
-                onBack: () => setRoute({ name: "workspace" }),
-              }
-            : section && screen
-              ? {
-                  title: "Section",
-                  onBack: () =>
-                    post({ type: "SELECT_SCREEN", screenId: screen.id }),
-                }
-              : undefined
-        }
-        onChange={(nextTab) => {
-          setTab(nextTab);
-          setRoute({ name: "workspace" });
-        }}
-        onSettings={() => setRoute({ name: "settings" })}
-      />
+      {context ? (
+        <BackNavigation title={context.title} onBack={context.onBack} />
+      ) : (
+        <Header
+          tab={tab}
+          onChange={(nextTab) => {
+            setTab(nextTab);
+            setRoute({ name: "workspace" });
+          }}
+          onSettings={() => setRoute({ name: "settings" })}
+        />
+      )}
       {error && (
         <p className="error" role="alert">
           {error}
