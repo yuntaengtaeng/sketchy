@@ -133,7 +133,6 @@ export async function updateElement(
   );
   for (const feature of features) {
     feature.name = name;
-    feature.description = description;
   }
   node.name = name;
   await loadFont();

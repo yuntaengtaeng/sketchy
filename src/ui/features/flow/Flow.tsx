@@ -58,6 +58,11 @@ export default function Flow({
                 <small> not linked</small>
               </div>
             )
+          ) : action.type === "close-overlay" ? (
+            <div>
+              Close popup
+              {feature.description && <small>{feature.description}</small>}
+            </div>
           ) : (
             <div>
               {feature.description || "Outcome not described"}

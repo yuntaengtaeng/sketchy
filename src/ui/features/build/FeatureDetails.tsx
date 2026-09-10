@@ -5,7 +5,7 @@ import type {
   Project,
 } from "../../../shared";
 import { post } from "../../plugin";
-import FeatureCaseEditor from "./FeatureCaseEditor";
+import FeatureCaseEditor, { type CaseChanges } from "./FeatureCaseEditor";
 
 export default function FeatureDetails({
   project,
@@ -20,13 +20,14 @@ export default function FeatureDetails({
   const save = (
     feature: Feature | undefined,
     action: FeatureAction,
-    condition = feature?.condition,
+    changes: CaseChanges = {},
   ) =>
     post({
       type: "SAVE_FEATURE",
       sourceElementId: element.id,
       featureId: feature?.id,
-      condition,
+      condition: changes.condition ?? feature?.condition,
+      description: changes.description ?? feature?.description,
       action,
     });
   return (
@@ -48,23 +49,6 @@ export default function FeatureDetails({
         >
           + Add case
         </button>
-      )}
-      {!!features.length && (
-        <label>
-          Also happens
-          <textarea
-            defaultValue={element.description || ""}
-            placeholder="e.g. Save the choice"
-            onBlur={(event) =>
-              post({
-                type: "UPDATE_ELEMENT",
-                elementId: element.id,
-                name: element.name,
-                description: event.target.value,
-              })
-            }
-          />
-        </label>
       )}
     </>
   );

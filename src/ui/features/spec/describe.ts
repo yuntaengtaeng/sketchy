@@ -41,10 +41,12 @@ export function describeFeature(project: Project, feature: Feature) {
         )
       : undefined;
   const result =
-    "destinationScreenId" in action
-      ? destination
-        ? `${action.type === "navigate" ? "Go to" : "Open"} ${destination.name}${feature.description ? `; ${feature.description}` : ""}`
-        : "Destination not selected"
-      : feature.description || "Outcome not described";
+    action.type === "close-overlay"
+      ? `Close popup${feature.description ? `; ${feature.description}` : ""}`
+      : "destinationScreenId" in action
+        ? destination
+          ? `${action.type === "navigate" ? "Go to" : "Open"} ${destination.name}${feature.description ? `; ${feature.description}` : ""}`
+          : "Destination not selected"
+        : feature.description || "Outcome not described";
   return `${feature.condition ? `When ${feature.condition}, ` : ""}${trigger} ${element?.name || feature.name} → ${result}`;
 }

@@ -11,6 +11,14 @@ const navigatesTo = (reaction: Reaction, destinationId: string) => {
   );
 };
 
+const closesOverlay = (reaction: Reaction) => {
+  const actions =
+    reaction.actions || (reaction.action ? [reaction.action] : []);
+  return (
+    isClick(reaction) && actions.length === 1 && actions[0].type === "CLOSE"
+  );
+};
+
 export function withoutMissingDestinations(
   reactions: readonly Reaction[],
   existingDestinationIds: Set<string>,
@@ -57,6 +65,25 @@ export function updateNavigation(
           preserveScrollPosition: false,
         },
       ],
+    });
+  return next;
+}
+
+export function updateCloseOverlay(
+  reactions: readonly Reaction[],
+  remove = false,
+) {
+  const owned = reactions.findIndex(closesOverlay);
+  if (
+    !remove &&
+    reactions.some((reaction, index) => index !== owned && isClick(reaction))
+  )
+    throw new Error("This button already has a Figma click interaction.");
+  const next = reactions.filter((_, index) => index !== owned);
+  if (!remove)
+    next.push({
+      trigger: { type: "ON_CLICK" },
+      actions: [{ type: "CLOSE" }],
     });
   return next;
 }

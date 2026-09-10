@@ -13,6 +13,10 @@ export default function ElementDetails({
   element: SketchyElement;
 }) {
   const Options = BLOCK_OPTIONS[element.type];
+  const screen = project.screens.find((item) => item.id === element.screenId);
+  const insidePopup =
+    project.elements.find((item) => item.id === element.parentElementId)
+      ?.role === "popup";
   return (
     <section key={element.id}>
       <h2>{element.type} details</h2>
@@ -31,9 +35,10 @@ export default function ElementDetails({
         />
       </label>
       {Options && <Options element={element} />}
-      {BLOCK_DEFINITIONS[element.type].triggers.length > 0 && (
-        <FeatureDetails project={project} element={element} />
-      )}
+      {BLOCK_DEFINITIONS[element.type].triggers.length > 0 &&
+        (!screen?.kind || insidePopup) && (
+          <FeatureDetails project={project} element={element} />
+        )}
       {element.role !== "popup" && (
         <button
           className={styles.delete}

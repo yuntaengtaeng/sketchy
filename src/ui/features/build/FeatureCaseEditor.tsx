@@ -7,9 +7,16 @@ import type {
 import { post } from "../../plugin";
 import styles from "./FeatureDetails.module.css";
 
-const choices = [
+export type CaseChanges = { condition?: string; description?: string };
+
+const screenChoices = [
   ["navigate", "Go to screen"],
   ["overlay", "Open popup"],
+  ["describe", "Stay on screen"],
+] as const;
+const popupChoices = [
+  ["navigate", "Go to screen"],
+  ["close-overlay", "Close popup"],
   ["describe", "Stay on screen"],
 ] as const;
 
@@ -27,9 +34,13 @@ export default function FeatureCaseEditor({
   onSave: (
     feature: Feature | undefined,
     action: FeatureAction,
-    condition?: string,
+    changes?: CaseChanges,
   ) => void;
 }) {
+  const insidePopup =
+    project.elements.find((item) => item.id === element.parentElementId)
+      ?.role === "popup";
+  const choices = insidePopup ? popupChoices : screenChoices;
   const action = feature?.action;
   const destinationAction =
     action?.type === "navigate" || action?.type === "overlay"
@@ -45,7 +56,9 @@ export default function FeatureCaseEditor({
       : undefined;
   return (
     <fieldset className={styles.case}>
-      <legend>{index ? `Case ${index + 1}` : "Default"}</legend>
+      <legend>
+        {index ? `Case ${index + 1} · flow` : "Default · prototype"}
+      </legend>
       {!!index && feature && (
         <label>
           When
@@ -53,7 +66,9 @@ export default function FeatureCaseEditor({
             defaultValue={feature.condition || ""}
             placeholder="e.g. Cannot continue yet"
             onBlur={(event) =>
-              onSave(feature, feature.action, event.target.value)
+              onSave(feature, feature.action, {
+                condition: event.target.value,
+              })
             }
           />
         </label>
@@ -74,7 +89,9 @@ export default function FeatureCaseEditor({
                     ? { type: "navigate" }
                     : value === "overlay"
                       ? { type: "overlay" }
-                      : { type: "describe" },
+                      : value === "close-overlay"
+                        ? { type: "close-overlay" }
+                        : { type: "describe" },
                 );
               }}
             >
@@ -101,7 +118,8 @@ export default function FeatureCaseEditor({
                 (item) =>
                   item.id !== element.screenId &&
                   (destinationAction.type === "overlay"
-                    ? item.kind === "popup"
+                    ? item.kind === "popup" &&
+                      item.baseScreenId === element.screenId
                     : !item.kind),
               )
               .map((item) => (
@@ -121,6 +139,24 @@ export default function FeatureCaseEditor({
         >
           Edit popup
         </button>
+      )}
+      {feature && (
+        <label>
+          {feature.action.type === "describe" ? "Outcome" : "Also happens"}
+          <textarea
+            defaultValue={feature.description || ""}
+            placeholder={
+              feature.action.type === "describe"
+                ? "e.g. Keep the current selection"
+                : "e.g. Save the choice"
+            }
+            onBlur={(event) =>
+              onSave(feature, feature.action, {
+                description: event.target.value,
+              })
+            }
+          />
+        </label>
       )}
       {feature && (
         <button

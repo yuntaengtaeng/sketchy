@@ -26,11 +26,30 @@ export default function Build({
     element?.type === "section"
       ? element
       : project.elements.find((item) => item.id === element?.parentElementId);
+  const derivedStates = screen
+    ? project.screens.filter((item) => item.baseScreenId === screen.id)
+    : [];
+  const removedScreenIds = new Set(
+    [screen?.id, ...derivedStates.map((item) => item.id)].filter(
+      (id): id is string => !!id,
+    ),
+  );
   const incomingConnections = project.features.filter(
     (feature) =>
       "destinationScreenId" in feature.action &&
-      feature.action.destinationScreenId === screen?.id,
+      !!feature.action.destinationScreenId &&
+      removedScreenIds.has(feature.action.destinationScreenId),
   ).length;
+  const deleteImpact = [
+    derivedStates.length
+      ? `${derivedStates.length} derived ${derivedStates.length === 1 ? "state" : "states"}`
+      : "",
+    incomingConnections
+      ? `${incomingConnections} incoming ${incomingConnections === 1 ? "connection" : "connections"}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" and ");
   return (
     <>
       {!section && (
@@ -45,11 +64,26 @@ export default function Build({
               }}
             >
               <option value="">Select a screen</option>
-              {project.screens.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
+              <optgroup label="Screens">
+                {project.screens
+                  .filter((item) => !item.kind)
+                  .map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+              </optgroup>
+              {!!project.screens.some((item) => item.kind) && (
+                <optgroup label="States">
+                  {project.screens
+                    .filter((item) => item.kind)
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name}
+                      </option>
+                    ))}
+                </optgroup>
+              )}
             </select>
             <button
               onClick={() =>
@@ -81,7 +115,9 @@ export default function Build({
       {screen && !section && (
         <section key={screen.id}>
           <details className={`${styles.more} ${styles.screenDetails}`}>
-            <summary>Screen details</summary>
+            <summary>
+              {screen.kind ? "State details" : "Screen details"}
+            </summary>
             <label>
               Name
               <input
@@ -111,26 +147,24 @@ export default function Build({
                 }
               />
             </label>
-            <button
-              onClick={() =>
-                post({ type: "DUPLICATE_SCREEN", screenId: screen.id })
-              }
-            >
-              Duplicate screen
-            </button>
+            {!screen.kind && (
+              <button
+                onClick={() =>
+                  post({ type: "DUPLICATE_SCREEN", screenId: screen.id })
+                }
+              >
+                Duplicate screen
+              </button>
+            )}
             <button
               className={styles.delete}
               onClick={() =>
                 confirm(
-                  `Delete ${screen.name}?${
-                    incomingConnections
-                      ? ` This also removes ${incomingConnections} incoming ${incomingConnections === 1 ? "connection" : "connections"}.`
-                      : ""
-                  } This cannot be undone.`,
+                  `Delete ${screen.name}?${deleteImpact ? ` This also removes ${deleteImpact}.` : ""} This cannot be undone.`,
                 ) && post({ type: "DELETE_SCREEN", screenId: screen.id })
               }
             >
-              Delete screen
+              Delete {screen.kind ? "state" : "screen"}
             </button>
           </details>
         </section>

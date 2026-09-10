@@ -106,6 +106,7 @@ figma.ui.onmessage = async (message: PluginMessage) => {
           message.action,
           message.featureId,
           message.condition,
+          message.description,
         ),
         true,
       );

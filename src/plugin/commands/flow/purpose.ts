@@ -45,9 +45,11 @@ export function renderPurpose(
     const behavior = figma.createText();
     const action = feature.action;
     const result =
-      "destinationScreenId" in action
-        ? `${action.type === "navigate" ? "go to" : "open"} ${project.screens.find((item) => item.id === action.destinationScreenId)?.name || "choose destination"}${feature.description ? `; ${feature.description}` : ""}`
-        : feature.description || "Outcome not described";
+      action.type === "close-overlay"
+        ? `close popup${feature.description ? `; ${feature.description}` : ""}`
+        : "destinationScreenId" in action
+          ? `${action.type === "navigate" ? "go to" : "open"} ${project.screens.find((item) => item.id === action.destinationScreenId)?.name || "choose destination"}${feature.description ? `; ${feature.description}` : ""}`
+          : feature.description || "Outcome not described";
     behavior.characters = `- ${feature.condition ? `when ${feature.condition}: ` : ""}${feature.name} click → ${result}`;
     behavior.fontSize = 11;
     behavior.resize(192, 24);

@@ -1,11 +1,13 @@
 .case {
+  display: grid;
+  gap: 12px;
   margin: 12px 0;
   padding: 10px;
   border: 1px solid var(--sketchy-line);
 }
 
 .actions {
-  margin: 8px 0 6px;
+  margin: 0;
   padding: 0;
 }
 
@@ -28,5 +30,14 @@
 }
 
 .remove {
+  justify-self: start;
+  min-height: 0;
+  padding: 0;
+  border: 0;
   color: var(--figma-color-text-danger, #a00);
+  text-decoration: underline;
+}
+
+.case > label {
+  margin-top: 0;
 }

@@ -1,4 +1,5 @@
 import {
+  updateCloseOverlay,
   updateNavigation,
   withoutMissingDestinations,
 } from "./commands/sync-prototype.ts";
@@ -38,6 +39,12 @@ if (
   String(overlayAction.navigation) !== "OVERLAY"
 )
   throw new Error("Popup actions must create an overlay.");
+
+const close = updateCloseOverlay([]);
+if (close[0]?.actions?.[0]?.type !== "CLOSE")
+  throw new Error("Popup buttons must create a close action.");
+if (updateCloseOverlay(close, true).length)
+  throw new Error("Popup close actions must be removable.");
 
 let blocked = false;
 try {

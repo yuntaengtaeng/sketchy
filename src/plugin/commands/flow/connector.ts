@@ -77,7 +77,7 @@ export async function renderConnector(
       horizontal,
       lane,
     ),
-    state = link.action.type === "overlay";
+    state = link.action.type === "overlay" || !!link.condition;
   for (let index = 1; index < points.length; index++)
     drawLine(
       sourceScreen.parent,
@@ -105,7 +105,9 @@ export async function renderConnector(
   const label = figma.createText();
   markGenerated(label);
   sourceScreen.parent.insertChild(0, label);
-  label.characters = link.name;
+  label.characters = link.condition
+    ? `${link.name} · ${link.condition}`
+    : link.name;
   label.fontSize = 12;
   const segment = longestRouteSegment(points);
   label.x = (segment.start.x + segment.end.x) / 2 - label.width / 2;

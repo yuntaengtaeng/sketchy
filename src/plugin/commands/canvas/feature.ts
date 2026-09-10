@@ -6,6 +6,7 @@ import {
 } from "../../../shared";
 import { readProject, saveProject } from "../../storage/project";
 import {
+  updateCloseOverlay,
   updateNavigation,
   withoutMissingDestinations,
 } from "../sync-prototype";
@@ -36,6 +37,10 @@ async function syncReaction(
   );
   for (const feature of previous) {
     const action = feature.action;
+    if (action.type === "close-overlay") {
+      reactions = updateCloseOverlay(reactions, true);
+      continue;
+    }
     const destination =
       "destinationScreenId" in action
         ? project.screens.find(
@@ -55,12 +60,14 @@ async function syncReaction(
     (screen) => screen.id === primaryDestinationId,
   );
   await source.setReactionsAsync(
-    updateNavigation(
-      reactions,
-      undefined,
-      destination?.nodeId,
-      primary?.action.type === "overlay" ? "OVERLAY" : "NAVIGATE",
-    ),
+    primary?.action.type === "close-overlay"
+      ? updateCloseOverlay(reactions)
+      : updateNavigation(
+          reactions,
+          undefined,
+          destination?.nodeId,
+          primary?.action.type === "overlay" ? "OVERLAY" : "NAVIGATE",
+        ),
   );
 }
 
@@ -69,6 +76,7 @@ export async function saveFeature(
   input: FeatureAction,
   featureId?: string,
   condition?: string,
+  description?: string,
 ) {
   const project = readProject();
   const element = project.elements.find((item) => item.id === sourceElementId);
@@ -96,8 +104,23 @@ export async function saveFeature(
     throw new Error("Select an existing destination screen.");
   if (action.type === "navigate" && destination?.kind)
     throw new Error("Select a screen destination.");
-  if (action.type === "overlay" && destination && destination.kind !== "popup")
+  if (
+    action.type === "overlay" &&
+    destination &&
+    (destination.kind !== "popup" ||
+      destination.baseScreenId !== element.screenId)
+  )
     throw new Error("Select a popup destination.");
+  const sourceScreen = project.screens.find(
+    (screen) => screen.id === element.screenId,
+  );
+  const insidePopup =
+    project.elements.find((item) => item.id === element.parentElementId)
+      ?.role === "popup";
+  if (action.type === "overlay" && sourceScreen?.kind)
+    throw new Error("A popup cannot open another popup.");
+  if (action.type === "close-overlay" && !insidePopup)
+    throw new Error("Only a popup can be closed.");
   const previous = project.features.filter(
     (feature) => feature.trigger?.elementId === sourceElementId,
   );
@@ -123,7 +146,7 @@ export async function saveFeature(
     trigger: { type: "click" as const, elementId: sourceElementId },
     name: element.name,
     condition: condition?.trim() || undefined,
-    description: element.description,
+    description: description?.trim() || undefined,
     action,
   };
   if (featureIndex < 0) project.features.push(feature);

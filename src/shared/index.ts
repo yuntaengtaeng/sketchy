@@ -111,6 +111,7 @@ export function sectionLayout(direction: "vertical" | "horizontal") {
 export type FeatureAction =
   | { type: "navigate"; destinationScreenId?: string }
   | { type: "overlay"; destinationScreenId?: string }
+  | { type: "close-overlay" }
   | { type: "describe" };
 
 export type FeatureTrigger =
@@ -206,9 +207,11 @@ export type PluginMessage =
       sourceElementId: string;
       featureId?: string;
       condition?: string;
+      description?: string;
       action:
         | { type: "navigate"; destinationScreenId?: string }
         | { type: "overlay"; destinationScreenId?: string }
+        | { type: "close-overlay" }
         | { type: "describe" };
     }
   | { type: "DELETE_FEATURE"; featureId: string };
