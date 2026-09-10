@@ -13,7 +13,7 @@ import {
 import { renderFlow } from "./commands/render-flow";
 import { cleanProject, readProject } from "./storage/project";
 
-figma.showUI(__html__, { width: 360, height: 620, themeColors: true });
+figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
 
 let suppressDocumentChange = false;
 let redrawTimer: ReturnType<typeof setTimeout>;
