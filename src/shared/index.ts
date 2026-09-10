@@ -47,6 +47,20 @@ export function elementTreeIds(elements: Element[], rootId: string) {
   return ids;
 }
 
+export function sectionLayout(direction: "vertical" | "horizontal") {
+  return direction === "vertical"
+    ? {
+        layoutMode: "VERTICAL" as const,
+        primaryAxisSizingMode: "AUTO" as const,
+        counterAxisSizingMode: "FIXED" as const,
+      }
+    : {
+        layoutMode: "HORIZONTAL" as const,
+        primaryAxisSizingMode: "FIXED" as const,
+        counterAxisSizingMode: "AUTO" as const,
+      };
+}
+
 export type ScreenState = {
   id: string;
   screenId: string;

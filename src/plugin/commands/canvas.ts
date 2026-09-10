@@ -1,4 +1,9 @@
-import { BLOCK_TRIGGERS, elementTreeIds, type BlockType } from "../../shared";
+import {
+  BLOCK_TRIGGERS,
+  elementTreeIds,
+  sectionLayout,
+  type BlockType,
+} from "../../shared";
 import { readProject, saveProject } from "../storage/project";
 import { updateNavigation } from "./sync-prototype";
 
@@ -74,8 +79,10 @@ export async function insertBlock(
     const isDivider = block === "divider";
     node.resize(272, isSection ? 64 : isImage ? 160 : isDivider ? 1 : 40);
     node.layoutMode = isSection ? "VERTICAL" : "HORIZONTAL";
-    node.primaryAxisAlignItems = isSection ? "MIN" : "CENTER";
-    node.counterAxisAlignItems = block === "button" ? "CENTER" : "MIN";
+    node.primaryAxisAlignItems =
+      block === "button" || isImage ? "CENTER" : "MIN";
+    node.counterAxisAlignItems =
+      block === "button" || block === "input" || isImage ? "CENTER" : "MIN";
     node.itemSpacing = isSection ? 12 : 0;
     node.paddingTop = node.paddingBottom = isSection ? 12 : 0;
     node.paddingLeft = node.paddingRight = isSection
@@ -117,7 +124,13 @@ export async function insertBlock(
       ];
       node.appendChild(label);
     }
-    if (isSection) node.primaryAxisSizingMode = "AUTO";
+    if (isSection) {
+      const layout = sectionLayout("vertical");
+      node.primaryAxisSizingMode = layout.primaryAxisSizingMode;
+      node.counterAxisSizingMode = layout.counterAxisSizingMode;
+    }
+    if (block === "button" || block === "input") node.minHeight = 40;
+    if (isImage) node.minHeight = 160;
   }
   node.setPluginData("sketchy:type", "element");
   node.setPluginData("sketchy:screen-id", screenId);
@@ -233,7 +246,26 @@ export async function setSectionDirection(
   if (!element || element.type !== "section" || node?.type !== "FRAME")
     return project;
   element.direction = direction;
-  node.layoutMode = direction === "vertical" ? "VERTICAL" : "HORIZONTAL";
+  const children = await Promise.all(
+    project.elements
+      .filter((item) => item.parentElementId === elementId)
+      .map(async (item) => ({
+        item,
+        node: await figma.getNodeByIdAsync(item.nodeId),
+      })),
+  );
+  const layout = sectionLayout(direction);
+  node.layoutMode = layout.layoutMode;
+  node.primaryAxisSizingMode = layout.primaryAxisSizingMode;
+  node.counterAxisSizingMode = layout.counterAxisSizingMode;
+  for (const child of children)
+    if (child.node?.type === "FRAME") {
+      child.node.layoutSizingHorizontal = "FILL";
+      child.node.layoutSizingVertical = "FIXED";
+      if (child.item.type === "button" || child.item.type === "input")
+        child.node.minHeight = 40;
+      if (child.item.type === "image") child.node.minHeight = 160;
+    }
   saveProject(project);
   return project;
 }

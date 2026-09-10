@@ -1,6 +1,10 @@
 import { updateNavigation } from "./commands/sync-prototype.ts";
 import { describeFeature } from "../ui/features/spec/describe.ts";
-import { elementTreeIds, type Project } from "../shared/index.ts";
+import {
+  elementTreeIds,
+  sectionLayout,
+  type Project,
+} from "../shared/index.ts";
 import { readingOrder } from "./reading-order.ts";
 
 const manual = {
@@ -98,3 +102,12 @@ const sectionTree = elementTreeIds(
 );
 if ([...sectionTree].join() !== "section,child,nested")
   throw new Error("Removing a section must include its nested elements only.");
+
+const horizontal = sectionLayout("horizontal");
+if (
+  horizontal.primaryAxisSizingMode !== "FIXED" ||
+  horizontal.counterAxisSizingMode !== "AUTO"
+)
+  throw new Error(
+    "A horizontal section must keep its width and hug its height.",
+  );
