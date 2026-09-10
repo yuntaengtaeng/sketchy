@@ -51,7 +51,6 @@ const project = {
       type: "button",
     },
   ],
-  states: [],
   features: [],
 } as Project;
 const sentence = describeFeature(project, {
@@ -59,7 +58,7 @@ const sentence = describeFeature(project, {
   screenId: "home",
   name: "Like",
   trigger: { type: "click", elementId: "button" },
-  action: { type: "set-state", stateId: "liked", value: true },
+  action: { type: "describe" },
   description: "Add this item to favorites",
 });
 if (sentence !== "Click Like → Add this item to favorites")

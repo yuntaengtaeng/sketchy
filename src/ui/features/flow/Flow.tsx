@@ -29,10 +29,6 @@ export default function Flow({
               (screen) => screen.id === action.destinationScreenId,
             )
           : undefined;
-      const state =
-        action.type === "set-state"
-          ? project.states.find((item) => item.id === action.stateId)
-          : undefined;
       return (
         <div className={styles.connection} key={feature.id}>
           <button
@@ -60,8 +56,12 @@ export default function Flow({
             )
           ) : (
             <div>
-              {feature.description || state?.name || "Describe behavior"}
+              {feature.description || "Outcome not described"}
+              <small> spec only</small>
             </div>
+          )}
+          {action.type === "navigate" && feature.description && (
+            <small>{feature.description} · spec only</small>
           )}
         </div>
       );

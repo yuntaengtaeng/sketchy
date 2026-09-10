@@ -6,8 +6,7 @@ import { id } from "./utils";
 export async function saveFeature(
   sourceElementId: string,
   input:
-    | { type: "navigate"; destinationScreenId?: string }
-    | { type: "set-state"; stateName: string; value: boolean },
+    { type: "navigate"; destinationScreenId?: string } | { type: "describe" },
 ) {
   const project = readProject();
   const element = project.elements.find((item) => item.id === sourceElementId);
@@ -37,10 +36,6 @@ export async function saveFeature(
           (item) => item.id === previousAction.destinationScreenId,
         )
       : undefined;
-  const previousState =
-    previousAction?.type === "set-state"
-      ? project.states.find((item) => item.id === previousAction.stateId)
-      : undefined;
   const reactions = updateNavigation(
     source.reactions,
     previousDestination?.nodeId,
@@ -69,21 +64,7 @@ export async function saveFeature(
         destinationScreenId: destination?.id,
       },
     });
-  } else if (input.type === "set-state" && input.stateName.trim()) {
-    const state = previousState ||
-      project.states.find(
-        (item) =>
-          item.screenId === element.screenId &&
-          item.name === input.stateName.trim(),
-      ) || {
-        id: id(),
-        screenId: element.screenId,
-        name: input.stateName.trim(),
-        type: "boolean" as const,
-        initialValue: false,
-      };
-    state.name = input.stateName.trim();
-    if (!project.states.includes(state)) project.states.push(state);
+  } else {
     await source.setReactionsAsync(reactions);
     if (source.type === "FRAME") {
       source.children
@@ -98,10 +79,8 @@ export async function saveFeature(
       trigger: { type: "click", elementId: sourceElementId },
       name: element.name,
       description: element.description,
-      action: { type: "set-state", stateId: state.id, value: input.value },
+      action: { type: "describe" },
     });
-  } else {
-    await source.setReactionsAsync(reactions);
   }
   saveProject(project);
   return project;

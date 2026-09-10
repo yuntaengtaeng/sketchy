@@ -4,7 +4,6 @@ import {
   type Feature,
   type Project,
   type ProjectSettings,
-  type ScreenState,
 } from "../../shared";
 import { readingOrder } from "../reading-order";
 
@@ -17,10 +16,11 @@ export function readProject(): Project {
       ? stored.features.map(
           (feature: Feature & { sourceElementId?: string }) => ({
             ...feature,
-            action:
-              feature.action.type === ("toggle-state" as string)
-                ? { ...feature.action, type: "set-state" as const, value: true }
-                : feature.action,
+            action: ["toggle-state", "set-state"].includes(
+              feature.action.type as string,
+            )
+              ? { type: "describe" as const }
+              : feature.action,
             trigger:
               feature.trigger ||
               (feature.sourceElementId
@@ -65,11 +65,6 @@ export function readProject(): Project {
       },
       screens: stored.screens || [],
       elements: stored.elements || [],
-      states: (stored.states || []).map((state: ScreenState) => ({
-        ...state,
-        type: state.type || ("boolean" as const),
-        initialValue: state.initialValue ?? false,
-      })),
       features,
     };
   } catch {
@@ -94,6 +89,15 @@ export async function cleanProject(project: Project) {
   const elements = (await Promise.all(project.elements.map(exists)))
     .filter(present)
     .filter((item) => screens.some((screen) => screen.id === item.screenId));
+  for (const element of elements) {
+    const node = await figma.getNodeByIdAsync(element.nodeId);
+    if (node?.type === "FRAME")
+      node.children
+        .find(
+          (child) => child.getPluginData("sketchy:role") === "state-indicator",
+        )
+        ?.remove();
+  }
   let orderChanged = false;
   for (const screen of screens) {
     const positioned = await Promise.all(
@@ -117,24 +121,16 @@ export async function cleanProject(project: Project) {
       item.order = order;
     });
   }
-  const states = project.states.filter((state) =>
-    screens.some((screen) => screen.id === state.screenId),
+  const features = project.features.filter(
+    (feature) =>
+      screens.some((screen) => screen.id === feature.screenId) &&
+      !!feature.trigger?.elementId &&
+      elements.some((element) => element.id === feature.trigger?.elementId),
   );
-  const features = project.features
-    .filter((feature) =>
-      screens.some((screen) => screen.id === feature.screenId),
-    )
-    .map((feature) =>
-      feature.trigger?.elementId &&
-      !elements.some((element) => element.id === feature.trigger?.elementId)
-        ? { ...feature, trigger: undefined }
-        : feature,
-    );
   if (
     screens.length !== project.screens.length ||
     elements.length !== project.elements.length ||
     orderChanged ||
-    states.length !== project.states.length ||
     features.length !== project.features.length ||
     features.some((feature, index) => feature !== project.features[index])
   ) {
@@ -142,7 +138,6 @@ export async function cleanProject(project: Project) {
       settings: project.settings,
       screens,
       elements,
-      states,
       features,
     };
     saveProject(project);

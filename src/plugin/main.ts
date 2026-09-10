@@ -32,7 +32,9 @@ function errorMessage(error: unknown) {
 }
 
 function selection() {
-  const node = figma.currentPage.selection[0];
+  let node: BaseNode | null = figma.currentPage.selection[0] || null;
+  while (node && !node.getPluginData("sketchy:screen-id") && "parent" in node)
+    node = node.parent;
   return {
     selectedScreenId: node?.getPluginData("sketchy:screen-id") || undefined,
     selectedElementId: node?.getPluginData("sketchy:element-id") || undefined,

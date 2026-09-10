@@ -46,9 +46,8 @@ export function renderPurpose(
     const action = feature.action;
     const result =
       action.type === "navigate"
-        ? `go to ${project.screens.find((item) => item.id === action.destinationScreenId)?.name || "choose destination"}`
-        : feature.description ||
-          `${action.value ? "" : "not "}${project.states.find((item) => item.id === action.stateId)?.name || "missing state"}`;
+        ? `go to ${project.screens.find((item) => item.id === action.destinationScreenId)?.name || "choose destination"}${feature.description ? `; ${feature.description} (spec only)` : ""}`
+        : `${feature.description || "Outcome not described"} (spec only)`;
     behavior.characters = `- ${feature.name} click → ${result}`;
     behavior.fontSize = 11;
     behavior.resize(192, 24);

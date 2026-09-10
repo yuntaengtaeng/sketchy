@@ -43,9 +43,8 @@ export function describeFeature(project: Project, feature: Feature) {
   const result =
     action.type === "navigate"
       ? destination
-        ? `Go to ${destination.name}`
+        ? `Go to ${destination.name}${feature.description ? `; ${feature.description} (spec only)` : ""}`
         : "Destination not selected"
-      : feature.description ||
-        `Change ${project.states.find((state) => state.id === action.stateId)?.name || "state"}`;
+      : feature.description || "Outcome not described (spec only)";
   return `${trigger} ${element?.name || feature.name} → ${result}`;
 }

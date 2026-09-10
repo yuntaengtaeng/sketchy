@@ -79,17 +79,8 @@ export function sectionLayout(direction: "vertical" | "horizontal") {
       };
 }
 
-export type ScreenState = {
-  id: string;
-  screenId: string;
-  name: string;
-  type: "boolean";
-  initialValue: boolean;
-};
-
 export type FeatureAction =
-  | { type: "navigate"; destinationScreenId?: string }
-  | { type: "set-state"; stateId: string; value: boolean };
+  { type: "navigate"; destinationScreenId?: string } | { type: "describe" };
 
 export type FeatureTrigger =
   | { type: "click"; elementId: string }
@@ -109,7 +100,6 @@ export type Project = {
   settings: ProjectSettings;
   screens: Screen[];
   elements: Element[];
-  states: ScreenState[];
   features: Feature[];
 };
 
@@ -117,7 +107,6 @@ export const createEmptyProject = (): Project => ({
   settings: { screenPreset: "mobile" },
   screens: [],
   elements: [],
-  states: [],
   features: [],
 });
 
@@ -157,7 +146,7 @@ export type PluginMessage =
       sourceElementId: string;
       action:
         | { type: "navigate"; destinationScreenId?: string }
-        | { type: "set-state"; stateName: string; value: boolean };
+        | { type: "describe" };
     };
 
 export type UiMessage =

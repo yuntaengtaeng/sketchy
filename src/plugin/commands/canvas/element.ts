@@ -134,11 +134,6 @@ export async function updateElement(
   if (feature) {
     feature.name = name;
     feature.description = description;
-    const action = feature.action;
-    if (action.type === "set-state") {
-      const state = project.states.find((item) => item.id === action.stateId);
-      if (state) state.name = name;
-    }
   }
   node.name = name;
   await loadFont();
@@ -163,10 +158,8 @@ export async function deleteElement(elementId: string) {
   node?.remove();
   const removed = elementTreeIds(project.elements, elementId);
   project.elements = project.elements.filter((item) => !removed.has(item.id));
-  project.features = project.features.map((item) =>
-    item.trigger?.elementId && removed.has(item.trigger.elementId)
-      ? { ...item, trigger: undefined }
-      : item,
+  project.features = project.features.filter(
+    (item) => !item.trigger?.elementId || !removed.has(item.trigger.elementId),
   );
   saveProject(project);
   return project;
