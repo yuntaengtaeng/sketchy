@@ -1,60 +1,11 @@
 import {
   BLOCK_DEFINITIONS,
   elementTreeIds,
-  SCREEN_PRESETS,
   sectionLayout,
   type BlockType,
-} from "../../shared";
-import { readProject, saveProject } from "../storage/project";
-import { updateNavigation } from "./sync-prototype";
-
-const id = () =>
-  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-export const loadFont = () =>
-  figma.loadFontAsync({ family: "Inter", style: "Regular" });
-
-export async function createScreen(name: string) {
-  await loadFont();
-  const project = readProject();
-  const frame = figma.createFrame();
-  const screenId = id();
-  const preset = SCREEN_PRESETS[project.settings.screenPreset];
-  frame.name = name || `Screen ${project.screens.length + 1}`;
-  frame.resize(preset.width, preset.height);
-  frame.layoutMode = "VERTICAL";
-  frame.primaryAxisSizingMode = frame.counterAxisSizingMode = "FIXED";
-  frame.itemSpacing = 16;
-  frame.paddingTop =
-    frame.paddingRight =
-    frame.paddingBottom =
-    frame.paddingLeft =
-      24;
-  frame.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
-  frame.strokes = [{ type: "SOLID", color: { r: 0.25, g: 0.25, b: 0.25 } }];
-  frame.setPluginData("sketchy:type", "screen");
-  frame.setPluginData("sketchy:screen-id", screenId);
-  const existing = (
-    await Promise.all(
-      project.screens.map((screen) => figma.getNodeByIdAsync(screen.nodeId)),
-    )
-  ).filter(
-    (node): node is FrameNode =>
-      node?.type === "FRAME" && node.parent === figma.currentPage,
-  );
-  frame.x = existing.length
-    ? Math.max(...existing.map((node) => node.x + node.width)) + 240
-    : 0;
-  project.screens.push({
-    id: screenId,
-    nodeId: frame.id,
-    name: frame.name,
-    purpose: "",
-  });
-  saveProject(project);
-  figma.currentPage.selection = [frame];
-  figma.viewport.scrollAndZoomIntoView([frame]);
-  return project;
-}
+} from "../../../shared";
+import { readProject, saveProject } from "../../storage/project";
+import { focusNode, id, loadFont } from "./utils";
 
 export async function insertBlock(
   screenId: string,
@@ -284,145 +235,9 @@ export async function setSectionDirection(
   return project;
 }
 
-export async function updateScreen(
-  screenId: string,
-  name: string,
-  purpose: string,
-) {
-  const project = readProject();
-  const screen = project.screens.find((item) => item.id === screenId);
-  const node = screen && (await figma.getNodeByIdAsync(screen.nodeId));
-  if (!screen || node?.type !== "FRAME") return project;
-  screen.name = name;
-  screen.purpose = purpose;
-  node.name = name;
-  for (const child of [...node.children])
-    if (child.getPluginData("sketchy:role").startsWith("screen-"))
-      child.remove();
-  saveProject(project);
-  return project;
-}
-
-export async function saveFeature(
-  sourceElementId: string,
-  input:
-    | { type: "navigate"; destinationScreenId?: string }
-    | { type: "set-state"; stateName: string; value: boolean },
-) {
-  const project = readProject();
-  const element = project.elements.find((item) => item.id === sourceElementId);
-  const destination =
-    input.type === "navigate"
-      ? project.screens.find((item) => item.id === input.destinationScreenId)
-      : undefined;
-  const source = element && (await figma.getNodeByIdAsync(element.nodeId));
-  if (
-    !element ||
-    !BLOCK_DEFINITIONS[element.type].triggers.some(
-      (trigger) => trigger === "click",
-    ) ||
-    !source ||
-    !("setReactionsAsync" in source)
-  )
-    throw new Error("Select a Sketchy button.");
-  if (input.type === "navigate" && input.destinationScreenId && !destination)
-    throw new Error("Select an existing destination screen.");
-  const previous = project.features.find(
-    (item) => item.trigger?.elementId === sourceElementId,
-  );
-  const previousAction = previous?.action;
-  const previousDestination =
-    previousAction?.type === "navigate"
-      ? project.screens.find(
-          (item) => item.id === previousAction.destinationScreenId,
-        )
-      : undefined;
-  const previousState =
-    previousAction?.type === "set-state"
-      ? project.states.find((item) => item.id === previousAction.stateId)
-      : undefined;
-  let reactions = updateNavigation(
-    source.reactions,
-    previousDestination?.nodeId,
-  );
-  project.features = project.features.filter(
-    (item) => item.trigger?.elementId !== sourceElementId,
-  );
-  if (input.type === "navigate") {
-    if (source.type === "FRAME")
-      source.children
-        .find(
-          (child) => child.getPluginData("sketchy:role") === "state-indicator",
-        )
-        ?.remove();
-    await source.setReactionsAsync(
-      updateNavigation(reactions, undefined, destination?.nodeId),
-    );
-    project.features.push({
-      id: previous?.id || id(),
-      screenId: element.screenId,
-      trigger: { type: "click", elementId: sourceElementId },
-      name: element.name,
-      description: element.description,
-      action: {
-        type: "navigate",
-        destinationScreenId: destination?.id,
-      },
-    });
-  } else if (input.type === "set-state" && input.stateName.trim()) {
-    const state = previousState ||
-      project.states.find(
-        (item) =>
-          item.screenId === element.screenId &&
-          item.name === input.stateName.trim(),
-      ) || {
-        id: id(),
-        screenId: element.screenId,
-        name: input.stateName.trim(),
-        type: "boolean" as const,
-        initialValue: false,
-      };
-    state.name = input.stateName.trim();
-    if (!project.states.includes(state)) project.states.push(state);
-    await source.setReactionsAsync(reactions);
-    if (source.type === "FRAME") {
-      source.children
-        .find(
-          (child) => child.getPluginData("sketchy:role") === "state-indicator",
-        )
-        ?.remove();
-    }
-    project.features.push({
-      id: previous?.id || id(),
-      screenId: element.screenId,
-      trigger: { type: "click", elementId: sourceElementId },
-      name: element.name,
-      description: element.description,
-      action: { type: "set-state", stateId: state.id, value: input.value },
-    });
-  } else {
-    await source.setReactionsAsync(reactions);
-  }
-  saveProject(project);
-  return project;
-}
-
-export async function selectScreen(screenId: string) {
-  const screen = readProject().screens.find((item) => item.id === screenId);
-  const node = screen && (await figma.getNodeByIdAsync(screen.nodeId));
-  if (!node || !("visible" in node)) return;
-  if (node.parent?.type === "PAGE")
-    await figma.setCurrentPageAsync(node.parent);
-  figma.currentPage.selection = [node];
-  figma.viewport.scrollAndZoomIntoView([node]);
-}
-
 export async function selectElement(elementId: string) {
   const element = readProject().elements.find((item) => item.id === elementId);
   const node = element && (await figma.getNodeByIdAsync(element.nodeId));
   if (!node || !("visible" in node)) return;
-  if (node.parent?.type === "PAGE")
-    await figma.setCurrentPageAsync(node.parent);
-  figma.currentPage.selection = [node];
-  figma.viewport.scrollAndZoomIntoView([node]);
+  await focusNode(node);
 }

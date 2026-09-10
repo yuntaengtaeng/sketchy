@@ -11,6 +11,8 @@ import {
   type Project,
 } from "../shared/index.ts";
 import { readingOrder } from "./reading-order.ts";
+import { elbowRoute, routeLaneOffset } from "./flow-routing.ts";
+import { nextScreenPosition } from "./screen-position.ts";
 
 const manual = {
   trigger: { type: "ON_HOVER" },
@@ -148,3 +150,32 @@ if (
   !BLOCK_DEFINITIONS.button.triggers.includes("click")
 )
   throw new Error("Block behavior must come from the shared registry.");
+
+const firstScreen = nextScreenPosition(
+  { x: 500, y: 400 },
+  { width: 200, height: 300 },
+  [],
+);
+const nextScreen = nextScreenPosition(
+  { x: 0, y: 0 },
+  { width: 200, height: 300 },
+  [{ x: 400, y: 100, width: 200, height: 300 }],
+);
+if (
+  firstScreen.x !== 400 ||
+  firstScreen.y !== 250 ||
+  nextScreen.x !== 920 ||
+  nextScreen.y !== 100
+)
+  throw new Error("Screens must start centered, then continue in one row.");
+
+const route = elbowRoute({ x: 0, y: 10 }, { x: 100, y: 50 }, true);
+if (route[1]?.x !== 50 || route[2]?.x !== 50 || route[2]?.y !== 50)
+  throw new Error("Horizontal flows must route through the screen gap.");
+
+if (
+  routeLaneOffset(0, 3) !== -32 ||
+  routeLaneOffset(1, 3) !== 0 ||
+  routeLaneOffset(2, 3) !== 32
+)
+  throw new Error("Sibling flows must use separate routing lanes.");
