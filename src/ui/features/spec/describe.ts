@@ -35,16 +35,16 @@ export function describeFeature(project: Project, feature: Feature) {
     : "Unlinked";
   const action = feature.action;
   const destination =
-    action.type === "navigate"
+    "destinationScreenId" in action
       ? project.screens.find(
           (screen) => screen.id === action.destinationScreenId,
         )
       : undefined;
   const result =
-    action.type === "navigate"
+    "destinationScreenId" in action
       ? destination
-        ? `Go to ${destination.name}${feature.description ? `; ${feature.description} (spec only)` : ""}`
+        ? `${action.type === "navigate" ? "Go to" : "Open"} ${destination.name}${feature.description ? `; ${feature.description}` : ""}`
         : "Destination not selected"
-      : feature.description || "Outcome not described (spec only)";
-  return `${trigger} ${element?.name || feature.name} → ${result}`;
+      : feature.description || "Outcome not described";
+  return `${feature.condition ? `When ${feature.condition}, ` : ""}${trigger} ${element?.name || feature.name} → ${result}`;
 }

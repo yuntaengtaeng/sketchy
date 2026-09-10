@@ -31,6 +31,14 @@ const removed = updateNavigation(updated, "screen-2");
 if (removed.length !== 1 || removed[0] !== manual)
   throw new Error("Only the Sketchy reaction should be removed.");
 
+const overlay = updateNavigation([], undefined, "popup-1", "OVERLAY");
+const overlayAction = overlay[0]?.actions?.[0];
+if (
+  overlayAction?.type !== "NODE" ||
+  String(overlayAction.navigation) !== "OVERLAY"
+)
+  throw new Error("Popup actions must create an overlay.");
+
 let blocked = false;
 try {
   updateNavigation(
@@ -68,9 +76,10 @@ const sentence = describeFeature(project, {
   name: "Like",
   trigger: { type: "click", elementId: "button" },
   action: { type: "describe" },
+  condition: "Not signed in",
   description: "Add this item to favorites",
 });
-if (sentence !== "Click Like → Add this item to favorites")
+if (sentence !== "When Not signed in, Click Like → Add this item to favorites")
   throw new Error("Spec behavior must be a readable sentence.");
 
 const ordered = readingOrder([
@@ -170,6 +179,14 @@ const deleted = projectWithoutScreen(
     screens: [
       ...project.screens,
       { id: "detail", nodeId: "3", name: "Detail", purpose: "" },
+      {
+        id: "detail-popup",
+        nodeId: "4",
+        name: "Detail · Popup 1",
+        purpose: "",
+        kind: "popup",
+        baseScreenId: "detail",
+      },
     ],
     features: [
       {
@@ -184,10 +201,12 @@ const deleted = projectWithoutScreen(
   "detail",
 );
 if (
-  deleted.screens.some((screen) => screen.id === "detail") ||
+  deleted.screens.some(
+    (screen) => screen.id === "detail" || screen.baseScreenId === "detail",
+  ) ||
   deleted.features.length
 )
-  throw new Error("Deleting a screen must remove incoming navigation.");
+  throw new Error("Deleting a screen must remove its states and connections.");
 
 const outline = outlineElements([
   {

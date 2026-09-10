@@ -26,6 +26,11 @@ export default function Build({
     element?.type === "section"
       ? element
       : project.elements.find((item) => item.id === element?.parentElementId);
+  const incomingConnections = project.features.filter(
+    (feature) =>
+      "destinationScreenId" in feature.action &&
+      feature.action.destinationScreenId === screen?.id,
+  ).length;
   return (
     <>
       {!section && (
@@ -50,7 +55,7 @@ export default function Build({
               onClick={() =>
                 post({
                   type: "CREATE_SCREEN",
-                  name: `Screen ${project.screens.length + 1}`,
+                  name: `Screen ${project.screens.filter((screen) => !screen.kind).length + 1}`,
                 })
               }
             >
@@ -116,8 +121,13 @@ export default function Build({
             <button
               className={styles.delete}
               onClick={() =>
-                confirm(`Delete ${screen.name}? This cannot be undone.`) &&
-                post({ type: "DELETE_SCREEN", screenId: screen.id })
+                confirm(
+                  `Delete ${screen.name}?${
+                    incomingConnections
+                      ? ` This also removes ${incomingConnections} incoming ${incomingConnections === 1 ? "connection" : "connections"}.`
+                      : ""
+                  } This cannot be undone.`,
+                ) && post({ type: "DELETE_SCREEN", screenId: screen.id })
               }
             >
               Delete screen

@@ -6,7 +6,7 @@ export {
   setSectionDirection,
   updateElement,
 } from "./element";
-export { saveFeature } from "./feature";
+export { deleteFeature, saveFeature } from "./feature";
 export {
   createScreen,
   deleteScreen,

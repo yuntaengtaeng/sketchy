@@ -7,7 +7,6 @@ const navigatesTo = (reaction: Reaction, destinationId: string) => {
     isClick(reaction) &&
     actions.length === 1 &&
     actions[0].type === "NODE" &&
-    actions[0].navigation === ("NAVIGATE" as never) &&
     actions[0].destinationId === destinationId
   );
 };
@@ -32,6 +31,7 @@ export function updateNavigation(
   reactions: readonly Reaction[],
   previousDestinationId?: string,
   destinationId?: string,
+  navigation: "NAVIGATE" | "OVERLAY" = "NAVIGATE",
 ) {
   const owned = previousDestinationId
     ? reactions.findIndex((reaction) =>
@@ -52,7 +52,7 @@ export function updateNavigation(
         {
           type: "NODE",
           destinationId,
-          navigation: "NAVIGATE" as never,
+          navigation: navigation as never,
           transition: null,
           preserveScrollPosition: false,
         },

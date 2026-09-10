@@ -1,0 +1,32 @@
+.case {
+  margin: 12px 0;
+  padding: 10px;
+  border: 1px solid var(--sketchy-line);
+}
+
+.actions {
+  margin: 8px 0 6px;
+  padding: 0;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.choices button {
+  padding: 7px;
+  text-transform: none;
+}
+
+.choices button[aria-pressed="true"] {
+  border-color: var(--sketchy-ink);
+  background: var(--figma-color-bg-hover, #eee);
+  box-shadow: inset 0 0 0 1px var(--sketchy-ink);
+}
+
+.remove {
+  color: var(--figma-color-text-danger, #a00);
+}

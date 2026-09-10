@@ -91,9 +91,6 @@ textarea {
 .muted {
   color: var(--figma-color-text-secondary, #777);
 }
-.field-note {
-  margin-top: 10px;
-}
 .error {
   padding: 9px;
   margin-top: 10px;

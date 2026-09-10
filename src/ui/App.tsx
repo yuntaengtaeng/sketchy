@@ -34,17 +34,22 @@ export default function App() {
         : undefined;
 
   useEffect(() => {
+    let errorTimer: ReturnType<typeof setTimeout>;
     onmessage = ({ data }) => {
       const message = data.pluginMessage as UiMessage;
       if (message?.type === "STATE") {
         setProject(message.project);
         setScreenId(message.selectedScreenId);
         setElementId(message.selectedElementId);
-        setError("");
       }
-      if (message?.type === "ERROR") setError(message.message);
+      if (message?.type === "ERROR") {
+        clearTimeout(errorTimer);
+        setError(message.message);
+        errorTimer = setTimeout(() => setError(""), 8000);
+      }
     };
     post({ type: "READY" });
+    return () => clearTimeout(errorTimer);
   }, []);
 
   return (

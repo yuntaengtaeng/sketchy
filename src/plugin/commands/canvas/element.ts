@@ -128,10 +128,10 @@ export async function updateElement(
   if (!element || !node) return project;
   element.name = name;
   element.description = description;
-  const feature = project.features.find(
+  const features = project.features.filter(
     (item) => item.trigger?.elementId === elementId,
   );
-  if (feature) {
+  for (const feature of features) {
     feature.name = name;
     feature.description = description;
   }
@@ -154,6 +154,8 @@ export async function deleteElement(elementId: string) {
   const project = readProject();
   const element = project.elements.find((item) => item.id === elementId);
   if (!element) return project;
+  if (element.role === "popup")
+    throw new Error("The popup itself is required.");
   const node = await figma.getNodeByIdAsync(element.nodeId);
   node?.remove();
   const removed = elementTreeIds(project.elements, elementId);

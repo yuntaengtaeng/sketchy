@@ -12,7 +12,10 @@ export async function renderConnector(
   links: Feature[],
   nodes: Map<string, FrameNode>,
 ) {
-  if (link.action.type !== "navigate" || !link.action.destinationScreenId)
+  if (
+    !("destinationScreenId" in link.action) ||
+    !link.action.destinationScreenId
+  )
     return;
   const element = project.elements.find(
     (item) => item.id === link.trigger?.elementId,
@@ -73,7 +76,8 @@ export async function renderConnector(
       { x: endX, y: endY },
       horizontal,
       lane,
-    );
+    ),
+    state = link.action.type === "overlay";
   for (let index = 1; index < points.length; index++)
     drawLine(
       sourceScreen.parent,
@@ -81,6 +85,7 @@ export async function renderConnector(
       points[index - 1].y,
       points[index].x,
       points[index].y,
+      state,
     );
   const arrowStart = points.at(-2)!;
   const arrowEnd = points.at(-1)!;
@@ -95,6 +100,7 @@ export async function renderConnector(
       arrowEnd.y - 10 * Math.sin(angle + offset),
       arrowEnd.x,
       arrowEnd.y,
+      state,
     );
   const label = figma.createText();
   markGenerated(label);

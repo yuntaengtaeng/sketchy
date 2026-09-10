@@ -12,7 +12,7 @@ export default function Flow({
   const selected = project.features.filter(
     (feature) =>
       feature.screenId === selectedScreenId ||
-      (feature.action.type === "navigate" &&
+      ("destinationScreenId" in feature.action &&
         !!feature.action.destinationScreenId &&
         feature.action.destinationScreenId === selectedScreenId),
   );
@@ -24,7 +24,7 @@ export default function Flow({
       if (!source) return null;
       const action = feature.action;
       const destination =
-        action.type === "navigate"
+        "destinationScreenId" in action
           ? project.screens.find(
               (screen) => screen.id === action.destinationScreenId,
             )
@@ -37,9 +37,13 @@ export default function Flow({
             {source.name}
           </button>
           <span>
-            <small>{feature.name}</small>→
+            <small>
+              {feature.name}
+              {feature.condition ? ` · When ${feature.condition}` : ""}
+            </small>
+            →
           </span>
-          {action.type === "navigate" ? (
+          {"destinationScreenId" in action ? (
             destination ? (
               <button
                 onClick={() =>
@@ -57,11 +61,11 @@ export default function Flow({
           ) : (
             <div>
               {feature.description || "Outcome not described"}
-              <small> spec only</small>
+              <small>Not interactive</small>
             </div>
           )}
-          {action.type === "navigate" && feature.description && (
-            <small>{feature.description} · spec only</small>
+          {"destinationScreenId" in action && feature.description && (
+            <small>{feature.description}</small>
           )}
         </div>
       );

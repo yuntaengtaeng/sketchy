@@ -1,6 +1,7 @@
 import type { PluginMessage, Project } from "../shared";
 import {
   createScreen,
+  deleteFeature,
   deleteElement,
   deleteScreen,
   duplicateScreen,
@@ -100,9 +101,16 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       );
     if (message.type === "SAVE_FEATURE")
       await sync(
-        await saveFeature(message.sourceElementId, message.action),
+        await saveFeature(
+          message.sourceElementId,
+          message.action,
+          message.featureId,
+          message.condition,
+        ),
         true,
       );
+    if (message.type === "DELETE_FEATURE")
+      await sync(await deleteFeature(message.featureId), true);
     if (message.type === "SELECT_SCREEN") await selectScreen(message.screenId);
     if (message.type === "SELECT_ELEMENT")
       await selectElement(message.elementId);

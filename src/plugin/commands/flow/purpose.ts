@@ -45,10 +45,10 @@ export function renderPurpose(
     const behavior = figma.createText();
     const action = feature.action;
     const result =
-      action.type === "navigate"
-        ? `go to ${project.screens.find((item) => item.id === action.destinationScreenId)?.name || "choose destination"}${feature.description ? `; ${feature.description} (spec only)` : ""}`
-        : `${feature.description || "Outcome not described"} (spec only)`;
-    behavior.characters = `- ${feature.name} click → ${result}`;
+      "destinationScreenId" in action
+        ? `${action.type === "navigate" ? "go to" : "open"} ${project.screens.find((item) => item.id === action.destinationScreenId)?.name || "choose destination"}${feature.description ? `; ${feature.description}` : ""}`
+        : feature.description || "Outcome not described";
+    behavior.characters = `- ${feature.condition ? `when ${feature.condition}: ` : ""}${feature.name} click → ${result}`;
     behavior.fontSize = 11;
     behavior.resize(192, 24);
     behavior.textAutoResize = "HEIGHT";

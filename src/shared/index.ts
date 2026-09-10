@@ -20,6 +20,8 @@ export type Screen = {
   nodeId: string;
   name: string;
   purpose: string;
+  kind?: "popup";
+  baseScreenId?: string;
 };
 
 export type ScreenPreset = "mobile" | "tablet" | "desktop";
@@ -45,6 +47,7 @@ export type Element = {
   parentElementId?: string;
   buttonVariant?: "filled" | "outline";
   direction?: "vertical" | "horizontal";
+  role?: "popup";
   order?: number;
 };
 
@@ -106,7 +109,9 @@ export function sectionLayout(direction: "vertical" | "horizontal") {
 }
 
 export type FeatureAction =
-  { type: "navigate"; destinationScreenId?: string } | { type: "describe" };
+  | { type: "navigate"; destinationScreenId?: string }
+  | { type: "overlay"; destinationScreenId?: string }
+  | { type: "describe" };
 
 export type FeatureTrigger =
   | { type: "click"; elementId: string }
@@ -117,6 +122,7 @@ export type Feature = {
   id: string;
   screenId: string;
   name: string;
+  condition?: string;
   description?: string;
   trigger?: FeatureTrigger;
   action: FeatureAction;
@@ -130,18 +136,26 @@ export type Project = {
 };
 
 export function projectWithoutScreen(project: Project, screenId: string) {
+  const screenIds = new Set(
+    project.screens
+      .filter(
+        (screen) => screen.id === screenId || screen.baseScreenId === screenId,
+      )
+      .map((screen) => screen.id),
+  );
   return {
     ...project,
-    screens: project.screens.filter((screen) => screen.id !== screenId),
+    screens: project.screens.filter((screen) => !screenIds.has(screen.id)),
     elements: project.elements.filter(
-      (element) => element.screenId !== screenId,
+      (element) => !screenIds.has(element.screenId),
     ),
     features: project.features.filter(
       (feature) =>
-        feature.screenId !== screenId &&
+        !screenIds.has(feature.screenId) &&
         !(
-          feature.action.type === "navigate" &&
-          feature.action.destinationScreenId === screenId
+          "destinationScreenId" in feature.action &&
+          !!feature.action.destinationScreenId &&
+          screenIds.has(feature.action.destinationScreenId)
         ),
     ),
   };
@@ -190,10 +204,14 @@ export type PluginMessage =
   | {
       type: "SAVE_FEATURE";
       sourceElementId: string;
+      featureId?: string;
+      condition?: string;
       action:
         | { type: "navigate"; destinationScreenId?: string }
+        | { type: "overlay"; destinationScreenId?: string }
         | { type: "describe" };
-    };
+    }
+  | { type: "DELETE_FEATURE"; featureId: string };
 
 export type UiMessage =
   | {

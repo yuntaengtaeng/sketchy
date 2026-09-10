@@ -36,7 +36,8 @@ export async function renderFlow(project: Project) {
   }
   const links = project.features.filter(
     (feature) =>
-      feature.action.type === "navigate" && feature.action.destinationScreenId,
+      "destinationScreenId" in feature.action &&
+      feature.action.destinationScreenId,
   );
   for (const link of links) await renderConnector(project, link, links, nodes);
 }
