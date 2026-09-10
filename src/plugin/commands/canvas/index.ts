@@ -7,5 +7,11 @@ export {
   updateElement,
 } from "./element";
 export { saveFeature } from "./feature";
-export { createScreen, selectScreen, updateScreen } from "./screen";
+export {
+  createScreen,
+  deleteScreen,
+  duplicateScreen,
+  selectScreen,
+  updateScreen,
+} from "./screen";
 export { loadFont } from "./utils";

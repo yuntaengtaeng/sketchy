@@ -1,4 +1,7 @@
-import { updateNavigation } from "./commands/sync-prototype.ts";
+import {
+  updateNavigation,
+  withoutMissingDestinations,
+} from "./commands/sync-prototype.ts";
 import {
   describeFeature,
   outlineElements,
@@ -6,7 +9,9 @@ import {
 import {
   BLOCK_DEFINITIONS,
   createEmptyProject,
+  duplicateScreenElements,
   elementTreeIds,
+  projectWithoutScreen,
   sectionLayout,
   type Project,
 } from "../shared/index.ts";
@@ -38,6 +43,10 @@ try {
 }
 if (!blocked)
   throw new Error("Manual click interactions must not be replaced.");
+
+const stale = updateNavigation([], undefined, "deleted-screen");
+if (withoutMissingDestinations(stale, new Set()).length)
+  throw new Error("Interactions pointing to deleted nodes must be discarded.");
 
 const project = {
   settings: { screenPreset: "mobile" },
@@ -122,6 +131,64 @@ if (
 if (createEmptyProject().settings.screenPreset !== "mobile")
   throw new Error("New projects must default to a mobile screen.");
 
+let duplicateId = 0;
+const duplicated = duplicateScreenElements(
+  [
+    {
+      id: "section",
+      nodeId: "1",
+      screenId: "home",
+      name: "Section",
+      type: "section",
+    },
+    {
+      id: "button",
+      nodeId: "2",
+      screenId: "home",
+      name: "Button",
+      type: "button",
+      parentElementId: "section",
+    },
+  ],
+  "home",
+  "home-copy",
+  new Map([
+    ["section", "3"],
+    ["button", "4"],
+  ]),
+  () => `copy-${++duplicateId}`,
+);
+if (
+  duplicated[1]?.parentElementId !== duplicated[0]?.id ||
+  duplicated.some((element) => element.screenId !== "home-copy")
+)
+  throw new Error("Duplicated elements must keep their structure, not IDs.");
+
+const deleted = projectWithoutScreen(
+  {
+    ...project,
+    screens: [
+      ...project.screens,
+      { id: "detail", nodeId: "3", name: "Detail", purpose: "" },
+    ],
+    features: [
+      {
+        id: "navigate",
+        screenId: "home",
+        name: "Open detail",
+        trigger: { type: "click", elementId: "button" },
+        action: { type: "navigate", destinationScreenId: "detail" },
+      },
+    ],
+  },
+  "detail",
+);
+if (
+  deleted.screens.some((screen) => screen.id === "detail") ||
+  deleted.features.length
+)
+  throw new Error("Deleting a screen must remove incoming navigation.");
+
 const outline = outlineElements([
   {
     id: "section",
@@ -167,6 +234,19 @@ if (
   nextScreen.y !== 100
 )
   throw new Error("Screens must start centered, then continue in one row.");
+
+const wrappedScreen = nextScreenPosition(
+  { x: 0, y: 0 },
+  { width: 200, height: 300 },
+  [0, 1, 2, 3].map((column) => ({
+    x: column * 520,
+    y: 100,
+    width: 200,
+    height: 300,
+  })),
+);
+if (wrappedScreen.x !== 0 || wrappedScreen.y !== 720)
+  throw new Error("Long screen rows must wrap onto a new row.");
 
 const route = elbowRoute({ x: 0, y: 10 }, { x: 100, y: 50 }, true);
 if (route[1]?.x !== 50 || route[2]?.x !== 50 || route[2]?.y !== 50)

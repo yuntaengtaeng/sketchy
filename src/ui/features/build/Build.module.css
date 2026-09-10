@@ -107,6 +107,10 @@
   margin-top: 0;
 }
 
+.screenDetails > button {
+  margin-top: 12px;
+}
+
 .more summary {
   cursor: pointer;
   font-weight: 600;

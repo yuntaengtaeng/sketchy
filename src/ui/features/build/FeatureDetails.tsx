@@ -47,7 +47,7 @@ export default function FeatureDetails({
       </label>
       {feature?.action.type === "navigate" && (
         <>
-          <p className="muted">
+          <p className="muted field-note">
             For a visible state, create a separate screen and link to it. This
             works on every Figma plan.
           </p>

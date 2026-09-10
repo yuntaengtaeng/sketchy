@@ -1,6 +1,11 @@
-import { SCREEN_PRESETS } from "../../../shared";
+import {
+  duplicateScreenElements,
+  projectWithoutScreen,
+  SCREEN_PRESETS,
+} from "../../../shared";
 import { nextScreenPosition } from "../../screen-position";
 import { readProject, saveProject } from "../../storage/project";
+import { updateNavigation } from "../sync-prototype";
 import { focusNode, id, loadFont } from "./utils";
 
 export async function createScreen(name: string) {
@@ -62,6 +67,88 @@ export async function updateScreen(
       child.remove();
   saveProject(project);
   return project;
+}
+
+export async function duplicateScreen(screenId: string) {
+  const project = readProject();
+  const screen = project.screens.find((item) => item.id === screenId);
+  const source = screen && (await figma.getNodeByIdAsync(screen.nodeId));
+  if (!screen || source?.type !== "FRAME")
+    throw new Error("Select an existing Sketchy screen.");
+
+  const existing = (
+    await Promise.all(
+      project.screens.map((item) => figma.getNodeByIdAsync(item.nodeId)),
+    )
+  ).filter(
+    (node): node is FrameNode =>
+      node?.type === "FRAME" && node.parent === figma.currentPage,
+  );
+  const frame = source.clone();
+  const duplicateScreenId = id();
+  frame.name = `${screen.name} copy`;
+  frame.setPluginData("sketchy:screen-id", duplicateScreenId);
+  const position = nextScreenPosition(figma.viewport.center, frame, existing);
+  frame.x = position.x;
+  frame.y = position.y;
+
+  const nodes = new Map<string, string>();
+  for (const node of frame.findAll()) {
+    if ("setReactionsAsync" in node) await node.setReactionsAsync([]);
+    const elementId = node.getPluginData("sketchy:element-id");
+    if (!elementId) continue;
+    nodes.set(elementId, node.id);
+    node.setPluginData("sketchy:screen-id", duplicateScreenId);
+  }
+  const elements = duplicateScreenElements(
+    project.elements,
+    screenId,
+    duplicateScreenId,
+    nodes,
+    id,
+  );
+  for (const element of elements) {
+    const node = await figma.getNodeByIdAsync(element.nodeId);
+    node?.setPluginData("sketchy:element-id", element.id);
+  }
+  project.screens.push({
+    ...screen,
+    id: duplicateScreenId,
+    nodeId: frame.id,
+    name: frame.name,
+  });
+  project.elements.push(...elements);
+  saveProject(project);
+  await focusNode(frame);
+  return project;
+}
+
+export async function deleteScreen(screenId: string) {
+  const project = readProject();
+  const screen = project.screens.find((item) => item.id === screenId);
+  const node = screen && (await figma.getNodeByIdAsync(screen.nodeId));
+  if (!screen || node?.type !== "FRAME")
+    throw new Error("Select an existing Sketchy screen.");
+
+  const incoming = project.features.filter(
+    (feature) =>
+      feature.action.type === "navigate" &&
+      feature.action.destinationScreenId === screenId,
+  );
+  for (const feature of incoming) {
+    const element = project.elements.find(
+      (item) => item.id === feature.trigger?.elementId,
+    );
+    const source = element && (await figma.getNodeByIdAsync(element.nodeId));
+    if (source && "setReactionsAsync" in source)
+      await source.setReactionsAsync(
+        updateNavigation(source.reactions, screen.nodeId),
+      );
+  }
+  node.remove();
+  const next = projectWithoutScreen(project, screenId);
+  saveProject(next);
+  return next;
 }
 
 export async function selectScreen(screenId: string) {

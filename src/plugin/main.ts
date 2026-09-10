@@ -2,6 +2,8 @@ import type { PluginMessage, Project } from "../shared";
 import {
   createScreen,
   deleteElement,
+  deleteScreen,
+  duplicateScreen,
   insertBlock,
   setButtonVariant,
   setSectionDirection,
@@ -61,6 +63,10 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       await sync(updateProjectSettings(message.settings));
     if (message.type === "CREATE_SCREEN")
       await sync(await createScreen(message.name), true);
+    if (message.type === "DUPLICATE_SCREEN")
+      await sync(await duplicateScreen(message.screenId), true);
+    if (message.type === "DELETE_SCREEN")
+      await sync(await deleteScreen(message.screenId), true);
     if (message.type === "INSERT_BLOCK")
       await sync(
         await insertBlock(

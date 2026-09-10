@@ -106,6 +106,22 @@ export default function Build({
                 }
               />
             </label>
+            <button
+              onClick={() =>
+                post({ type: "DUPLICATE_SCREEN", screenId: screen.id })
+              }
+            >
+              Duplicate screen
+            </button>
+            <button
+              className={styles.delete}
+              onClick={() =>
+                confirm(`Delete ${screen.name}? This cannot be undone.`) &&
+                post({ type: "DELETE_SCREEN", screenId: screen.id })
+              }
+            >
+              Delete screen
+            </button>
           </details>
         </section>
       )}

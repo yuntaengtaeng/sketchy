@@ -48,6 +48,32 @@ export type Element = {
   order?: number;
 };
 
+export function duplicateScreenElements(
+  elements: Element[],
+  screenId: string,
+  duplicateScreenId: string,
+  nodeIds: Map<string, string>,
+  createId: () => string,
+) {
+  const source = elements.filter((element) => element.screenId === screenId);
+  const ids = new Map(source.map((element) => [element.id, createId()]));
+  return source.flatMap((element) => {
+    const nodeId = nodeIds.get(element.id);
+    if (!nodeId) return [];
+    return [
+      {
+        ...element,
+        id: ids.get(element.id)!,
+        nodeId,
+        screenId: duplicateScreenId,
+        parentElementId: element.parentElementId
+          ? ids.get(element.parentElementId)
+          : undefined,
+      },
+    ];
+  });
+}
+
 export function elementTreeIds(elements: Element[], rootId: string) {
   const ids = new Set([rootId]);
   for (let changed = true; changed;) {
@@ -103,6 +129,24 @@ export type Project = {
   features: Feature[];
 };
 
+export function projectWithoutScreen(project: Project, screenId: string) {
+  return {
+    ...project,
+    screens: project.screens.filter((screen) => screen.id !== screenId),
+    elements: project.elements.filter(
+      (element) => element.screenId !== screenId,
+    ),
+    features: project.features.filter(
+      (feature) =>
+        feature.screenId !== screenId &&
+        !(
+          feature.action.type === "navigate" &&
+          feature.action.destinationScreenId === screenId
+        ),
+    ),
+  };
+}
+
 export const createEmptyProject = (): Project => ({
   settings: { screenPreset: "mobile" },
   screens: [],
@@ -114,6 +158,8 @@ export type PluginMessage =
   | { type: "READY" }
   | { type: "UPDATE_PROJECT_SETTINGS"; settings: ProjectSettings }
   | { type: "CREATE_SCREEN"; name: string }
+  | { type: "DUPLICATE_SCREEN"; screenId: string }
+  | { type: "DELETE_SCREEN"; screenId: string }
   | { type: "SELECT_SCREEN"; screenId: string }
   | { type: "SELECT_ELEMENT"; elementId: string }
   | { type: "UPDATE_SCREEN"; screenId: string; name: string; purpose: string }

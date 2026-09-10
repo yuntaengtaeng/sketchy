@@ -1,6 +1,9 @@
 import { BLOCK_DEFINITIONS } from "../../../shared";
 import { readProject, saveProject } from "../../storage/project";
-import { updateNavigation } from "../sync-prototype";
+import {
+  updateNavigation,
+  withoutMissingDestinations,
+} from "../sync-prototype";
 import { id } from "./utils";
 
 export async function saveFeature(
@@ -36,8 +39,20 @@ export async function saveFeature(
           (item) => item.id === previousAction.destinationScreenId,
         )
       : undefined;
+  const destinationIds = source.reactions.flatMap((reaction) =>
+    (reaction.actions || (reaction.action ? [reaction.action] : [])).flatMap(
+      (action) =>
+        action.type === "NODE" && action.destinationId
+          ? [action.destinationId]
+          : [],
+    ),
+  );
+  const existingDestinationIds = new Set<string>();
+  for (const destinationId of destinationIds)
+    if (await figma.getNodeByIdAsync(destinationId))
+      existingDestinationIds.add(destinationId);
   const reactions = updateNavigation(
-    source.reactions,
+    withoutMissingDestinations(source.reactions, existingDestinationIds),
     previousDestination?.nodeId,
   );
   project.features = project.features.filter(

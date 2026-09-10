@@ -12,6 +12,22 @@ const navigatesTo = (reaction: Reaction, destinationId: string) => {
   );
 };
 
+export function withoutMissingDestinations(
+  reactions: readonly Reaction[],
+  existingDestinationIds: Set<string>,
+) {
+  return reactions.filter((reaction) => {
+    const actions =
+      reaction.actions || (reaction.action ? [reaction.action] : []);
+    return actions.every(
+      (action) =>
+        action.type !== "NODE" ||
+        !action.destinationId ||
+        existingDestinationIds.has(action.destinationId),
+    );
+  });
+}
+
 export function updateNavigation(
   reactions: readonly Reaction[],
   previousDestinationId?: string,
