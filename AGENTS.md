@@ -1,5 +1,7 @@
 # Sketchy development rules
 
+Use `docs/README.md` to find product documents by role. This file is the single source of truth for agent instructions; `CLAUDE.md` imports it for Claude.
+
 Use the project-local `.agents/skills/ponytail/SKILL.md` skill at full intensity for every coding task in this repository.
 
 - Understand the affected flow before editing; fix root causes in the shared path.
@@ -7,7 +9,8 @@ Use the project-local `.agents/skills/ponytail/SKILL.md` skill at full intensity
 - Prefer the smallest working change and the fewest files that still keep responsibilities clear.
 - Do not add speculative abstractions, configuration, dependencies, or features.
 - Prefer click-first workflows and useful defaults; require typing or configuration only when essential.
-- Before changing interaction UI, follow `Interaction UI 원칙` in `FEATURE_DEFINITION.md`; name controls by outcomes and use a segmented selector, Radio, Select, Checkbox, or Switch according to the shape of the choice.
+- Before changing interaction UI, follow `Interaction UI 원칙` in `docs/product/feature-model.md`; name controls by outcomes and use a segmented selector, Radio, Select, Checkbox, or Switch according to the shape of the choice.
+- When asked to create personas or run persona-based UX validation, follow `docs/research/persona-validation.md`. Keep each evaluator independent from existing `persona/` results until its report is complete.
 - Do not trade away validation, data safety, accessibility, or required error handling.
 - When unrelated responsibilities accumulate in one file, perform the smallest useful split before adding more branches.
 - Add one focused check for non-trivial logic and run `npm run check` plus `npm run build` before handoff.

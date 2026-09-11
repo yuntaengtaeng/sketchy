@@ -1,6 +1,6 @@
-# Sketchy — Feature 정의
+# 기능 모델
 
-여러 에이전트와 나눈 논의를 종합한 최종 정리본이다.
+Feature, Trigger, Action의 현재 정의와 Interaction UI의 구현 원칙을 설명한다.
 
 ## 한 줄 정의
 
