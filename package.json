@@ -21,5 +21,7 @@
     "vite-plugin-singlefile": "latest",
     "prettier": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
 }

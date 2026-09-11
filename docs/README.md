@@ -7,6 +7,7 @@
 1. [제품 개요](./product/overview.md) — Sketchy가 해결하는 문제와 지키려는 제품 원칙
 2. [제품 경험](./product/experience.md) — Build, Flow, Spec이 연결되는 방식
 3. [기능 모델](./product/feature-model.md) — 화면 요소의 동작과 Interaction UI 원칙
+4. [기능 명세서 만들기](./workflows/functional-spec.md) — 실제 화면 캡처를 포함한 기능 명세 생성 절차
 
 ## 기획자 · PM
 
@@ -24,6 +25,7 @@
 
 - Claude 진입점: 루트의 [`CLAUDE.md`](../CLAUDE.md)
 - 페르소나 생성 또는 UX 검증 요청: [AI 페르소나 검증 실행 가이드](./research/persona-validation.md)
+- 기능 명세서 생성 요청: [기능 명세서 생성 가이드](./workflows/functional-spec.md)
 - 상호작용 UI 변경: [기능 모델의 Interaction UI 원칙](./product/feature-model.md#interaction-ui-원칙)
 - 일반 개발 작업: 루트의 [`AGENTS.md`](../AGENTS.md)
 
