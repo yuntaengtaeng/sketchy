@@ -1,4 +1,6 @@
 node_modules/
 dist/
 *.log
+sketchy.project.json
 .DS_Store
+sketchy.project.json

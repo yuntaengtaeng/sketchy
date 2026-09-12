@@ -5,7 +5,7 @@ import Build from "./features/build/Build";
 import Flow from "./features/flow/Flow";
 import Spec from "./features/spec/Spec";
 import Settings from "./features/settings/Settings";
-import { post } from "./plugin";
+import { download, post } from "./plugin";
 
 type Route = { name: "workspace" } | { name: "settings" };
 
@@ -32,6 +32,8 @@ export default function App() {
         setScreenId(message.selectedScreenId);
         setElementId(message.selectedElementId);
       }
+      if (message?.type === "PROJECT_EXPORT")
+        download(message.fileName, message.contents);
       if (message?.type === "ERROR") {
         clearTimeout(errorTimer);
         setError(message.message);

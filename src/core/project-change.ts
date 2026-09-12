@@ -2,6 +2,7 @@ import type {
   Element,
   Feature,
   FeatureAction,
+  Project,
   ProjectSettings,
   Screen,
 } from "../shared/index.ts";
@@ -31,6 +32,39 @@ export type ProjectDocument = {
   project: CanonicalProject;
   figmaProjection?: FigmaProjection;
 };
+
+export type ProjectMetadata = Pick<
+  ProjectDocument,
+  "id" | "revision" | "updatedAt"
+>;
+
+export function createProjectDocument(
+  project: Project,
+  metadata: ProjectMetadata,
+  fileKey: string,
+): ProjectDocument {
+  const nodes = Object.fromEntries(
+    [...project.screens, ...project.elements].map(({ id, nodeId }) => [
+      id,
+      nodeId,
+    ]),
+  );
+  return {
+    ...metadata,
+    project: {
+      settings: project.settings,
+      screens: project.screens.map(({ nodeId: _, ...screen }) => screen),
+      elements: project.elements.map(({ nodeId: _, ...element }) => element),
+      features: project.features,
+    },
+    figmaProjection: {
+      fileKey,
+      status: "synced",
+      lastSyncedRevision: metadata.revision,
+      nodes,
+    },
+  };
+}
 
 type ScreenInput = DomainScreen;
 type ScreenPatch = Partial<Pick<DomainScreen, "name" | "purpose">>;

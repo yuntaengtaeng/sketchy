@@ -242,6 +242,10 @@ Import/Adopt 작업이다. v1에서는 자동 역동기화하지 않는다.
 읽는 stdio MCP Server를 제공한다. 기본 파일은 프로젝트 루트의
 `sketchy.project.json`이며 다른 경로는 `--project`로 지정한다.
 
+Figma Plugin의 Settings에서 `Export for Codex or Claude`를 누르면 현재 프로젝트를
+해당 파일명으로 내려받는다. Sketchy Screen과 Element에서는 Canvas `nodeId`를
+제거하고 `figmaProjection.nodes`에 mapping을 모아 저장한다.
+
 ```powershell
 npm run mcp -- --project C:\path\to\sketchy.project.json
 ```

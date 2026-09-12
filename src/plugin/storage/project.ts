@@ -6,8 +6,32 @@ import {
   type ProjectSettings,
 } from "../../shared";
 import { readingOrder } from "../reading-order";
+import type { ProjectMetadata } from "../../core/project-change";
 
 const KEY = "sketchy:project";
+const METADATA_KEY = "sketchy:project-metadata";
+
+export function readProjectMetadata(): ProjectMetadata {
+  try {
+    const stored = JSON.parse(figma.root.getPluginData(METADATA_KEY));
+    if (
+      typeof stored.id === "string" &&
+      Number.isInteger(stored.revision) &&
+      typeof stored.updatedAt === "string"
+    )
+      return stored;
+  } catch {
+    // Initialize metadata below.
+  }
+  const metadata = {
+    id: `project-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    revision: 0,
+    updatedAt: new Date().toISOString(),
+  };
+  figma.root.setPluginData(METADATA_KEY, JSON.stringify(metadata));
+  return metadata;
+}
+
 export function readProject(): Project {
   try {
     const stored = JSON.parse(figma.root.getPluginData(KEY)) || {};
@@ -71,8 +95,18 @@ export function readProject(): Project {
     return createEmptyProject();
   }
 }
-export const saveProject = (project: Project) =>
+export const saveProject = (project: Project) => {
   figma.root.setPluginData(KEY, JSON.stringify(project));
+  const metadata = readProjectMetadata();
+  figma.root.setPluginData(
+    METADATA_KEY,
+    JSON.stringify({
+      ...metadata,
+      revision: metadata.revision + 1,
+      updatedAt: new Date().toISOString(),
+    }),
+  );
+};
 export function updateProjectSettings(settings: ProjectSettings) {
   const project = readProject();
   project.settings = settings;

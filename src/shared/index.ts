@@ -156,6 +156,7 @@ export const createEmptyProject = (): Project => ({
 
 export type PluginMessage =
   | { type: "READY" }
+  | { type: "EXPORT_PROJECT" }
   | { type: "UPDATE_PROJECT_SETTINGS"; settings: ProjectSettings }
   | { type: "CREATE_SCREEN"; name: string }
   | { type: "DUPLICATE_SCREEN"; screenId: string }
@@ -208,4 +209,5 @@ export type UiMessage =
       selectedScreenId?: string;
       selectedElementId?: string;
     }
+  | { type: "PROJECT_EXPORT"; fileName: string; contents: string }
   | { type: "ERROR"; message: string };

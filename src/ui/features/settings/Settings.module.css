@@ -24,3 +24,7 @@
   color: var(--figma-color-text-secondary, #777);
   font-size: 11px;
 }
+
+.export {
+  width: 100%;
+}

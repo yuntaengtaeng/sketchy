@@ -1,4 +1,5 @@
 import type { PluginMessage, Project } from "../shared";
+import { createProjectDocument } from "../core/project-change";
 import {
   createScreen,
   deleteFeature,
@@ -18,6 +19,7 @@ import { renderFlow } from "./commands/render-flow";
 import {
   cleanProject,
   readProject,
+  readProjectMetadata,
   updateProjectSettings,
 } from "./storage/project";
 
@@ -60,6 +62,18 @@ async function sync(project: Project = readProject(), draw = false) {
 figma.ui.onmessage = async (message: PluginMessage) => {
   try {
     if (message.type === "READY") await sync(readProject(), true);
+    if (message.type === "EXPORT_PROJECT") {
+      const document = createProjectDocument(
+        await cleanProject(readProject()),
+        readProjectMetadata(),
+        figma.fileKey || "local-development",
+      );
+      figma.ui.postMessage({
+        type: "PROJECT_EXPORT",
+        fileName: "sketchy.project.json",
+        contents: JSON.stringify(document, null, 2),
+      });
+    }
     if (message.type === "UPDATE_PROJECT_SETTINGS")
       await sync(updateProjectSettings(message.settings));
     if (message.type === "CREATE_SCREEN")
