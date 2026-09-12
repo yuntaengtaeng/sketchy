@@ -163,6 +163,7 @@ export async function applyProjectImport(document: ProjectDocument) {
   }
   const changedActionElementIds = document.project.features.flatMap(
     (feature) => {
+      if (feature.condition?.trim()) return [];
       const previous = previousFeatures.find((item) => item.id === feature.id);
       return !previous ||
         JSON.stringify(previous.action) !== JSON.stringify(feature.action) ||
@@ -173,6 +174,7 @@ export async function applyProjectImport(document: ProjectDocument) {
   );
   for (const feature of previousFeatures)
     if (
+      !feature.condition?.trim() &&
       !document.project.features.some((item) => item.id === feature.id) &&
       feature.trigger?.elementId &&
       importedElementIds.has(feature.trigger.elementId)

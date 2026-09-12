@@ -289,8 +289,9 @@ Navigate와 Overlay는 Figma Prototype 연결도 갱신한다. 기본 Action을 
 Figma Prototype 연결도 제거한다. Element 삭제 시 Section의
 하위 요소와 연결된 Action도 함께 제거하며 Popup 역할 Element는 삭제할 수 없다.
 Screen 삭제 시 내부 Element, 파생 Popup과 해당 Screen을 향하는 Action 및 Prototype
-연결도 함께 제거한다. 이후 Figma Project revision이 달라졌거나 Popup Screen 생성,
-기존 구조 변경, 조건부 Action Case 변경이 섞이면 적용하지 않는다.
+연결도 함께 제거한다. 조건부 Action Case의 추가·수정·삭제는 Flow와 Spec에
+반영하되 Figma의 기본 Click Prototype으로 만들지 않는다. 이후 Figma Project
+revision이 달라졌거나 Popup Screen 생성이나 기존 구조 변경이 섞이면 적용하지 않는다.
 반영 후 다시 Export하면 JSON Projection도 `synced`로 닫힌다.
 
 ### Phase 3 — Figma Projection

@@ -253,14 +253,28 @@ export function previewProjectChanges(
     if (change.type === "UPDATE_ELEMENT_CASE") {
       const target = feature(change.featureId);
       if (!target) return fail("FEATURE_NOT_FOUND", "Feature does not exist.");
+      if (!target.condition?.trim())
+        return fail("CASE_NOT_FOUND", "Feature is not a conditional case.");
       const source = target.trigger?.elementId
         ? element(target.trigger.elementId)
         : undefined;
       if (!source)
         return fail("ELEMENT_NOT_FOUND", "Feature element does not exist.");
       if (
-        change.patch.action &&
-        !validAction(project, source, change.patch.action, fail)
+        change.patch.condition !== undefined &&
+        !change.patch.condition.trim()
+      )
+        return fail(
+          "CONDITION_REQUIRED",
+          "An additional case needs a condition.",
+        );
+      if (
+        !validAction(
+          project,
+          source,
+          change.patch.action || target.action,
+          fail,
+        )
       )
         return;
       Object.assign(target, change.patch);
@@ -268,8 +282,16 @@ export function previewProjectChanges(
       return;
     }
     if (change.type === "REMOVE_ELEMENT_CASE") {
-      if (!feature(change.featureId))
-        return fail("FEATURE_NOT_FOUND", "Feature does not exist.");
+      const target = feature(change.featureId);
+      if (!target) return fail("FEATURE_NOT_FOUND", "Feature does not exist.");
+      if (!target.condition?.trim())
+        return fail("CASE_NOT_FOUND", "Feature is not a conditional case.");
+      const source = target.trigger?.elementId
+        ? element(target.trigger.elementId)
+        : undefined;
+      if (!source)
+        return fail("ELEMENT_NOT_FOUND", "Feature element does not exist.");
+      if (!validAction(project, source, target.action, fail)) return;
       project.features = project.features.filter(
         (item) => item.id !== change.featureId,
       );

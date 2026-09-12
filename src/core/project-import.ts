@@ -172,30 +172,44 @@ function importedActionChanges(
           (screen) => screen.id === destinationId,
         ));
     if (removedWithEntity) continue;
-    if (feature.condition || !feature.trigger?.elementId) {
+    if (!feature.trigger?.elementId) {
       errors.push("Only a button's default action can be changed for now.");
       continue;
     }
-    changes.push({
-      type: "CLEAR_ELEMENT_ACTION",
-      elementId: feature.trigger.elementId,
-    });
+    changes.push(
+      feature.condition
+        ? { type: "REMOVE_ELEMENT_CASE", featureId: feature.id }
+        : {
+            type: "CLEAR_ELEMENT_ACTION",
+            elementId: feature.trigger.elementId,
+          },
+    );
   }
 
   for (const feature of imported.project.features) {
     const previous = before.get(feature.id);
     const fields = previous ? changedFields(previous, feature, ["name"]) : [];
     if (previous && !fields.length) continue;
+    const isCase = !!feature.condition?.trim();
+    const wasCase = !!previous?.condition?.trim();
+    const source = imported.project.elements.find(
+      (element) => element.id === feature.trigger?.elementId,
+    );
     if (
-      feature.condition ||
-      previous?.condition ||
       feature.trigger?.type !== "click" ||
       !feature.trigger.elementId ||
+      !source ||
+      feature.screenId !== source.screenId ||
       (previous &&
         fields.some(
-          (field) => field !== "action" && field !== "description",
+          (field) =>
+            field !== "action" &&
+            field !== "condition" &&
+            field !== "description",
         )) ||
+      (previous && isCase !== wasCase) ||
       (!previous &&
+        !isCase &&
         current.project.features.some(
           (item) =>
             !item.condition &&
@@ -203,6 +217,31 @@ function importedActionChanges(
         ))
     ) {
       errors.push("Only a button's default action can be changed for now.");
+      continue;
+    }
+    if (isCase) {
+      changes.push(
+        previous
+          ? {
+              type: "UPDATE_ELEMENT_CASE",
+              featureId: feature.id,
+              patch: {
+                action: feature.action,
+                condition: feature.condition,
+                description: feature.description,
+              },
+            }
+          : {
+              type: "ADD_ELEMENT_CASE",
+              elementId: feature.trigger.elementId,
+              case: {
+                id: feature.id,
+                action: feature.action,
+                condition: feature.condition!,
+                description: feature.description,
+              },
+            },
+      );
       continue;
     }
     changes.push({

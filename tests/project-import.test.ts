@@ -135,7 +135,7 @@ test("allows editable element fields but rejects element structure changes", () 
   );
 });
 
-test("allows a button default action but rejects conditional cases", () => {
+test("allows button default actions and conditional cases", () => {
   const source = structuredClone(current);
   source.project.screens.push({
     id: "details",
@@ -164,13 +164,21 @@ test("allows a button default action but rejects conditional cases", () => {
   );
 
   imported.project.features[0].condition = "When signed in";
-  assert.deepEqual(
-    previewProjectImport(source, JSON.stringify(imported)).errors,
-    ["Only a button's default action can be changed for now."],
+  assert.equal(
+    previewProjectImport(source, JSON.stringify(imported)).valid,
+    true,
+  );
+
+  const updated = structuredClone(imported);
+  updated.revision = 4;
+  updated.project.features[0].description = "Only for members";
+  assert.equal(
+    previewProjectImport(imported, JSON.stringify(updated)).valid,
+    true,
   );
 });
 
-test("allows removing only a button default action", () => {
+test("allows removing a button default action or conditional case", () => {
   const source = structuredClone(current);
   source.project.elements.push({
     id: "button",
@@ -195,9 +203,9 @@ test("allows removing only a button default action", () => {
   );
 
   source.project.features[0].condition = "When signed in";
-  assert.deepEqual(
-    previewProjectImport(source, JSON.stringify(imported)).errors,
-    ["Only a button's default action can be changed for now."],
+  assert.equal(
+    previewProjectImport(source, JSON.stringify(imported)).valid,
+    true,
   );
 });
 
