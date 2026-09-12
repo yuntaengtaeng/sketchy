@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { createEmptyProject, type UiMessage } from "../shared";
+import {
+  createEmptyProject,
+  type ProjectImportPreview,
+  type UiMessage,
+} from "../shared";
 import { BackNavigation, Header, type Tab } from "./components/header";
 import Build from "./features/build/Build";
 import Flow from "./features/flow/Flow";
@@ -16,6 +20,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("build");
   const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
+  const [importPreview, setImportPreview] = useState<ProjectImportPreview>();
   const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
   const context =
@@ -34,6 +39,8 @@ export default function App() {
       }
       if (message?.type === "PROJECT_EXPORT")
         download(message.fileName, message.contents);
+      if (message?.type === "PROJECT_IMPORT_PREVIEW")
+        setImportPreview(message.preview);
       if (message?.type === "ERROR") {
         clearTimeout(errorTimer);
         setError(message.message);
@@ -63,7 +70,9 @@ export default function App() {
           {error}
         </p>
       )}
-      {route.name === "settings" && <Settings settings={project.settings} />}
+      {route.name === "settings" && (
+        <Settings settings={project.settings} importPreview={importPreview} />
+      )}
       {route.name === "workspace" && tab === "build" && (
         <Build project={project} screen={screen} element={element} />
       )}

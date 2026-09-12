@@ -1,12 +1,21 @@
+import { useRef } from "react";
 import {
   SCREEN_PRESETS,
+  type ProjectImportPreview,
   type ProjectSettings,
   type ScreenPreset,
 } from "../../../shared";
 import { post } from "../../plugin";
 import styles from "./Settings.module.css";
 
-export default function Settings({ settings }: { settings: ProjectSettings }) {
+export default function Settings({
+  settings,
+  importPreview,
+}: {
+  settings: ProjectSettings;
+  importPreview?: ProjectImportPreview;
+}) {
+  const importInput = useRef<HTMLInputElement>(null);
   return (
     <>
       <section>
@@ -46,6 +55,43 @@ export default function Settings({ settings }: { settings: ProjectSettings }) {
         >
           Export for Codex or Claude
         </button>
+        <button
+          className={styles.import}
+          onClick={() => importInput.current?.click()}
+        >
+          Review agent changes
+        </button>
+        <input
+          ref={importInput}
+          className={styles.fileInput}
+          type="file"
+          accept="application/json,.json"
+          onChange={async (event) => {
+            const file = event.target.files?.[0];
+            if (file)
+              post({
+                type: "PREVIEW_PROJECT_IMPORT",
+                contents: await file.text(),
+              });
+            event.target.value = "";
+          }}
+        />
+        {importPreview && (
+          <div className={styles.preview} role="status">
+            <b>{importPreview.valid ? "Changes ready" : "Cannot review"}</b>
+            {[...importPreview.summary, ...importPreview.errors].map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+            {importPreview.warnings.map((item) => (
+              <span key={item} className={styles.warning}>
+                {item}
+              </span>
+            ))}
+            {importPreview.valid && (
+              <small>Figma has not been changed yet.</small>
+            )}
+          </div>
+        )}
       </section>
     </>
   );

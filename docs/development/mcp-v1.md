@@ -275,6 +275,10 @@ Canvas는 아직 수정하지 않고 Projection 상태를 `pending`으로 바꾼
 Agent는 Preview 요약과 경고를 보여주고 사용자가 명시적으로 승인한 뒤에만 Apply를
 호출한다.
 
+Figma Plugin의 `Review agent changes`는 변경된 JSON을 읽어 Project ID와 revision을
+확인하고 Screen, Element, Action의 추가·수정·삭제 수를 보여준다. 이 검토 단계는
+Canvas를 변경하지 않는다.
+
 ### Phase 3 — Figma Projection
 
 - Figma MCP Projection task 생성

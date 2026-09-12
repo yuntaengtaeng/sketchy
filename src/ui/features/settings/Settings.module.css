@@ -28,3 +28,23 @@
 .export {
   width: 100%;
 }
+
+.import {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.fileInput {
+  display: none;
+}
+
+.preview {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 11px;
+}
+
+.warning {
+  color: var(--figma-color-text-warning, #996800);
+}

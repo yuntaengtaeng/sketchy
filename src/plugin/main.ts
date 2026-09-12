@@ -1,4 +1,5 @@
 import type { PluginMessage, Project } from "../shared";
+import { previewProjectImport } from "../core/project-import";
 import { createProjectDocument } from "../core/project-change";
 import {
   createScreen,
@@ -72,6 +73,17 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         type: "PROJECT_EXPORT",
         fileName: "sketchy.project.json",
         contents: JSON.stringify(document, null, 2),
+      });
+    }
+    if (message.type === "PREVIEW_PROJECT_IMPORT") {
+      const current = createProjectDocument(
+        await cleanProject(readProject()),
+        readProjectMetadata(),
+        figma.fileKey || "local-development",
+      );
+      figma.ui.postMessage({
+        type: "PROJECT_IMPORT_PREVIEW",
+        preview: previewProjectImport(current, message.contents),
       });
     }
     if (message.type === "UPDATE_PROJECT_SETTINGS")

@@ -121,6 +121,14 @@ export type Project = {
   features: Feature[];
 };
 
+export type ProjectImportPreview = {
+  valid: boolean;
+  revision?: number;
+  summary: string[];
+  errors: string[];
+  warnings: string[];
+};
+
 export function projectWithoutScreen(project: Project, screenId: string) {
   const screenIds = new Set(
     project.screens
@@ -157,6 +165,7 @@ export const createEmptyProject = (): Project => ({
 export type PluginMessage =
   | { type: "READY" }
   | { type: "EXPORT_PROJECT" }
+  | { type: "PREVIEW_PROJECT_IMPORT"; contents: string }
   | { type: "UPDATE_PROJECT_SETTINGS"; settings: ProjectSettings }
   | { type: "CREATE_SCREEN"; name: string }
   | { type: "DUPLICATE_SCREEN"; screenId: string }
@@ -210,4 +219,5 @@ export type UiMessage =
       selectedElementId?: string;
     }
   | { type: "PROJECT_EXPORT"; fileName: string; contents: string }
+  | { type: "PROJECT_IMPORT_PREVIEW"; preview: ProjectImportPreview }
   | { type: "ERROR"; message: string };
