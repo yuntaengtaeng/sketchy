@@ -313,3 +313,46 @@ sketchy:screen-id = screen-product-detail
 
 Figma Node가 변경되더라도 Sketchy의 Domain Model이 Figma 구현에 지나치게
 의존하지 않도록 한다.
+
+## Agent integration and synchronization
+
+MCP 연동에서 Core 코드를 공유하는 것과 실행 중인 상태를 공유하는 것은
+구분한다. 현재 Figma 문서의 `pluginData`는 Plugin Runtime 안의 데이터이므로
+별도 MCP 프로세스가 같은 Core를 import하는 것만으로 접근할 수 없다.
+
+실제 쓰기 가능한 MCP를 시작할 때는 Sketchy API의 revision이 있는 Project를
+Canonical Store로 사용한다.
+
+```text
+                 Sketchy API
+               Project + Revision
+                  /          \
+          Figma Plugin     Sketchy MCP
+                |
+            Figma Canvas
+```
+
+- Sketchy Plugin과 MCP는 모두 API를 통해 변경한다.
+- Sketchy Model은 의미의 원본이고 Figma Canvas는 Projection이다.
+- MCP 변경은 `baseRevision`과 idempotency key를 가진 Batch로 Preview한 뒤
+  적용한다.
+- Connection은 별도로 저장하지 않고 Feature Action의 Destination에서
+  파생한다.
+- Figma Canvas에서 직접 발생한 변경은 Sketchy로 자동 역동기화하지 않는다.
+
+Plugin이 열려 있으면 Canvas의 외부 변경을 감지할 수 있다. Plugin이 닫힌
+동안 변경되었다면 다음 Plugin 실행 또는 Agent 작업 전에 차이를 검사한다.
+차이가 있으면 사용자의 Canvas 변경을 조용히 덮어쓰지 않고 유지하거나
+Sketchy Projection으로 복원하도록 선택하게 한다.
+
+MCP 초기 Tool 표면은 개별 CRUD보다 다음 Batch 중심 API를 우선한다.
+
+```text
+get_project
+get_screen
+preview_project_changes
+apply_project_changes
+```
+
+Canvas에서 Sketchy Model로 가져오는 기능은 자동 동기화가 아니라 별도의
+명시적인 Import/Adopt 작업으로 다룬다.

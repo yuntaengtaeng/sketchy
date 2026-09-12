@@ -4,13 +4,15 @@ type BlockDefinition = {
   triggers: FeatureTrigger["type"][];
 };
 
+export * from "./element-tree";
+
 export const BLOCK_DEFINITIONS = {
   text: { label: "Text", canAddToSection: true, triggers: [] },
   button: { label: "Button", canAddToSection: true, triggers: ["click"] },
   input: { label: "Input", canAddToSection: true, triggers: [] },
   image: { label: "Image", canAddToSection: true, triggers: [] },
   divider: { label: "Divider", canAddToSection: true, triggers: [] },
-  section: { label: "Section", canAddToSection: false, triggers: [] },
+  section: { label: "Section", canAddToSection: true, triggers: [] },
 } satisfies Record<string, BlockDefinition>;
 
 export type BlockType = keyof typeof BLOCK_DEFINITIONS;

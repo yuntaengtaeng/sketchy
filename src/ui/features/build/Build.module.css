@@ -4,6 +4,53 @@
   gap: 6px;
 }
 
+.contextNavigation {
+  padding: 0 0 12px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 12px 0 7px;
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+
+.breadcrumb::-webkit-scrollbar {
+  display: block;
+  height: 4px;
+}
+
+.breadcrumb span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.breadcrumb button {
+  min-height: 0;
+  padding: 3px;
+  border: 0;
+  text-transform: none;
+}
+
+.breadcrumb b {
+  padding: 3px;
+  font-weight: 700;
+}
+
+.levelPicker {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  margin-top: 5px;
+}
+
+.levelPicker select {
+  padding: 6px;
+}
+
 .blocks {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -99,27 +146,6 @@
   color: var(--figma-color-text-secondary, #777);
 }
 
-.more {
-  margin-top: 10px;
-}
-
-.screenDetails {
-  margin-top: 0;
-}
-
-.screenDetails > button {
-  margin-top: 12px;
-}
-
-.more summary {
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.more textarea {
-  margin-top: 8px;
-}
-
 .delete {
   display: block;
   margin: 14px auto 0;
@@ -130,6 +156,11 @@
   background: transparent;
   color: var(--figma-color-text-secondary, #777);
   text-decoration: underline;
+}
+
+.secondaryAction {
+  width: 100%;
+  margin-top: 12px;
 }
 
 .delete:hover,

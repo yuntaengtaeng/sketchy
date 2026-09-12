@@ -1,5 +1,6 @@
 import {
   BLOCK_DEFINITIONS,
+  canNestSection,
   elementTreeIds,
   sectionLayout,
   type BlockType,
@@ -30,6 +31,12 @@ export async function insertBlock(
     (parentElement.type !== "section" || parentNode?.type !== "FRAME")
   )
     throw new Error("Select a Sketchy section.");
+  if (
+    block === "section" &&
+    parentElement &&
+    !canNestSection(project.elements, parentElement)
+  )
+    throw new Error("Sections can only be nested one level deep.");
   const elementId = id();
   const node = block === "text" ? figma.createText() : figma.createFrame();
   node.name = BLOCK_DEFINITIONS[block].label;
@@ -111,9 +118,7 @@ export async function insertBlock(
     direction: block === "section" ? "vertical" : undefined,
   });
   saveProject(project);
-  figma.currentPage.selection = parentElement
-    ? [parentNode as FrameNode]
-    : [node];
+  figma.currentPage.selection = [parentNode as FrameNode];
   return project;
 }
 

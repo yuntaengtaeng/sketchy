@@ -10,16 +10,23 @@ const blocks = Object.entries(BLOCK_DEFINITIONS) as [
 export default function BlockPicker({
   screenId,
   sectionId,
+  allowSection = true,
 }: {
   screenId: string;
   sectionId?: string;
+  allowSection?: boolean;
 }) {
   return (
     <section className={sectionId ? styles.sectionCanvas : undefined}>
       <h2>{sectionId ? "Add to section" : "Add something"}</h2>
       <div className={styles.blocks}>
         {blocks
-          .filter(([, definition]) => !sectionId || definition.canAddToSection)
+          .filter(
+            ([block, definition]) =>
+              !sectionId ||
+              (definition.canAddToSection &&
+                (block !== "section" || allowSection)),
+          )
           .map(([block, definition]) => (
             <button
               className={styles.block}

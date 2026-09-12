@@ -181,6 +181,80 @@ Sketchy의 중심 객체는 Element가 아니라 **Screen**이다.
 
 Screen을 선택하면 Sketchy 패널에서 해당 화면의 정보를 편집한다.
 
+### Selection-aware Sidebar
+
+Build Sidebar는 Figma Canvas의 현재 선택을 기준으로 편집 대상을 바꾼다.
+
+```text
+선택 없음  → Screen 탐색 / + Screen
+Screen     → Screen 정보 / Add something / + Screen
+Section    → Section 설정 / Add to section / 자식 Node
+Element    → Element 설정 / 같은 부모의 형제 Node
+```
+
+선택된 객체의 전체 조상 경로를 클릭 가능한 breadcrumb로 표시한다.
+
+```text
+Checkout / Actions / Purchase form / Buy button
+```
+
+breadcrumb는 위로 이동하는 수단이다. 그 아래 `Switch in {parent}` Select는
+현재 Node와 같은 부모를 가진 형제로 이동하며 Section에도 같은 규칙을
+적용한다. Section의 `Inside {section}` 목록은 선택한 Section의 직접 자식만
+보여준다. Sidebar는 전체 Figma Layer Tree를 복제하지 않고 현재 맥락에서
+필요한 조상, 형제와 자식만 보여준다.
+
+긴 breadcrumb는 현재 선택 항목을 자동으로 보이는 위치까지 스크롤한다.
+가로로 넘치는 경로를 발견할 수 있도록 이 영역의 scrollbar는 숨기지 않는다.
+
+Screen에서는 `Add something`을 Primary 작업으로 두고, 사용자가 이미 쉽게
+찾는 `+ Screen`은 Secondary 작업으로 유지한다. Element를 선택하면 해당
+Inspector를 첫 콘텐츠로 보여주고 Screen/Block 편집 UI는 숨긴다.
+
+Block을 추가한 뒤에는 새 Element로 자동 이동하지 않고 현재 컨테이너인
+Screen 또는 Section 선택을 유지한다. 사용자는 여러 Block으로 구조를 먼저
+연속해서 만든 뒤 `Inside` 목록이나 Canvas에서 필요한 Element를 선택해
+설정한다.
+
+이 결정의 근거:
+
+- `Add something`과 `Add to section`은 현재 컨테이너의 구조를 만드는 반복
+  작업이다. 매번 새 Element Inspector로 이동하면 추가 UI가 사라져 부모로
+  돌아오는 비용이 발생한다.
+- Screen 직속 추가와 Section 내부 추가가 서로 다른 선택 결과를 만들면
+  사용자가 다음 화면을 예측하기 어렵다. 두 경우 모두 컨테이너 선택을
+  유지한다.
+- Sketchy는 속성을 하나씩 정교하게 편집하는 디자인 도구보다 먼저 화면
+  구조를 빠르게 잡는 Low-fi 도구다. 구조 작성의 연속성을 기본값으로 둔다.
+- 방금 추가한 Element는 `Inside {container}` 목록과 Canvas에 바로 나타나므로
+  설정이 필요한 사용자는 명시적으로 선택할 수 있다.
+
+향후 실제 관찰에서 대부분의 사용자가 매번 생성 직후 이름이나 Action을
+수정하며 부모 복귀보다 재선택 비용이 더 크다고 확인될 때만 생성 Node 자동
+선택 또는 `Add and edit` 같은 별도 결과를 검토한다.
+
+Input Inspector에는 이름과 향후 Placeholder, Validation, Error 표현 같은
+Input 자체 설정을 둔다. 실행 가능한 Trigger가 구현되기 전에는 Button과 같은
+Action 편집기를 노출하지 않는다.
+
+### Section hierarchy
+
+Low-fi 화면의 큰 영역과 내부 영역을 표현할 수 있도록 Section 중첩은 한
+단계만 허용한다.
+
+```text
+Screen
+└─ Section
+   ├─ Section
+   │  └─ Element
+   └─ Section
+      └─ Element
+```
+
+세 번째 Section 중첩은 허용하지 않는다. 각 Section의 Vertical/Horizontal
+방향으로 기본 레이아웃을 만들되 범용 Layer 구조나 자유 배치 도구로 확장하지
+않는다.
+
 예:
 
 ```text

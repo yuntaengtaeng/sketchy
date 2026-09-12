@@ -16,22 +16,12 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("build");
   const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
-  const screen =
-    project.screens.find((item) => item.id === screenId) || project.screens[0];
+  const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
-  const section =
-    element?.type === "section"
-      ? element
-      : project.elements.find((item) => item.id === element?.parentElementId);
   const context =
     route.name === "settings"
       ? { title: "Settings", onBack: () => setRoute({ name: "workspace" }) }
-      : section && screen
-        ? {
-            title: "Section",
-            onBack: () => post({ type: "SELECT_SCREEN", screenId: screen.id }),
-          }
-        : undefined;
+      : undefined;
 
   useEffect(() => {
     let errorTimer: ReturnType<typeof setTimeout>;
@@ -73,12 +63,7 @@ export default function App() {
       )}
       {route.name === "settings" && <Settings settings={project.settings} />}
       {route.name === "workspace" && tab === "build" && (
-        <Build
-          project={project}
-          screen={screen}
-          element={element}
-          onScreenChange={setScreenId}
-        />
+        <Build project={project} screen={screen} element={element} />
       )}
       {route.name === "workspace" && tab === "flow" && (
         <Flow project={project} selectedScreenId={screenId} />
