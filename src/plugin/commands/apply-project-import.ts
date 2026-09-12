@@ -1,5 +1,6 @@
 import type {
   DomainElement,
+  DomainScreen,
   ProjectDocument,
   ProjectMetadata,
 } from "../../core/project-change";
@@ -12,14 +13,17 @@ import {
   renderSectionDirection,
 } from "./canvas/element-render";
 import { loadFont } from "./canvas/utils";
+import { createScreenNode } from "./canvas/screen";
 
 export async function applyProjectImport(document: ProjectDocument) {
   const current = readProject();
   const screenTargets = await Promise.all(
-    document.project.screens.map(async (screen) => {
-      const stored = current.screens.find((item) => item.id === screen.id);
-      const node = stored && (await figma.getNodeByIdAsync(stored.nodeId));
-      if (!stored || node?.type !== "FRAME")
+    current.screens.map(async (stored) => {
+      const screen = document.project.screens.find(
+        (item) => item.id === stored.id,
+      )!;
+      const node = await figma.getNodeByIdAsync(stored.nodeId);
+      if (node?.type !== "FRAME")
         throw new Error(`Screen ${screen.id} is no longer available.`);
       return { screen, stored, node };
     }),
@@ -44,6 +48,9 @@ export async function applyProjectImport(document: ProjectDocument) {
   const screenNodes = new Map(
     screenTargets.map((item) => [item.screen.id, item.node]),
   );
+  const addedScreens = document.project.screens.filter(
+    (screen) => !screenNodes.has(screen.id),
+  );
   const added = document.project.elements
     .filter((element) => !nodes.has(element.id))
     .sort(
@@ -53,6 +60,20 @@ export async function applyProjectImport(document: ProjectDocument) {
     );
   const created: SceneNode[] = [];
   try {
+    const positionedScreens = screenTargets
+      .map((item) => item.node)
+      .filter((node) => node.parent === figma.currentPage);
+    for (const screen of addedScreens) {
+      const node = createScreenNode(
+        screen,
+        current.settings.screenPreset,
+        positionedScreens,
+      );
+      created.push(node);
+      positionedScreens.push(node);
+      screenNodes.set(screen.id, node);
+      current.screens.push(withScreenNodeId(screen, node.id));
+    }
     for (const element of added) {
       const parent = element.parentElementId
         ? nodes.get(element.parentElementId)
@@ -118,4 +139,8 @@ export async function applyProjectImport(document: ProjectDocument) {
 
 function withNodeId(element: DomainElement, nodeId: string) {
   return { ...element, nodeId };
+}
+
+function withScreenNodeId(screen: DomainScreen, nodeId: string) {
+  return { ...screen, nodeId };
 }

@@ -88,6 +88,27 @@ test("allows new elements in an existing screen and validates their parents", ()
   );
 });
 
+test("allows a new screen and its elements in the same import", () => {
+  const imported = structuredClone(current);
+  imported.revision = 3;
+  imported.project.screens.push({
+    id: "details",
+    name: "Details",
+    purpose: "Show product details",
+  });
+  imported.project.elements.push({
+    id: "title",
+    screenId: "details",
+    name: "Product",
+    type: "text",
+  });
+
+  const preview = previewProjectImport(current, JSON.stringify(imported));
+
+  assert.equal(preview.valid, true);
+  assert.deepEqual(preview.summary, ["Add 1 screen", "Add 1 element"]);
+});
+
 test("allows editable element fields but rejects element structure changes", () => {
   const source = structuredClone(current);
   source.project.elements.push({

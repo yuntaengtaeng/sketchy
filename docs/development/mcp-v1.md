@@ -279,12 +279,13 @@ Figma Plugin의 `Review agent changes`는 변경된 JSON을 읽어 Project ID와
 확인하고 Screen, Element, Action의 추가·수정·삭제 수를 보여준다. 이 검토 단계는
 Canvas를 변경하지 않는다.
 
-현재 Projection은 기존 Screen의 이름·Purpose, 기존 Element의 이름·설명,
-Button style, Section direction과 기존 Screen 안의 새 Element를 `Apply to Figma`로
-반영한다. 새 Element는 Section 안에 배치할 수 있고 Section 중첩은 한 단계까지
-허용한다. 검토 이후 Figma Project revision이 달라졌거나 Screen 추가·삭제,
-Element 삭제·구조 변경, Action 변경이 섞이면 적용하지 않는다. 반영 후 다시
-Export하면 JSON Projection도 `synced`로 닫힌다.
+현재 Projection은 일반 Screen 생성, 기존 Screen의 이름·Purpose, 기존 Element의
+이름·설명, Button style, Section direction과 새 Element를 `Apply to Figma`로
+반영한다. 같은 Batch에서 새 Screen과 그 안의 Element를 함께 만들 수 있다. 새
+Element는 Section 안에 배치할 수 있고 Section 중첩은 한 단계까지 허용한다. 검토
+이후 Figma Project revision이 달라졌거나 Popup Screen 생성, Screen·Element 삭제,
+기존 구조 변경, Action 변경이 섞이면 적용하지 않는다. 반영 후 다시 Export하면
+JSON Projection도 `synced`로 닫힌다.
 
 ### Phase 3 — Figma Projection
 

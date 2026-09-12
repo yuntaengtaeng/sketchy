@@ -3,6 +3,7 @@ import {
   SCREEN_PRESETS,
   type Project,
   type Screen,
+  type ScreenPreset,
 } from "../../../shared";
 import { nextScreenPosition } from "../../screen-position";
 import { readProject, saveProject } from "../../storage/project";
@@ -13,12 +14,43 @@ import { focusNode, id, loadFont } from "./utils";
 export async function createScreen(name: string) {
   await loadFont();
   const project = readProject();
-  const frame = figma.createFrame();
   const screenId = id();
-  const preset = SCREEN_PRESETS[project.settings.screenPreset];
-  frame.name =
-    name ||
-    `Screen ${project.screens.filter((screen) => !screen.kind).length + 1}`;
+  const existing = (
+    await Promise.all(
+      project.screens
+        .filter((screen) => !screen.kind)
+        .map((screen) => figma.getNodeByIdAsync(screen.nodeId)),
+    )
+  ).filter(
+    (node): node is FrameNode =>
+      node?.type === "FRAME" && node.parent === figma.currentPage,
+  );
+  const screen: Omit<Screen, "nodeId"> = {
+    id: screenId,
+    name:
+      name ||
+      `Screen ${project.screens.filter((screen) => !screen.kind).length + 1}`,
+    purpose: "",
+  };
+  const frame = createScreenNode(
+    screen,
+    project.settings.screenPreset,
+    existing,
+  );
+  project.screens.push({ ...screen, nodeId: frame.id });
+  saveProject(project);
+  await focusNode(frame);
+  return project;
+}
+
+export function createScreenNode(
+  screen: Omit<Screen, "nodeId">,
+  screenPreset: ScreenPreset,
+  existing: FrameNode[],
+) {
+  const frame = figma.createFrame();
+  const preset = SCREEN_PRESETS[screenPreset];
+  frame.name = screen.name;
   frame.resize(preset.width, preset.height);
   frame.layoutMode = "VERTICAL";
   frame.primaryAxisSizingMode = frame.counterAxisSizingMode = "FIXED";
@@ -31,29 +63,11 @@ export async function createScreen(name: string) {
   frame.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
   frame.strokes = [{ type: "SOLID", color: { r: 0.25, g: 0.25, b: 0.25 } }];
   frame.setPluginData("sketchy:type", "screen");
-  frame.setPluginData("sketchy:screen-id", screenId);
-  const existing = (
-    await Promise.all(
-      project.screens
-        .filter((screen) => !screen.kind)
-        .map((screen) => figma.getNodeByIdAsync(screen.nodeId)),
-    )
-  ).filter(
-    (node): node is FrameNode =>
-      node?.type === "FRAME" && node.parent === figma.currentPage,
-  );
+  frame.setPluginData("sketchy:screen-id", screen.id);
   const position = nextScreenPosition(figma.viewport.center, preset, existing);
   frame.x = position.x;
   frame.y = position.y;
-  project.screens.push({
-    id: screenId,
-    nodeId: frame.id,
-    name: frame.name,
-    purpose: "",
-  });
-  saveProject(project);
-  await focusNode(frame);
-  return project;
+  return frame;
 }
 
 export async function updateScreen(

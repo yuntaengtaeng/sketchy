@@ -1,5 +1,9 @@
 import { elementAncestors } from "../shared/element-tree.ts";
-import type { DomainElement, ProjectDocument } from "./project-change.ts";
+import type {
+  DomainElement,
+  DomainScreen,
+  ProjectDocument,
+} from "./project-change.ts";
 import { previewProjectChanges } from "./validate-project-changes.ts";
 import type { ProjectImportPreview } from "../shared/index.ts";
 
@@ -62,8 +66,22 @@ function supportedImportErrors(
   const sameIds = (left: { id: string }[], right: { id: string }[]) =>
     left.length === right.length &&
     left.every((item) => right.some((other) => other.id === item.id));
-  if (!sameIds(current.project.screens, imported.project.screens))
-    errors.push("Adding or removing screens is not supported yet.");
+  const currentScreenIds = new Set(
+    current.project.screens.map((item) => item.id),
+  );
+  if (
+    current.project.screens.some(
+      (item) => !imported.project.screens.some((other) => other.id === item.id),
+    )
+  )
+    errors.push("Removing screens is not supported yet.");
+  if (hasUnsupportedScreenChange(current, imported))
+    errors.push("Screen type changes are not supported.");
+  const addedScreens = imported.project.screens.filter(
+    (item) => !currentScreenIds.has(item.id),
+  );
+  if (addedScreens.some((screen) => screen.kind || screen.baseScreenId))
+    errors.push("Adding popup screens is not supported yet.");
   const currentElementIds = new Set(
     current.project.elements.map((item) => item.id),
   );
@@ -77,8 +95,9 @@ function supportedImportErrors(
   if (hasUnsupportedElementChange(current, imported))
     errors.push("Element structure or type changes are not supported.");
   errors.push(
-    ...addedElementErrors(
+    ...addedProjectErrors(
       current,
+      addedScreens.filter((screen) => !screen.kind && !screen.baseScreenId),
       imported.project.elements.filter(
         (item) => !currentElementIds.has(item.id),
       ),
@@ -98,6 +117,23 @@ function supportedImportErrors(
   )
     errors.push("Project setting changes are not supported yet.");
   return errors;
+}
+
+function hasUnsupportedScreenChange(
+  current: ProjectDocument,
+  imported: ProjectDocument,
+) {
+  const before = new Map(
+    current.project.screens.map((item) => [item.id, item]),
+  );
+  return imported.project.screens.some((item) => {
+    const previous = before.get(item.id);
+    return previous
+      ? changedFields(previous, item).some(
+          (field) => field !== "name" && field !== "purpose",
+        )
+      : false;
+  });
 }
 
 function hasUnsupportedElementChange(
@@ -121,13 +157,14 @@ function hasUnsupportedElementChange(
   });
 }
 
-function addedElementErrors(
+function addedProjectErrors(
   current: ProjectDocument,
+  screens: DomainScreen[],
   added: DomainElement[],
   allElements: DomainElement[],
 ) {
-  if (!added.length) return [];
-  const changes = [...added]
+  if (!screens.length && !added.length) return [];
+  const elements = [...added]
     .sort(
       (left, right) =>
         elementAncestors(allElements, left).length -
@@ -138,7 +175,10 @@ function addedElementErrors(
     projectId: current.id,
     baseRevision: current.revision,
     idempotencyKey: "project-import",
-    changes,
+    changes: [
+      ...screens.map((screen) => ({ type: "CREATE_SCREEN" as const, screen })),
+      ...elements,
+    ],
   }).errors.map((issue) => issue.message);
 }
 
@@ -229,7 +269,10 @@ function isProjectDocument(value: unknown): value is ProjectDocument {
         item &&
         typeof item.id === "string" &&
         typeof item.name === "string" &&
-        typeof item.purpose === "string",
+        typeof item.purpose === "string" &&
+        (item.kind === undefined || item.kind === "popup") &&
+        (item.baseScreenId === undefined ||
+          typeof item.baseScreenId === "string"),
     ) &&
     project.elements.every(isElement) &&
     project.features.every((item) => item && typeof item.id === "string")
