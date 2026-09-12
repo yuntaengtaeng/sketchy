@@ -2,6 +2,7 @@ import { elementAncestors } from "../shared/element-tree.ts";
 import type {
   DomainElement,
   DomainScreen,
+  ProjectChange,
   ProjectDocument,
 } from "./project-change.ts";
 import { previewProjectChanges } from "./validate-project-changes.ts";
@@ -63,9 +64,6 @@ function supportedImportErrors(
   imported: ProjectDocument,
 ) {
   const errors: string[] = [];
-  const sameIds = (left: { id: string }[], right: { id: string }[]) =>
-    left.length === right.length &&
-    left.every((item) => right.some((other) => other.id === item.id));
   const currentScreenIds = new Set(
     current.project.screens.map((item) => item.id),
   );
@@ -94,6 +92,8 @@ function supportedImportErrors(
     errors.push("Removing elements is not supported yet.");
   if (hasUnsupportedElementChange(current, imported))
     errors.push("Element structure or type changes are not supported.");
+  const actions = importedActionChanges(current, imported);
+  errors.push(...actions.errors);
   errors.push(
     ...addedProjectErrors(
       current,
@@ -102,21 +102,66 @@ function supportedImportErrors(
         (item) => !currentElementIds.has(item.id),
       ),
       imported.project.elements,
+      actions.changes,
     ),
   );
-  if (
-    !sameIds(current.project.features, imported.project.features) ||
-    changedCollection(current.project.features, imported.project.features, [
-      "name",
-    ])
-  )
-    errors.push("Action changes are not supported yet.");
   if (
     JSON.stringify(stableValue(current.project.settings)) !==
     JSON.stringify(stableValue(imported.project.settings))
   )
     errors.push("Project setting changes are not supported yet.");
   return errors;
+}
+
+function importedActionChanges(
+  current: ProjectDocument,
+  imported: ProjectDocument,
+): { changes: ProjectChange[]; errors: string[] } {
+  const before = new Map(
+    current.project.features.map((feature) => [feature.id, feature]),
+  );
+  const errors: string[] = [];
+  const changes: ProjectChange[] = [];
+  if (
+    current.project.features.some(
+      (feature) =>
+        !imported.project.features.some((other) => other.id === feature.id),
+    )
+  )
+    errors.push("Removing actions is not supported yet.");
+
+  for (const feature of imported.project.features) {
+    const previous = before.get(feature.id);
+    const fields = previous ? changedFields(previous, feature, ["name"]) : [];
+    if (previous && !fields.length) continue;
+    if (
+      feature.condition ||
+      previous?.condition ||
+      feature.trigger?.type !== "click" ||
+      !feature.trigger.elementId ||
+      (previous &&
+        fields.some(
+          (field) => field !== "action" && field !== "description",
+        )) ||
+      (!previous &&
+        current.project.features.some(
+          (item) =>
+            !item.condition &&
+            item.trigger?.elementId === feature.trigger?.elementId,
+        ))
+    ) {
+      errors.push("Only a button's default action can be changed for now.");
+      continue;
+    }
+    changes.push({
+      type: "SET_ELEMENT_ACTION",
+      featureId: feature.id,
+      elementId: feature.trigger.elementId,
+      action: feature.action,
+      description: feature.description,
+    });
+  }
+  return { changes, errors: [...new Set(errors)] };
 }
 
 function hasUnsupportedScreenChange(
@@ -162,8 +207,9 @@ function addedProjectErrors(
   screens: DomainScreen[],
   added: DomainElement[],
   allElements: DomainElement[],
+  actions: ProjectChange[],
 ) {
-  if (!screens.length && !added.length) return [];
+  if (!screens.length && !added.length && !actions.length) return [];
   const elements = [...added]
     .sort(
       (left, right) =>
@@ -178,6 +224,7 @@ function addedProjectErrors(
     changes: [
       ...screens.map((screen) => ({ type: "CREATE_SCREEN" as const, screen })),
       ...elements,
+      ...actions,
     ],
   }).errors.map((issue) => issue.message);
 }
@@ -275,7 +322,7 @@ function isProjectDocument(value: unknown): value is ProjectDocument {
           typeof item.baseScreenId === "string"),
     ) &&
     project.elements.every(isElement) &&
-    project.features.every((item) => item && typeof item.id === "string")
+    project.features.every(isFeature)
   );
 }
 
@@ -307,5 +354,39 @@ function isElement(item: unknown) {
     (element.direction === undefined ||
       element.direction === "vertical" ||
       element.direction === "horizontal")
+  );
+}
+
+function isFeature(item: unknown) {
+  if (!item || typeof item !== "object") return false;
+  const feature = item as Record<string, unknown>;
+  const trigger = feature.trigger as Record<string, unknown> | undefined;
+  return (
+    typeof feature.id === "string" &&
+    typeof feature.screenId === "string" &&
+    typeof feature.name === "string" &&
+    (feature.condition === undefined ||
+      typeof feature.condition === "string") &&
+    (feature.description === undefined ||
+      typeof feature.description === "string") &&
+    (trigger === undefined ||
+      ((trigger.type === "click" ||
+        trigger.type === "change" ||
+        trigger.type === "submit") &&
+        (trigger.elementId === undefined ||
+          typeof trigger.elementId === "string"))) &&
+    isAction(feature.action)
+  );
+}
+
+function isAction(value: unknown) {
+  if (!value || typeof value !== "object") return false;
+  const action = value as Record<string, unknown>;
+  if (action.type === "describe" || action.type === "close-overlay")
+    return true;
+  return (
+    (action.type === "navigate" || action.type === "overlay") &&
+    (action.destinationScreenId === undefined ||
+      typeof action.destinationScreenId === "string")
   );
 }

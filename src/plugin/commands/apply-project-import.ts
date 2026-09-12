@@ -14,9 +14,11 @@ import {
 } from "./canvas/element-render";
 import { loadFont } from "./canvas/utils";
 import { createScreenNode } from "./canvas/screen";
+import { syncReaction } from "./canvas/feature";
 
 export async function applyProjectImport(document: ProjectDocument) {
   const current = readProject();
+  const previousFeatures = current.features;
   const screenTargets = await Promise.all(
     current.screens.map(async (stored) => {
       const screen = document.project.screens.find(
@@ -115,11 +117,37 @@ export async function applyProjectImport(document: ProjectDocument) {
       );
     Object.assign(stored, element);
   }
+  const changedActionElementIds = document.project.features.flatMap(
+    (feature) => {
+      const previous = previousFeatures.find((item) => item.id === feature.id);
+      return !previous ||
+        JSON.stringify(previous.action) !== JSON.stringify(feature.action) ||
+        previous.description !== feature.description
+        ? [feature.trigger?.elementId]
+        : [];
+    },
+  );
+  current.features = document.project.features;
   for (const feature of current.features) {
     const element = current.elements.find(
       (item) => item.id === feature.trigger?.elementId,
     );
     if (element) feature.name = element.name;
+  }
+  for (const elementId of new Set(changedActionElementIds)) {
+    const node = elementId ? nodes.get(elementId) : undefined;
+    if (!elementId || !node || !("setReactionsAsync" in node))
+      throw new Error(
+        `Button ${elementId || "action"} is no longer available.`,
+      );
+    await syncReaction(
+      node as SceneNode & ReactionMixin,
+      current,
+      previousFeatures.filter(
+        (feature) => feature.trigger?.elementId === elementId,
+      ),
+      elementId,
+    );
   }
 
   const project: Project = {

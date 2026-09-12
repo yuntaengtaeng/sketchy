@@ -135,6 +135,41 @@ test("allows editable element fields but rejects element structure changes", () 
   );
 });
 
+test("allows a button default action but rejects conditional cases", () => {
+  const source = structuredClone(current);
+  source.project.screens.push({
+    id: "details",
+    name: "Details",
+    purpose: "",
+  });
+  source.project.elements.push({
+    id: "button",
+    screenId: "home",
+    name: "Continue",
+    type: "button",
+  });
+  const imported = structuredClone(source);
+  imported.revision = 3;
+  imported.project.features.push({
+    id: "continue-action",
+    screenId: "home",
+    name: "Continue",
+    trigger: { type: "click", elementId: "button" },
+    action: { type: "navigate", destinationScreenId: "details" },
+  });
+
+  assert.equal(
+    previewProjectImport(source, JSON.stringify(imported)).valid,
+    true,
+  );
+
+  imported.project.features[0].condition = "When signed in";
+  assert.deepEqual(
+    previewProjectImport(source, JSON.stringify(imported)).errors,
+    ["Only a button's default action can be changed for now."],
+  );
+});
+
 test("rejects malformed editable element fields at the import boundary", () => {
   const imported = structuredClone(current) as unknown as Record<
     string,

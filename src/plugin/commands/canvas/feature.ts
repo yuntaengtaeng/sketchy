@@ -13,7 +13,7 @@ import {
 import { id } from "./utils";
 import { createOverlayScreen } from "./screen";
 
-async function syncReaction(
+export async function syncReaction(
   source: SceneNode & ReactionMixin,
   project: Project,
   previous: Feature[],
