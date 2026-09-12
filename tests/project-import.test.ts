@@ -170,6 +170,48 @@ test("allows a button default action but rejects conditional cases", () => {
   );
 });
 
+test("allows deleting an element tree and its actions but keeps popup roots", () => {
+  const source = structuredClone(current);
+  source.project.elements = [
+    {
+      id: "section",
+      screenId: "home",
+      name: "Actions",
+      type: "section",
+    },
+    {
+      id: "button",
+      screenId: "home",
+      parentElementId: "section",
+      name: "Continue",
+      type: "button",
+    },
+  ];
+  source.project.features = [
+    {
+      id: "continue-action",
+      screenId: "home",
+      name: "Continue",
+      trigger: { type: "click", elementId: "button" },
+      action: { type: "describe" },
+    },
+  ];
+  const imported = structuredClone(source);
+  imported.revision = 3;
+  imported.project.elements = [];
+  imported.project.features = [];
+
+  const preview = previewProjectImport(source, JSON.stringify(imported));
+  assert.equal(preview.valid, true);
+  assert.deepEqual(preview.summary, ["Remove 2 elements", "Remove 1 action"]);
+
+  source.project.elements[0].role = "popup";
+  assert.deepEqual(
+    previewProjectImport(source, JSON.stringify(imported)).errors,
+    ["The popup itself is required."],
+  );
+});
+
 test("rejects malformed editable element fields at the import boundary", () => {
   const imported = structuredClone(current) as unknown as Record<
     string,

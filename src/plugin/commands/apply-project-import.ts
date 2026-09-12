@@ -19,6 +19,29 @@ import { syncReaction } from "./canvas/feature";
 export async function applyProjectImport(document: ProjectDocument) {
   const current = readProject();
   const previousFeatures = current.features;
+  const importedElementIds = new Set(
+    document.project.elements.map((element) => element.id),
+  );
+  const removedElements = current.elements.filter(
+    (element) => !importedElementIds.has(element.id),
+  );
+  const removedElementIds = new Set(
+    removedElements.map((element) => element.id),
+  );
+  const removedTargets = await Promise.all(
+    removedElements
+      .filter(
+        (element) =>
+          !element.parentElementId ||
+          !removedElementIds.has(element.parentElementId),
+      )
+      .map(async (element) => {
+        const node = await figma.getNodeByIdAsync(element.nodeId);
+        if (!node)
+          throw new Error(`Element ${element.id} is no longer available.`);
+        return node;
+      }),
+  );
   const screenTargets = await Promise.all(
     current.screens.map(async (stored) => {
       const screen = document.project.screens.find(
@@ -31,16 +54,18 @@ export async function applyProjectImport(document: ProjectDocument) {
     }),
   );
   const elementTargets = await Promise.all(
-    current.elements.map(async (stored) => {
-      const element = document.project.elements.find(
-        (item) => item.id === stored.id,
-      )!;
-      const node = await figma.getNodeByIdAsync(stored.nodeId);
-      const expectedType = element.type === "text" ? "TEXT" : "FRAME";
-      if (node?.type !== expectedType)
-        throw new Error(`Element ${element.id} is no longer available.`);
-      return { element, stored, node: node as FrameNode | TextNode };
-    }),
+    current.elements
+      .filter((stored) => importedElementIds.has(stored.id))
+      .map(async (stored) => {
+        const element = document.project.elements.find(
+          (item) => item.id === stored.id,
+        )!;
+        const node = await figma.getNodeByIdAsync(stored.nodeId);
+        const expectedType = element.type === "text" ? "TEXT" : "FRAME";
+        if (node?.type !== expectedType)
+          throw new Error(`Element ${element.id} is no longer available.`);
+        return { element, stored, node: node as FrameNode | TextNode };
+      }),
   );
 
   await loadFont();
@@ -149,6 +174,10 @@ export async function applyProjectImport(document: ProjectDocument) {
       elementId,
     );
   }
+  for (const node of removedTargets) node.remove();
+  current.elements = current.elements.filter((element) =>
+    importedElementIds.has(element.id),
+  );
 
   const project: Project = {
     settings: current.settings,

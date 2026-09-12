@@ -1,4 +1,4 @@
-import { elementAncestors } from "../shared/element-tree.ts";
+import { elementAncestors, elementTreeIds } from "../shared/element-tree.ts";
 import type {
   DomainElement,
   DomainScreen,
@@ -83,13 +83,25 @@ function supportedImportErrors(
   const currentElementIds = new Set(
     current.project.elements.map((item) => item.id),
   );
+  const importedElementIds = new Set(
+    imported.project.elements.map((item) => item.id),
+  );
+  const removedElements = current.project.elements.filter(
+    (item) => !importedElementIds.has(item.id),
+  );
+  const removedElementIds = new Set(removedElements.map((item) => item.id));
+  const removedRoots = removedElements.filter(
+    (item) =>
+      !item.parentElementId || !removedElementIds.has(item.parentElementId),
+  );
   if (
-    current.project.elements.some(
-      (item) =>
-        !imported.project.elements.some((other) => other.id === item.id),
+    removedRoots.some((root) =>
+      imported.project.elements.some((element) =>
+        elementTreeIds(current.project.elements, root.id).has(element.id),
+      ),
     )
   )
-    errors.push("Removing elements is not supported yet.");
+    errors.push("Deleting a section must include its nested elements.");
   if (hasUnsupportedElementChange(current, imported))
     errors.push("Element structure or type changes are not supported.");
   const actions = importedActionChanges(current, imported);
@@ -103,6 +115,7 @@ function supportedImportErrors(
       ),
       imported.project.elements,
       actions.changes,
+      removedRoots.map((element) => element.id),
     ),
   );
   if (
@@ -125,7 +138,11 @@ function importedActionChanges(
   if (
     current.project.features.some(
       (feature) =>
-        !imported.project.features.some((other) => other.id === feature.id),
+        !imported.project.features.some((other) => other.id === feature.id) &&
+        (!feature.trigger?.elementId ||
+          imported.project.elements.some(
+            (element) => element.id === feature.trigger?.elementId,
+          )),
     )
   )
     errors.push("Removing actions is not supported yet.");
@@ -208,8 +225,15 @@ function addedProjectErrors(
   added: DomainElement[],
   allElements: DomainElement[],
   actions: ProjectChange[],
+  removedElementIds: string[],
 ) {
-  if (!screens.length && !added.length && !actions.length) return [];
+  if (
+    !screens.length &&
+    !added.length &&
+    !actions.length &&
+    !removedElementIds.length
+  )
+    return [];
   const elements = [...added]
     .sort(
       (left, right) =>
@@ -223,6 +247,10 @@ function addedProjectErrors(
     idempotencyKey: "project-import",
     changes: [
       ...screens.map((screen) => ({ type: "CREATE_SCREEN" as const, screen })),
+      ...removedElementIds.map((elementId) => ({
+        type: "DELETE_ELEMENT" as const,
+        elementId,
+      })),
       ...elements,
       ...actions,
     ],

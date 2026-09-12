@@ -172,8 +172,10 @@ export function previewProjectChanges(
       return;
     }
     if (change.type === "DELETE_ELEMENT") {
-      if (!element(change.elementId))
-        return fail("ELEMENT_NOT_FOUND", "Element does not exist.");
+      const target = element(change.elementId);
+      if (!target) return fail("ELEMENT_NOT_FOUND", "Element does not exist.");
+      if (target.role === "popup")
+        return fail("ELEMENT_REQUIRED", "The popup itself is required.");
       const removed = elementTreeIds(project.elements, change.elementId);
       project.elements = project.elements.filter(
         (item) => !removed.has(item.id),
