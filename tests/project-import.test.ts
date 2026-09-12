@@ -212,6 +212,53 @@ test("allows deleting an element tree and its actions but keeps popup roots", ()
   );
 });
 
+test("allows deleting a screen with its contents and incoming action", () => {
+  const source = structuredClone(current);
+  source.project.screens.push({
+    id: "details",
+    name: "Details",
+    purpose: "",
+  });
+  source.project.elements.push(
+    {
+      id: "open-details",
+      screenId: "home",
+      name: "Details",
+      type: "button",
+    },
+    {
+      id: "details-title",
+      screenId: "details",
+      name: "Product",
+      type: "text",
+    },
+  );
+  source.project.features.push({
+    id: "details-action",
+    screenId: "home",
+    name: "Details",
+    trigger: { type: "click", elementId: "open-details" },
+    action: { type: "navigate", destinationScreenId: "details" },
+  });
+  const imported = structuredClone(source);
+  imported.revision = 3;
+  imported.project.screens = imported.project.screens.filter(
+    (screen) => screen.id !== "details",
+  );
+  imported.project.elements = imported.project.elements.filter(
+    (element) => element.screenId !== "details",
+  );
+  imported.project.features = [];
+
+  const preview = previewProjectImport(source, JSON.stringify(imported));
+  assert.equal(preview.valid, true);
+  assert.deepEqual(preview.summary, [
+    "Remove 1 screen",
+    "Remove 1 element",
+    "Remove 1 action",
+  ]);
+});
+
 test("rejects malformed editable element fields at the import boundary", () => {
   const imported = structuredClone(current) as unknown as Record<
     string,

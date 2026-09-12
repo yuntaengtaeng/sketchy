@@ -19,11 +19,28 @@ import { syncReaction } from "./canvas/feature";
 export async function applyProjectImport(document: ProjectDocument) {
   const current = readProject();
   const previousFeatures = current.features;
+  const importedScreenIds = new Set(
+    document.project.screens.map((screen) => screen.id),
+  );
+  const removedScreens = current.screens.filter(
+    (screen) => !importedScreenIds.has(screen.id),
+  );
+  const removedScreenIds = new Set(removedScreens.map((screen) => screen.id));
+  const removedScreenTargets = await Promise.all(
+    removedScreens.map(async (screen) => {
+      const node = await figma.getNodeByIdAsync(screen.nodeId);
+      if (node?.type !== "FRAME")
+        throw new Error(`Screen ${screen.id} is no longer available.`);
+      return node;
+    }),
+  );
   const importedElementIds = new Set(
     document.project.elements.map((element) => element.id),
   );
   const removedElements = current.elements.filter(
-    (element) => !importedElementIds.has(element.id),
+    (element) =>
+      !importedElementIds.has(element.id) &&
+      !removedScreenIds.has(element.screenId),
   );
   const removedElementIds = new Set(
     removedElements.map((element) => element.id),
@@ -43,15 +60,17 @@ export async function applyProjectImport(document: ProjectDocument) {
       }),
   );
   const screenTargets = await Promise.all(
-    current.screens.map(async (stored) => {
-      const screen = document.project.screens.find(
-        (item) => item.id === stored.id,
-      )!;
-      const node = await figma.getNodeByIdAsync(stored.nodeId);
-      if (node?.type !== "FRAME")
-        throw new Error(`Screen ${screen.id} is no longer available.`);
-      return { screen, stored, node };
-    }),
+    current.screens
+      .filter((stored) => importedScreenIds.has(stored.id))
+      .map(async (stored) => {
+        const screen = document.project.screens.find(
+          (item) => item.id === stored.id,
+        )!;
+        const node = await figma.getNodeByIdAsync(stored.nodeId);
+        if (node?.type !== "FRAME")
+          throw new Error(`Screen ${screen.id} is no longer available.`);
+        return { screen, stored, node };
+      }),
   );
   const elementTargets = await Promise.all(
     current.elements
@@ -152,6 +171,13 @@ export async function applyProjectImport(document: ProjectDocument) {
         : [];
     },
   );
+  for (const feature of previousFeatures)
+    if (
+      !document.project.features.some((item) => item.id === feature.id) &&
+      feature.trigger?.elementId &&
+      importedElementIds.has(feature.trigger.elementId)
+    )
+      changedActionElementIds.push(feature.trigger.elementId);
   current.features = document.project.features;
   for (const feature of current.features) {
     const element = current.elements.find(
@@ -175,6 +201,10 @@ export async function applyProjectImport(document: ProjectDocument) {
     );
   }
   for (const node of removedTargets) node.remove();
+  for (const node of removedScreenTargets) node.remove();
+  current.screens = current.screens.filter((screen) =>
+    importedScreenIds.has(screen.id),
+  );
   current.elements = current.elements.filter((element) =>
     importedElementIds.has(element.id),
   );

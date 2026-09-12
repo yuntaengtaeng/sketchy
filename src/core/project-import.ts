@@ -67,12 +67,30 @@ function supportedImportErrors(
   const currentScreenIds = new Set(
     current.project.screens.map((item) => item.id),
   );
+  const importedScreenIds = new Set(
+    imported.project.screens.map((item) => item.id),
+  );
+  const removedScreens = current.project.screens.filter(
+    (item) => !importedScreenIds.has(item.id),
+  );
+  const removedScreenIds = new Set(removedScreens.map((item) => item.id));
+  const removedScreenRoots = removedScreens.filter(
+    (screen) =>
+      !screen.baseScreenId || !removedScreenIds.has(screen.baseScreenId),
+  );
   if (
-    current.project.screens.some(
-      (item) => !imported.project.screens.some((other) => other.id === item.id),
+    removedScreenRoots.some((screen) =>
+      imported.project.screens.some(
+        (other) => other.baseScreenId === screen.id,
+      ),
+    ) ||
+    imported.project.elements.some((element) =>
+      removedScreenIds.has(element.screenId),
     )
   )
-    errors.push("Removing screens is not supported yet.");
+    errors.push(
+      "Deleting a screen must include its popup screens and elements.",
+    );
   if (hasUnsupportedScreenChange(current, imported))
     errors.push("Screen type changes are not supported.");
   const addedScreens = imported.project.screens.filter(
@@ -87,7 +105,8 @@ function supportedImportErrors(
     imported.project.elements.map((item) => item.id),
   );
   const removedElements = current.project.elements.filter(
-    (item) => !importedElementIds.has(item.id),
+    (item) =>
+      !importedElementIds.has(item.id) && !removedScreenIds.has(item.screenId),
   );
   const removedElementIds = new Set(removedElements.map((item) => item.id));
   const removedRoots = removedElements.filter(
@@ -116,6 +135,7 @@ function supportedImportErrors(
       imported.project.elements,
       actions.changes,
       removedRoots.map((element) => element.id),
+      removedScreenRoots.map((screen) => screen.id),
     ),
   );
   if (
@@ -136,14 +156,23 @@ function importedActionChanges(
   const errors: string[] = [];
   const changes: ProjectChange[] = [];
   if (
-    current.project.features.some(
-      (feature) =>
+    current.project.features.some((feature) => {
+      const destinationId =
+        "destinationScreenId" in feature.action
+          ? feature.action.destinationScreenId
+          : undefined;
+      return (
         !imported.project.features.some((other) => other.id === feature.id) &&
         (!feature.trigger?.elementId ||
           imported.project.elements.some(
             (element) => element.id === feature.trigger?.elementId,
-          )),
-    )
+          )) &&
+        (!destinationId ||
+          imported.project.screens.some(
+            (screen) => screen.id === destinationId,
+          ))
+      );
+    })
   )
     errors.push("Removing actions is not supported yet.");
 
@@ -226,12 +255,14 @@ function addedProjectErrors(
   allElements: DomainElement[],
   actions: ProjectChange[],
   removedElementIds: string[],
+  removedScreenIds: string[],
 ) {
   if (
     !screens.length &&
     !added.length &&
     !actions.length &&
-    !removedElementIds.length
+    !removedElementIds.length &&
+    !removedScreenIds.length
   )
     return [];
   const elements = [...added]
@@ -247,6 +278,10 @@ function addedProjectErrors(
     idempotencyKey: "project-import",
     changes: [
       ...screens.map((screen) => ({ type: "CREATE_SCREEN" as const, screen })),
+      ...removedScreenIds.map((screenId) => ({
+        type: "DELETE_SCREEN" as const,
+        screenId,
+      })),
       ...removedElementIds.map((elementId) => ({
         type: "DELETE_ELEMENT" as const,
         elementId,
