@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sketchy.app/schemas/mcp-v1-project-change.schema.json",
+  "title": "Sketchy MCP v1 project change request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["projectId", "baseRevision", "idempotencyKey", "changes"],
+  "properties": {
+    "projectId": { "type": "string", "minLength": 1 },
+    "baseRevision": { "type": "integer", "minimum": 0 },
+    "idempotencyKey": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "changes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": { "$ref": "#/$defs/change" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "screen": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "purpose"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "purpose": { "type": "string", "maxLength": 2000 },
+        "kind": { "const": "popup" },
+        "baseScreenId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "screenPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "purpose": { "type": "string", "maxLength": 2000 }
+      }
+    },
+    "element": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "screenId", "name", "type"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "screenId": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "type": {
+          "enum": ["text", "button", "input", "image", "divider", "section"]
+        },
+        "parentElementId": { "$ref": "#/$defs/id" },
+        "buttonVariant": { "enum": ["filled", "outline"] },
+        "direction": { "enum": ["vertical", "horizontal"] },
+        "role": { "const": "popup" },
+        "order": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "elementPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "buttonVariant": { "enum": ["filled", "outline"] },
+        "direction": { "enum": ["vertical", "horizontal"] }
+      }
+    },
+    "action": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "destinationScreenId"],
+          "properties": {
+            "type": { "const": "navigate" },
+            "destinationScreenId": { "$ref": "#/$defs/id" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "destinationScreenId"],
+          "properties": {
+            "type": { "const": "overlay" },
+            "destinationScreenId": { "$ref": "#/$defs/id" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": { "type": { "const": "close-overlay" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": { "type": { "const": "describe" } }
+        }
+      ]
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "action", "condition"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "action": { "$ref": "#/$defs/action" },
+        "condition": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "description": { "type": "string", "maxLength": 2000 }
+      }
+    },
+    "casePatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "action": { "$ref": "#/$defs/action" },
+        "condition": { "type": "string", "minLength": 1, "maxLength": 2000 },
+        "description": { "type": "string", "maxLength": 2000 }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileKey", "status", "revision"],
+      "properties": {
+        "fileKey": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["pending", "synced", "failed"] },
+        "revision": { "type": "integer", "minimum": 0 },
+        "nodes": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/id" }
+        },
+        "error": { "type": "string", "maxLength": 4000 }
+      }
+    },
+    "change": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "screen"],
+          "properties": {
+            "type": { "const": "CREATE_SCREEN" },
+            "screen": { "$ref": "#/$defs/screen" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "screenId", "patch"],
+          "properties": {
+            "type": { "const": "UPDATE_SCREEN" },
+            "screenId": { "$ref": "#/$defs/id" },
+            "patch": { "$ref": "#/$defs/screenPatch" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "screenId"],
+          "properties": {
+            "type": { "const": "DELETE_SCREEN" },
+            "screenId": { "$ref": "#/$defs/id" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "element"],
+          "properties": {
+            "type": { "const": "ADD_ELEMENT" },
+            "element": { "$ref": "#/$defs/element" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "elementId", "patch"],
+          "properties": {
+            "type": { "const": "UPDATE_ELEMENT" },
+            "elementId": { "$ref": "#/$defs/id" },
+            "patch": { "$ref": "#/$defs/elementPatch" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "elementId"],
+          "properties": {
+            "type": { "const": "DELETE_ELEMENT" },
+            "elementId": { "$ref": "#/$defs/id" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "featureId", "elementId", "action"],
+          "properties": {
+            "type": { "const": "SET_ELEMENT_ACTION" },
+            "featureId": { "$ref": "#/$defs/id" },
+            "elementId": { "$ref": "#/$defs/id" },
+            "action": { "$ref": "#/$defs/action" },
+            "description": { "type": "string", "maxLength": 2000 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "elementId", "case"],
+          "properties": {
+            "type": { "const": "ADD_ELEMENT_CASE" },
+            "elementId": { "$ref": "#/$defs/id" },
+            "case": { "$ref": "#/$defs/case" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "featureId", "patch"],
+          "properties": {
+            "type": { "const": "UPDATE_ELEMENT_CASE" },
+            "featureId": { "$ref": "#/$defs/id" },
+            "patch": { "$ref": "#/$defs/casePatch" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "featureId"],
+          "properties": {
+            "type": { "const": "REMOVE_ELEMENT_CASE" },
+            "featureId": { "$ref": "#/$defs/id" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "projection"],
+          "properties": {
+            "type": { "const": "RECORD_FIGMA_PROJECTION" },
+            "projection": { "$ref": "#/$defs/projection" }
+          }
+        }
+      ]
+    }
+  }
+}

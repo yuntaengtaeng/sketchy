@@ -38,6 +38,26 @@ export function elementSiblings<T extends TreeElement>(
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
+export function elementTreeIds<T extends TreeElement>(
+  elements: T[],
+  rootId: string,
+) {
+  const ids = new Set([rootId]);
+  for (let changed = true; changed;) {
+    changed = false;
+    for (const element of elements)
+      if (
+        element.parentElementId &&
+        ids.has(element.parentElementId) &&
+        !ids.has(element.id)
+      ) {
+        ids.add(element.id);
+        changed = true;
+      }
+  }
+  return ids;
+}
+
 export function canNestSection<T extends TreeElement>(
   elements: T[],
   parent: T,

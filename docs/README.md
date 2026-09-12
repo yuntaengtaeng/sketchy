@@ -19,7 +19,8 @@
 
 1. [기능 모델](./product/feature-model.md) — 현재 도메인 규칙과 UI 제약
 2. [기술 설계](./development/architecture.md) — 런타임 구조, 도메인 타입, 메타데이터
-3. [범위와 로드맵](./product/roadmap.md) — 구현 범위와 완료 조건
+3. [Sketchy MCP v1 설계](./development/mcp-v1.md) — Agent 호환, Batch 변경과 Figma Projection 계약
+4. [범위와 로드맵](./product/roadmap.md) — 구현 범위와 완료 조건
 
 ## Claude · AI 에이전트
 

@@ -1,5 +1,10 @@
 # Sketchy × Figma MCP × AI Agent 연동
 
+> 실행 기준은 [`docs/development/mcp-v1.md`](./docs/development/mcp-v1.md)다.
+> 이 문서 앞부분의 개별 CRUD Tool과 `connect_screens` 예시는 초기 탐색안이며,
+> 현재 결정과 충돌하면 MCP v1 설계를 따른다. Sketchy MCP는 Codex뿐 아니라
+> Claude Code와 Claude Desktop을 함께 지원하는 표준 Remote MCP로 설계한다.
+
 ## 1. 목표
 
 Sketchy를 단순한 Figma Plugin이 아니라 **사람과 AI Agent가 함께 사용할 수 있는 제품 설계 도구**로 확장한다.

@@ -1,0 +1,41 @@
+{
+  "projectId": "project-commerce",
+  "baseRevision": 12,
+  "idempotencyKey": "create-product-flow-001",
+  "changes": [
+    {
+      "type": "CREATE_SCREEN",
+      "screen": {
+        "id": "screen-product-list",
+        "name": "Product list",
+        "purpose": "Browse products"
+      }
+    },
+    {
+      "type": "CREATE_SCREEN",
+      "screen": {
+        "id": "screen-product-detail",
+        "name": "Product detail",
+        "purpose": "Review and purchase a product"
+      }
+    },
+    {
+      "type": "ADD_ELEMENT",
+      "element": {
+        "id": "element-open-product",
+        "screenId": "screen-product-list",
+        "name": "Open product",
+        "type": "button"
+      }
+    },
+    {
+      "type": "SET_ELEMENT_ACTION",
+      "featureId": "feature-open-product",
+      "elementId": "element-open-product",
+      "action": {
+        "type": "navigate",
+        "destinationScreenId": "screen-product-detail"
+      }
+    }
+  ]
+}

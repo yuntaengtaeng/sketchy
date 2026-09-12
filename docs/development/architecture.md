@@ -316,6 +316,9 @@ Figma Node가 변경되더라도 Sketchy의 Domain Model이 Figma 구현에 지�
 
 ## Agent integration and synchronization
 
+상세한 MCP Tool, Batch Change와 Figma Projection 계약은
+[Sketchy MCP v1 설계](./mcp-v1.md)를 따른다.
+
 MCP 연동에서 Core 코드를 공유하는 것과 실행 중인 상태를 공유하는 것은
 구분한다. 현재 Figma 문서의 `pluginData`는 Plugin Runtime 안의 데이터이므로
 별도 MCP 프로세스가 같은 Core를 import하는 것만으로 접근할 수 없다.

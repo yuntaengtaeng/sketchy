@@ -79,23 +79,6 @@ export function duplicateScreenElements(
   });
 }
 
-export function elementTreeIds(elements: Element[], rootId: string) {
-  const ids = new Set([rootId]);
-  for (let changed = true; changed;) {
-    changed = false;
-    for (const element of elements)
-      if (
-        element.parentElementId &&
-        ids.has(element.parentElementId) &&
-        !ids.has(element.id)
-      ) {
-        ids.add(element.id);
-        changed = true;
-      }
-  }
-  return ids;
-}
-
 export function sectionLayout(direction: "vertical" | "horizontal") {
   return direction === "vertical"
     ? {
