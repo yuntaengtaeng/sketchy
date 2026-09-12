@@ -37,8 +37,10 @@ export default function App() {
         setScreenId(message.selectedScreenId);
         setElementId(message.selectedElementId);
       }
-      if (message?.type === "PROJECT_EXPORT")
+      if (message?.type === "PROJECT_EXPORT") {
         download(message.fileName, message.contents);
+        setImportPreview(undefined);
+      }
       if (message?.type === "PROJECT_IMPORT_PREVIEW")
         setImportPreview(message.preview);
       if (message?.type === "ERROR") {

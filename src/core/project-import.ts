@@ -38,16 +38,60 @@ export function previewProjectImport(
       imported.project.features,
     ),
   ];
+  const errors = supportedImportErrors(current, imported);
   return {
-    valid: true,
+    valid: errors.length === 0,
     revision: imported.revision,
     summary: summary.length ? summary : ["No model changes"],
-    errors: [],
+    errors,
     warnings:
       imported.figmaProjection?.status === "pending"
         ? []
         : ["The imported project is not marked pending for Figma."],
   };
+}
+
+function supportedImportErrors(
+  current: ProjectDocument,
+  imported: ProjectDocument,
+) {
+  const errors: string[] = [];
+  const sameIds = (left: { id: string }[], right: { id: string }[]) =>
+    left.length === right.length &&
+    left.every((item) => right.some((other) => other.id === item.id));
+  if (!sameIds(current.project.screens, imported.project.screens))
+    errors.push("Adding or removing screens is not supported yet.");
+  if (
+    !sameIds(current.project.elements, imported.project.elements) ||
+    changedCollection(current.project.elements, imported.project.elements)
+  )
+    errors.push("Element changes are not supported yet.");
+  if (
+    !sameIds(current.project.features, imported.project.features) ||
+    changedCollection(current.project.features, imported.project.features)
+  )
+    errors.push("Action changes are not supported yet.");
+  if (
+    JSON.stringify(stableValue(current.project.settings)) !==
+    JSON.stringify(stableValue(imported.project.settings))
+  )
+    errors.push("Project setting changes are not supported yet.");
+  return errors;
+}
+
+function changedCollection(
+  current: { id: string }[],
+  imported: { id: string }[],
+) {
+  const before = new Map(current.map((item) => [item.id, item]));
+  return imported.some((item) => {
+    const previous = before.get(item.id);
+    return (
+      !previous ||
+      JSON.stringify(stableValue(previous)) !==
+        JSON.stringify(stableValue(item))
+    );
+  });
 }
 
 function collectionSummary(
@@ -113,7 +157,14 @@ function isProjectDocument(value: unknown): value is ProjectDocument {
     Array.isArray(project.screens) &&
     Array.isArray(project.elements) &&
     Array.isArray(project.features) &&
-    [...project.screens, ...project.elements, ...project.features].every(
+    project.screens.every(
+      (item) =>
+        item &&
+        typeof item.id === "string" &&
+        typeof item.name === "string" &&
+        typeof item.purpose === "string",
+    ) &&
+    [...project.elements, ...project.features].every(
       (item) => item && typeof item.id === "string",
     )
   );

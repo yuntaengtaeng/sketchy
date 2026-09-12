@@ -123,6 +123,7 @@ export type Project = {
 
 export type ProjectImportPreview = {
   valid: boolean;
+  applied?: boolean;
   revision?: number;
   summary: string[];
   errors: string[];
@@ -166,6 +167,7 @@ export type PluginMessage =
   | { type: "READY" }
   | { type: "EXPORT_PROJECT" }
   | { type: "PREVIEW_PROJECT_IMPORT"; contents: string }
+  | { type: "APPLY_PROJECT_IMPORT"; revision: number }
   | { type: "UPDATE_PROJECT_SETTINGS"; settings: ProjectSettings }
   | { type: "CREATE_SCREEN"; name: string }
   | { type: "DUPLICATE_SCREEN"; screenId: string }

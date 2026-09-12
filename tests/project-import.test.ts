@@ -21,10 +21,7 @@ test("previews a newer import without changing the current project", () => {
     revision: 3,
     project: {
       ...current.project,
-      screens: [
-        { id: "home", name: "Welcome", purpose: "Start" },
-        { id: "detail", name: "Detail", purpose: "Review" },
-      ],
+      screens: [{ id: "home", name: "Welcome", purpose: "Start" }],
     },
     figmaProjection: {
       fileKey: "file",
@@ -36,13 +33,25 @@ test("previews a newer import without changing the current project", () => {
   const preview = previewProjectImport(current, JSON.stringify(imported));
 
   assert.equal(preview.valid, true);
-  assert.deepEqual(preview.summary, [
-    "Add 1 screen",
-    "Update screen Home: name",
-  ]);
+  assert.deepEqual(preview.summary, ["Update screen Home: name"]);
   assert.equal(current.project.screens[0].name, "Home");
   assert.equal(
     previewProjectImport(current, JSON.stringify(current)).valid,
     false,
   );
+
+  imported.project.elements = [
+    ...imported.project.elements,
+    {
+      id: "new-element",
+      screenId: "home",
+      name: "New",
+      type: "text",
+    },
+  ];
+  const unsupported = previewProjectImport(current, JSON.stringify(imported));
+  assert.equal(unsupported.valid, false);
+  assert.deepEqual(unsupported.errors, [
+    "Element changes are not supported yet.",
+  ]);
 });

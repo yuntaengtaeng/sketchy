@@ -279,6 +279,11 @@ Figma Plugin의 `Review agent changes`는 변경된 JSON을 읽어 Project ID와
 확인하고 Screen, Element, Action의 추가·수정·삭제 수를 보여준다. 이 검토 단계는
 Canvas를 변경하지 않는다.
 
+첫 Projection slice는 기존 Screen의 이름과 Purpose 변경만 `Apply to Figma`로
+반영한다. 검토 이후 Figma Project revision이 달라졌거나 Screen 구조, Element,
+Action 변경이 섞이면 적용하지 않는다. 반영 후 다시 Export하면 JSON Projection도
+`synced`로 닫힌다.
+
 ### Phase 3 — Figma Projection
 
 - Figma MCP Projection task 생성

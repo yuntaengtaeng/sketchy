@@ -48,3 +48,7 @@
 .warning {
   color: var(--figma-color-text-warning, #996800);
 }
+
+.apply {
+  margin-top: 4px;
+}

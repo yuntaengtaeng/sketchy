@@ -107,6 +107,13 @@ export const saveProject = (project: Project) => {
     }),
   );
 };
+export function saveProjectSnapshot(
+  project: Project,
+  metadata: ProjectMetadata,
+) {
+  figma.root.setPluginData(KEY, JSON.stringify(project));
+  figma.root.setPluginData(METADATA_KEY, JSON.stringify(metadata));
+}
 export function updateProjectSettings(settings: ProjectSettings) {
   const project = readProject();
   project.settings = settings;

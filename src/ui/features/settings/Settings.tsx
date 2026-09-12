@@ -78,7 +78,13 @@ export default function Settings({
         />
         {importPreview && (
           <div className={styles.preview} role="status">
-            <b>{importPreview.valid ? "Changes ready" : "Cannot review"}</b>
+            <b>
+              {importPreview.applied
+                ? "Applied"
+                : importPreview.valid
+                  ? "Changes ready"
+                  : "Cannot apply"}
+            </b>
             {[...importPreview.summary, ...importPreview.errors].map((item) => (
               <span key={item}>{item}</span>
             ))}
@@ -88,7 +94,20 @@ export default function Settings({
               </span>
             ))}
             {importPreview.valid && (
-              <small>Figma has not been changed yet.</small>
+              <>
+                <small>Figma has not been changed yet.</small>
+                <button
+                  className={styles.apply}
+                  onClick={() =>
+                    post({
+                      type: "APPLY_PROJECT_IMPORT",
+                      revision: importPreview.revision!,
+                    })
+                  }
+                >
+                  Apply to Figma
+                </button>
+              </>
             )}
           </div>
         )}

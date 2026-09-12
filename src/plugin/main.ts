@@ -1,3 +1,4 @@
+import type { ProjectDocument } from "../core/project-change";
 import type { PluginMessage, Project } from "../shared";
 import { previewProjectImport } from "../core/project-import";
 import { createProjectDocument } from "../core/project-change";
@@ -16,6 +17,7 @@ import {
   updateElement,
   updateScreen,
 } from "./commands/canvas";
+import { applyScreenImport } from "./commands/apply-project-import";
 import { renderFlow } from "./commands/render-flow";
 import {
   cleanProject,
@@ -28,6 +30,8 @@ figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
 
 let suppressDocumentChange = false;
 let redrawTimer: ReturnType<typeof setTimeout>;
+let pendingImport:
+  { baseRevision: number; document: ProjectDocument } | undefined;
 
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -81,10 +85,37 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         readProjectMetadata(),
         figma.fileKey || "local-development",
       );
+      const preview = previewProjectImport(current, message.contents);
+      pendingImport = preview.valid
+        ? {
+            baseRevision: current.revision,
+            document: JSON.parse(message.contents) as ProjectDocument,
+          }
+        : undefined;
       figma.ui.postMessage({
         type: "PROJECT_IMPORT_PREVIEW",
-        preview: previewProjectImport(current, message.contents),
+        preview,
       });
+    }
+    if (message.type === "APPLY_PROJECT_IMPORT") {
+      if (
+        !pendingImport ||
+        pendingImport.document.revision !== message.revision ||
+        readProjectMetadata().revision !== pendingImport.baseRevision
+      )
+        throw new Error("Review the latest agent changes again.");
+      await sync(await applyScreenImport(pendingImport.document), true);
+      figma.ui.postMessage({
+        type: "PROJECT_IMPORT_PREVIEW",
+        preview: {
+          valid: false,
+          applied: true,
+          summary: ["Figma updated"],
+          errors: [],
+          warnings: ["Export again to mark the MCP project as synced."],
+        },
+      });
+      pendingImport = undefined;
     }
     if (message.type === "UPDATE_PROJECT_SETTINGS")
       await sync(updateProjectSettings(message.settings));
