@@ -5,23 +5,29 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "vite",
+    "mcp": "tsx src/mcp/server.ts",
+    "test:mcp": "node --experimental-strip-types --test tests/mcp-read.test.ts",
     "build": "tsc --noEmit && vite build && vite build --config vite.plugin.config.ts",
     "check": "tsc --noEmit && prettier --check .",
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
-    "react": "latest",
-    "react-dom": "latest",
+    "@figma/plugin-typings": "latest",
+    "@modelcontextprotocol/server": "^2.0.0",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@figma/plugin-typings": "latest",
+    "@vitejs/plugin-react": "latest",
+    "prettier": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest",
     "vite-plugin-singlefile": "latest",
-    "prettier": "latest"
+    "zod": "^4.6.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0"
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^22.20.2",
+    "tsx": "^4.23.13"
   }
 }

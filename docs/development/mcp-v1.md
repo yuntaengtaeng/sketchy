@@ -238,6 +238,22 @@ Import/Adopt 작업이다. v1에서는 자동 역동기화하지 않는다.
 - `get_project`, `get_screen`
 - Codex, Claude Code, Claude Desktop 연결 테스트
 
+현재 로컬 개발 버전은 원격 API 전에 같은 계약을 검증할 수 있도록 JSON 파일을
+읽는 stdio MCP Server를 제공한다. 기본 파일은 프로젝트 루트의
+`sketchy.project.json`이며 다른 경로는 `--project`로 지정한다.
+
+```powershell
+npm run mcp -- --project C:\path\to\sketchy.project.json
+```
+
+Codex와 Claude Code에는 위 명령을 stdio MCP 명령으로 등록한다. 두 Client 모두
+동일한 `get_project`, `get_screen` Tool을 보게 된다. Canonical Store가 Sketchy
+API로 바뀔 때는 MCP Tool이 아니라 `readProjectDocument` 경계만 API 호출로
+교체한다.
+
+이 단계의 JSON 저장소는 읽기 흐름 검증용이다. Plugin과 Agent가 실시간으로 같은
+상태를 공유하는 것은 아니며, 쓰기 기능을 시작하기 전에 API 저장소로 전환한다.
+
 ### Phase 2 — Model write
 
 - `preview_project_changes`, `apply_project_changes`
