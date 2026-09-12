@@ -177,3 +177,44 @@ test("requires a destination for navigation", () => {
   assert.equal(preview.valid, false);
   assert.equal(preview.errors[0].code, "DESTINATION_REQUIRED");
 });
+
+test("clears only the default element action", () => {
+  const source = document();
+  source.project.screens.push({ id: "screen", name: "Screen", purpose: "" });
+  source.project.elements.push({
+    id: "button",
+    screenId: "screen",
+    name: "Continue",
+    type: "button",
+  });
+  source.project.features.push(
+    {
+      id: "default",
+      screenId: "screen",
+      name: "Continue",
+      trigger: { type: "click", elementId: "button" },
+      action: { type: "describe" },
+    },
+    {
+      id: "case",
+      screenId: "screen",
+      name: "Continue",
+      condition: "When signed in",
+      trigger: { type: "click", elementId: "button" },
+      action: { type: "describe" },
+    },
+  );
+
+  const preview = previewProjectChanges(source, {
+    projectId: "project",
+    baseRevision: 3,
+    idempotencyKey: "clear-action",
+    changes: [{ type: "CLEAR_ELEMENT_ACTION", elementId: "button" }],
+  });
+
+  assert.equal(preview.valid, true);
+  assert.deepEqual(
+    preview.nextProject?.features.map((feature) => feature.id),
+    ["case"],
+  );
+});

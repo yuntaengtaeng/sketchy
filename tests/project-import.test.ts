@@ -170,6 +170,37 @@ test("allows a button default action but rejects conditional cases", () => {
   );
 });
 
+test("allows removing only a button default action", () => {
+  const source = structuredClone(current);
+  source.project.elements.push({
+    id: "button",
+    screenId: "home",
+    name: "Continue",
+    type: "button",
+  });
+  source.project.features.push({
+    id: "continue-action",
+    screenId: "home",
+    name: "Continue",
+    trigger: { type: "click", elementId: "button" },
+    action: { type: "describe" },
+  });
+  const imported = structuredClone(source);
+  imported.revision = 3;
+  imported.project.features = [];
+
+  assert.equal(
+    previewProjectImport(source, JSON.stringify(imported)).valid,
+    true,
+  );
+
+  source.project.features[0].condition = "When signed in";
+  assert.deepEqual(
+    previewProjectImport(source, JSON.stringify(imported)).errors,
+    ["Only a button's default action can be changed for now."],
+  );
+});
+
 test("allows deleting an element tree and its actions but keeps popup roots", () => {
   const source = structuredClone(current);
   source.project.elements = [

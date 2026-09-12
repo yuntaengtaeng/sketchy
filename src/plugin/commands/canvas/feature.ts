@@ -50,7 +50,8 @@ export async function syncReaction(
     reactions = updateNavigation(reactions, destination?.nodeId);
   }
   const primary = project.features.find(
-    (feature) => feature.trigger?.elementId === sourceElementId,
+    (feature) =>
+      feature.trigger?.elementId === sourceElementId && !feature.condition,
   );
   const primaryDestinationId =
     primary && "destinationScreenId" in primary.action

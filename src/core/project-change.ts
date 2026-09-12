@@ -107,6 +107,7 @@ export type ProjectChange =
       action: FeatureAction;
       description?: string;
     }
+  | { type: "CLEAR_ELEMENT_ACTION"; elementId: string }
   | {
       type: "ADD_ELEMENT_CASE";
       elementId: string;

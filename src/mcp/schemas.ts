@@ -97,6 +97,7 @@ const change = z.discriminatedUnion("type", [
       description: description.optional(),
     })
     .strict(),
+  z.object({ type: z.literal("CLEAR_ELEMENT_ACTION"), elementId: id }).strict(),
   z
     .object({
       type: z.literal("ADD_ELEMENT_CASE"),

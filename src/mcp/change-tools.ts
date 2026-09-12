@@ -114,6 +114,8 @@ function changeSummary(change: ProjectChange) {
       return `Delete element ${change.elementId}`;
     case "SET_ELEMENT_ACTION":
       return `Set ${change.action.type} action on ${change.elementId}`;
+    case "CLEAR_ELEMENT_ACTION":
+      return `Clear default action on ${change.elementId}`;
     case "ADD_ELEMENT_CASE":
       return `Add case to ${change.elementId}`;
     case "UPDATE_ELEMENT_CASE":

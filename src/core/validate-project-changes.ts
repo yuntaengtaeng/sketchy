@@ -210,6 +210,28 @@ export function previewProjectChanges(
       affected.add(target.id);
       return;
     }
+    if (change.type === "CLEAR_ELEMENT_ACTION") {
+      const target = element(change.elementId);
+      if (!target) return fail("ELEMENT_NOT_FOUND", "Element does not exist.");
+      if (target.type !== "button")
+        return fail(
+          "TRIGGER_NOT_SUPPORTED",
+          "Only buttons support actions in v1.",
+        );
+      const primary = project.features.filter(
+        (item) =>
+          item.trigger?.type === "click" &&
+          item.trigger.elementId === target.id &&
+          !item.condition?.trim(),
+      );
+      if (!primary.length)
+        return fail("ACTION_NOT_FOUND", "Element has no default action.");
+      if (primary.length > 1)
+        return fail("ACTION_CONFLICT", "Element has multiple default actions.");
+      project.features = project.features.filter((item) => item !== primary[0]);
+      affected.add(target.id);
+      return;
+    }
     if (change.type === "ADD_ELEMENT_CASE") {
       const target = element(change.elementId);
       if (!target) return fail("ELEMENT_NOT_FOUND", "Element does not exist.");

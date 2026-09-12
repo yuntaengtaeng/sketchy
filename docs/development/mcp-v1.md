@@ -112,6 +112,7 @@ type ProjectChange =
   | { type: "UPDATE_ELEMENT"; elementId: string; patch: ElementPatch }
   | { type: "DELETE_ELEMENT"; elementId: string }
   | { type: "SET_ELEMENT_ACTION"; elementId: string; action: FeatureAction }
+  | { type: "CLEAR_ELEMENT_ACTION"; elementId: string }
   | { type: "ADD_ELEMENT_CASE"; elementId: string; case: FeatureCaseInput }
   | { type: "UPDATE_ELEMENT_CASE"; featureId: string; patch: FeatureCasePatch }
   | { type: "REMOVE_ELEMENT_CASE"; featureId: string }
@@ -284,11 +285,12 @@ Canvas를 변경하지 않는다.
 반영한다. 같은 Batch에서 새 Screen과 그 안의 Element를 함께 만들 수 있다. 새
 Element는 Section 안에 배치할 수 있고 Section 중첩은 한 단계까지 허용한다. 검토
 Button의 기본 Action은 Navigate, Overlay, Close overlay, Describe 결과로 반영하며
-Navigate와 Overlay는 Figma Prototype 연결도 갱신한다. Element 삭제 시 Section의
+Navigate와 Overlay는 Figma Prototype 연결도 갱신한다. 기본 Action을 지우면 해당
+Figma Prototype 연결도 제거한다. Element 삭제 시 Section의
 하위 요소와 연결된 Action도 함께 제거하며 Popup 역할 Element는 삭제할 수 없다.
 Screen 삭제 시 내부 Element, 파생 Popup과 해당 Screen을 향하는 Action 및 Prototype
 연결도 함께 제거한다. 이후 Figma Project revision이 달라졌거나 Popup Screen 생성,
-Action만 삭제, 기존 구조 변경, 조건부 Action Case 변경이 섞이면 적용하지 않는다.
+기존 구조 변경, 조건부 Action Case 변경이 섞이면 적용하지 않는다.
 반영 후 다시 Export하면 JSON Projection도 `synced`로 닫힌다.
 
 ### Phase 3 — Figma Projection

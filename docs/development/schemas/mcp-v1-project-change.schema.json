@@ -212,6 +212,15 @@
         {
           "type": "object",
           "additionalProperties": false,
+          "required": ["type", "elementId"],
+          "properties": {
+            "type": { "const": "CLEAR_ELEMENT_ACTION" },
+            "elementId": { "$ref": "#/$defs/id" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
           "required": ["type", "elementId", "case"],
           "properties": {
             "type": { "const": "ADD_ELEMENT_CASE" },

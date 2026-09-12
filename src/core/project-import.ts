@@ -155,26 +155,32 @@ function importedActionChanges(
   );
   const errors: string[] = [];
   const changes: ProjectChange[] = [];
-  if (
-    current.project.features.some((feature) => {
-      const destinationId =
-        "destinationScreenId" in feature.action
-          ? feature.action.destinationScreenId
-          : undefined;
-      return (
-        !imported.project.features.some((other) => other.id === feature.id) &&
-        (!feature.trigger?.elementId ||
-          imported.project.elements.some(
-            (element) => element.id === feature.trigger?.elementId,
-          )) &&
-        (!destinationId ||
-          imported.project.screens.some(
-            (screen) => screen.id === destinationId,
-          ))
-      );
-    })
-  )
-    errors.push("Removing actions is not supported yet.");
+  for (const feature of current.project.features) {
+    if (imported.project.features.some((other) => other.id === feature.id))
+      continue;
+    const destinationId =
+      "destinationScreenId" in feature.action
+        ? feature.action.destinationScreenId
+        : undefined;
+    const removedWithEntity =
+      (!!feature.trigger?.elementId &&
+        !imported.project.elements.some(
+          (element) => element.id === feature.trigger?.elementId,
+        )) ||
+      (!!destinationId &&
+        !imported.project.screens.some(
+          (screen) => screen.id === destinationId,
+        ));
+    if (removedWithEntity) continue;
+    if (feature.condition || !feature.trigger?.elementId) {
+      errors.push("Only a button's default action can be changed for now.");
+      continue;
+    }
+    changes.push({
+      type: "CLEAR_ELEMENT_ACTION",
+      elementId: feature.trigger.elementId,
+    });
+  }
 
   for (const feature of imported.project.features) {
     const previous = before.get(feature.id);
