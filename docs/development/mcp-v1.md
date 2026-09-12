@@ -264,6 +264,17 @@ API로 바뀔 때는 MCP Tool이 아니라 `readProjectDocument` 경계만 API �
 - revision, idempotency와 원자적 검증
 - 아직 Figma 자동 반영 없이 변경 결과 검토
 
+현재 `preview_project_changes`는 MCP에 연결되어 있다. Agent가 보낸 Batch를 저장하지
+않고 검증하며 `previewId`, 변경 요약, 오류·경고와 영향받는 Entity ID를 반환한다.
+같은 요청은 같은 `previewId`를 만든다.
+
+`apply_project_changes`는 같은 `previewId`와 Batch를 다시 받아 revision과
+idempotency key를 재검증한다. 성공한 Batch는 임시 파일을 거쳐 한 번에 교체하고
+revision을 1 올린다. 같은 idempotency key 재호출은 중복 저장하지 않는다. Figma
+Canvas는 아직 수정하지 않고 Projection 상태를 `pending`으로 바꾼다.
+Agent는 Preview 요약과 경고를 보여주고 사용자가 명시적으로 승인한 뒤에만 Apply를
+호출한다.
+
 ### Phase 3 — Figma Projection
 
 - Figma MCP Projection task 생성

@@ -31,6 +31,7 @@ export type ProjectDocument = {
   updatedAt: string;
   project: CanonicalProject;
   figmaProjection?: FigmaProjection;
+  appliedBatches?: Record<string, { revision: number; previewId: string }>;
 };
 
 export type ProjectMetadata = Pick<

@@ -1,8 +1,13 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
+import { applyChanges, previewChanges } from "./change-tools.ts";
 import { readProjectDocument } from "./project-file.ts";
 import { getProject, getScreen } from "./read-tools.ts";
+import {
+  applyProjectChangesSchema,
+  projectChangeRequestSchema,
+} from "./schemas.ts";
 
 const projectFile = projectFileArgument(process.argv.slice(2));
 
@@ -11,7 +16,7 @@ void serveStdio(() => {
     { name: "sketchy", version: "0.1.0" },
     {
       instructions:
-        "Read the Sketchy project before proposing wireframe changes. This server is read-only.",
+        "Read the project first. Preview every change batch, show its summary and warnings, and call apply_project_changes only after explicit user approval. Applying changes updates the Sketchy model but not the Figma canvas.",
     },
   );
 
@@ -38,6 +43,42 @@ void serveStdio(() => {
     },
     async ({ screenId }) =>
       result(getScreen(await readProjectDocument(projectFile), screenId)),
+  );
+
+  server.registerTool(
+    "preview_project_changes",
+    {
+      title: "Preview Sketchy project changes",
+      description:
+        "Validate an atomic batch against the current project revision without saving it.",
+      inputSchema: projectChangeRequestSchema,
+      annotations: { readOnlyHint: true },
+    },
+    async (request) =>
+      result(
+        previewChanges(
+          await readProjectDocument(projectFile),
+          request as Parameters<typeof previewChanges>[1],
+        ),
+      ),
+  );
+
+  server.registerTool(
+    "apply_project_changes",
+    {
+      title: "Apply Sketchy project changes",
+      description:
+        "Atomically save the exact batch returned by preview_project_changes.",
+      inputSchema: applyProjectChangesSchema,
+    },
+    async ({ previewId, ...request }) =>
+      result(
+        await applyChanges(
+          projectFile,
+          previewId,
+          request as Parameters<typeof applyChanges>[2],
+        ),
+      ),
   );
 
   return server;
