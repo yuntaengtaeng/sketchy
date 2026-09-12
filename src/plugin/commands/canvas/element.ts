@@ -7,6 +7,11 @@ import {
 } from "../../../shared";
 import { readProject, saveProject } from "../../storage/project";
 import { focusNode, id, loadFont } from "./utils";
+import {
+  renderButtonVariant,
+  renderElementName,
+  renderSectionDirection,
+} from "./element-render";
 
 export async function insertBlock(
   screenId: string,
@@ -141,15 +146,7 @@ export async function updateElement(
   }
   node.name = name;
   await loadFont();
-  if (node.type === "TEXT") node.characters = name;
-  if (
-    node.type === "FRAME" &&
-    element.type !== "section" &&
-    element.type !== "divider"
-  ) {
-    const label = node.children.find((child) => child.type === "TEXT");
-    if (label?.type === "TEXT") label.characters = name;
-  }
+  renderElementName(node as SceneNode, element, name);
   saveProject(project);
   return project;
 }
@@ -181,21 +178,7 @@ export async function setButtonVariant(
   if (!element || element.type !== "button" || node?.type !== "FRAME")
     return project;
   element.buttonVariant = variant;
-  const filled = variant === "filled";
-  node.fills = [
-    {
-      type: "SOLID",
-      color: filled ? { r: 0.15, g: 0.15, b: 0.15 } : { r: 1, g: 1, b: 1 },
-    },
-  ];
-  const label = node.children.find((child) => child.type === "TEXT");
-  if (label?.type === "TEXT")
-    label.fills = [
-      {
-        type: "SOLID",
-        color: filled ? { r: 1, g: 1, b: 1 } : { r: 0.15, g: 0.15, b: 0.15 },
-      },
-    ];
+  renderButtonVariant(node, variant);
   saveProject(project);
   return project;
 }
@@ -218,18 +201,14 @@ export async function setSectionDirection(
         node: await figma.getNodeByIdAsync(item.nodeId),
       })),
   );
-  const layout = sectionLayout(direction);
-  node.layoutMode = layout.layoutMode;
-  node.primaryAxisSizingMode = layout.primaryAxisSizingMode;
-  node.counterAxisSizingMode = layout.counterAxisSizingMode;
-  for (const child of children)
-    if (child.node?.type === "FRAME") {
-      child.node.layoutSizingHorizontal = "FILL";
-      child.node.layoutSizingVertical = "FIXED";
-      if (child.item.type === "button" || child.item.type === "input")
-        child.node.minHeight = 40;
-      if (child.item.type === "image") child.node.minHeight = 160;
-    }
+  renderSectionDirection(
+    node,
+    direction,
+    children.map(({ item: element, node: childNode }) => ({
+      element,
+      node: childNode,
+    })),
+  );
   saveProject(project);
   return project;
 }

@@ -36,6 +36,7 @@ export function previewProjectImport(
       "action",
       current.project.features,
       imported.project.features,
+      ["name"],
     ),
   ];
   const errors = supportedImportErrors(current, imported);
@@ -61,14 +62,15 @@ function supportedImportErrors(
     left.every((item) => right.some((other) => other.id === item.id));
   if (!sameIds(current.project.screens, imported.project.screens))
     errors.push("Adding or removing screens is not supported yet.");
-  if (
-    !sameIds(current.project.elements, imported.project.elements) ||
-    changedCollection(current.project.elements, imported.project.elements)
-  )
-    errors.push("Element changes are not supported yet.");
+  if (!sameIds(current.project.elements, imported.project.elements))
+    errors.push("Adding or removing elements is not supported yet.");
+  else if (hasUnsupportedElementChange(current, imported))
+    errors.push("Element structure or type changes are not supported.");
   if (
     !sameIds(current.project.features, imported.project.features) ||
-    changedCollection(current.project.features, imported.project.features)
+    changedCollection(current.project.features, imported.project.features, [
+      "name",
+    ])
   )
     errors.push("Action changes are not supported yet.");
   if (
@@ -79,18 +81,35 @@ function supportedImportErrors(
   return errors;
 }
 
+function hasUnsupportedElementChange(
+  current: ProjectDocument,
+  imported: ProjectDocument,
+) {
+  const allowed = new Set([
+    "name",
+    "description",
+    "buttonVariant",
+    "direction",
+  ]);
+  const before = new Map(
+    current.project.elements.map((item) => [item.id, item]),
+  );
+  return imported.project.elements.some((item) =>
+    changedFields(before.get(item.id)!, item).some(
+      (field) => !allowed.has(field),
+    ),
+  );
+}
+
 function changedCollection(
   current: { id: string }[],
   imported: { id: string }[],
+  ignoredFields: string[] = [],
 ) {
   const before = new Map(current.map((item) => [item.id, item]));
   return imported.some((item) => {
     const previous = before.get(item.id);
-    return (
-      !previous ||
-      JSON.stringify(stableValue(previous)) !==
-        JSON.stringify(stableValue(item))
-    );
+    return !previous || changedFields(previous, item, ignoredFields).length > 0;
   });
 }
 
@@ -98,6 +117,7 @@ function collectionSummary(
   label: string,
   current: { id: string; name?: string }[],
   imported: { id: string; name?: string }[],
+  ignoredFields: string[] = [],
 ) {
   const before = new Map(current.map((item) => [item.id, item]));
   const after = new Map(imported.map((item) => [item.id, item]));
@@ -106,7 +126,7 @@ function collectionSummary(
   const updated = imported.flatMap((item) => {
     const previous = before.get(item.id);
     if (!previous) return [];
-    const fields = changedFields(previous, item);
+    const fields = changedFields(previous, item, ignoredFields);
     return fields.length
       ? [`Update ${label} ${previous.name || item.id}: ${fields.join(", ")}`]
       : [];
@@ -121,9 +141,10 @@ function collectionSummary(
 function changedFields(
   current: Record<string, unknown>,
   imported: Record<string, unknown>,
+  ignoredFields: string[] = [],
 ) {
   return [...new Set([...Object.keys(current), ...Object.keys(imported)])]
-    .filter((key) => key !== "id")
+    .filter((key) => key !== "id" && !ignoredFields.includes(key))
     .filter(
       (key) =>
         JSON.stringify(stableValue(current[key])) !==
@@ -153,6 +174,8 @@ function isProjectDocument(value: unknown): value is ProjectDocument {
   return (
     typeof document.id === "string" &&
     Number.isInteger(document.revision) &&
+    document.revision! >= 0 &&
+    typeof document.updatedAt === "string" &&
     !!project &&
     Array.isArray(project.screens) &&
     Array.isArray(project.elements) &&
@@ -164,8 +187,28 @@ function isProjectDocument(value: unknown): value is ProjectDocument {
         typeof item.name === "string" &&
         typeof item.purpose === "string",
     ) &&
-    [...project.elements, ...project.features].every(
-      (item) => item && typeof item.id === "string",
-    )
+    project.elements.every(isElement) &&
+    project.features.every((item) => item && typeof item.id === "string")
+  );
+}
+
+function isElement(item: unknown) {
+  if (!item || typeof item !== "object") return false;
+  const element = item as Record<string, unknown>;
+  return (
+    typeof element.id === "string" &&
+    typeof element.screenId === "string" &&
+    typeof element.name === "string" &&
+    ["text", "button", "input", "image", "divider", "section"].includes(
+      element.type as string,
+    ) &&
+    (element.description === undefined ||
+      typeof element.description === "string") &&
+    (element.buttonVariant === undefined ||
+      element.buttonVariant === "filled" ||
+      element.buttonVariant === "outline") &&
+    (element.direction === undefined ||
+      element.direction === "vertical" ||
+      element.direction === "horizontal")
   );
 }

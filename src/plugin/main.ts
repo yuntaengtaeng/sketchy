@@ -17,7 +17,7 @@ import {
   updateElement,
   updateScreen,
 } from "./commands/canvas";
-import { applyScreenImport } from "./commands/apply-project-import";
+import { applyProjectImport } from "./commands/apply-project-import";
 import { renderFlow } from "./commands/render-flow";
 import {
   cleanProject,
@@ -104,7 +104,7 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         readProjectMetadata().revision !== pendingImport.baseRevision
       )
         throw new Error("Review the latest agent changes again.");
-      await sync(await applyScreenImport(pendingImport.document), true);
+      await sync(await applyProjectImport(pendingImport.document), true);
       figma.ui.postMessage({
         type: "PROJECT_IMPORT_PREVIEW",
         preview: {

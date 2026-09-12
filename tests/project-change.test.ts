@@ -48,6 +48,11 @@ test("previews a valid batch without changing the source project", () => {
         elementId: "open-detail",
         action: { type: "navigate", destinationScreenId: "detail" },
       },
+      {
+        type: "UPDATE_ELEMENT",
+        elementId: "open-detail",
+        patch: { name: "View product" },
+      },
     ],
   } satisfies ProjectChangeRequest;
 
@@ -56,6 +61,7 @@ test("previews a valid batch without changing the source project", () => {
   assert.equal(preview.valid, true);
   assert.equal(preview.nextProject?.screens.length, 2);
   assert.equal(preview.nextProject?.features.length, 1);
+  assert.equal(preview.nextProject?.features[0].name, "View product");
   assert.equal(source.project.screens.length, 0);
 });
 

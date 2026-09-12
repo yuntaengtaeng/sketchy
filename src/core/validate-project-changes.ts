@@ -150,7 +150,18 @@ export function previewProjectChanges(
     if (change.type === "UPDATE_ELEMENT") {
       const target = element(change.elementId);
       if (!target) return fail("ELEMENT_NOT_FOUND", "Element does not exist.");
+      if (change.patch.buttonVariant && target.type !== "button")
+        return fail(
+          "INVALID_ELEMENT_PATCH",
+          "Only buttons have a button variant.",
+        );
+      if (change.patch.direction && target.type !== "section")
+        return fail("INVALID_ELEMENT_PATCH", "Only sections have a direction.");
       Object.assign(target, change.patch);
+      if (change.patch.name)
+        project.features
+          .filter((item) => item.trigger?.elementId === target.id)
+          .forEach((item) => (item.name = change.patch.name!));
       affected.add(target.id);
       return;
     }

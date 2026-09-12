@@ -52,6 +52,57 @@ test("previews a newer import without changing the current project", () => {
   const unsupported = previewProjectImport(current, JSON.stringify(imported));
   assert.equal(unsupported.valid, false);
   assert.deepEqual(unsupported.errors, [
-    "Element changes are not supported yet.",
+    "Adding or removing elements is not supported yet.",
   ]);
+});
+
+test("allows editable element fields but rejects element structure changes", () => {
+  const source = structuredClone(current);
+  source.project.elements.push({
+    id: "button",
+    screenId: "home",
+    name: "Continue",
+    type: "button",
+    buttonVariant: "filled",
+  });
+  const renamed = structuredClone(source);
+  renamed.revision = 3;
+  renamed.project.elements[0].name = "Buy now";
+  renamed.project.elements[0].buttonVariant = "outline";
+
+  assert.equal(
+    previewProjectImport(source, JSON.stringify(renamed)).valid,
+    true,
+  );
+
+  renamed.project.elements[0].screenId = "other";
+  assert.deepEqual(
+    previewProjectImport(source, JSON.stringify(renamed)).errors,
+    ["Element structure or type changes are not supported."],
+  );
+});
+
+test("rejects malformed editable element fields at the import boundary", () => {
+  const imported = structuredClone(current) as unknown as Record<
+    string,
+    unknown
+  >;
+  imported.revision = 3;
+  const project = imported.project as ProjectDocument["project"];
+  project.elements.push({
+    id: "button",
+    screenId: "home",
+    name: "Continue",
+    type: "button",
+    buttonVariant: "filled",
+  });
+  (project.elements[0] as unknown as Record<string, unknown>).buttonVariant =
+    "transparent";
+
+  assert.deepEqual(previewProjectImport(current, JSON.stringify(imported)), {
+    valid: false,
+    summary: [],
+    errors: ["File is not a Sketchy project."],
+    warnings: [],
+  });
 });
