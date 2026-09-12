@@ -50,10 +50,42 @@ test("previews a newer import without changing the current project", () => {
     },
   ];
   const unsupported = previewProjectImport(current, JSON.stringify(imported));
-  assert.equal(unsupported.valid, false);
-  assert.deepEqual(unsupported.errors, [
-    "Adding or removing elements is not supported yet.",
+  assert.equal(unsupported.valid, true);
+  assert.deepEqual(unsupported.summary, [
+    "Update screen Home: name",
+    "Add 1 element",
   ]);
+});
+
+test("allows new elements in an existing screen and validates their parents", () => {
+  const imported = structuredClone(current);
+  imported.revision = 3;
+  imported.project.elements = [
+    {
+      id: "nested-button",
+      screenId: "home",
+      parentElementId: "section",
+      name: "Continue",
+      type: "button",
+    },
+    {
+      id: "section",
+      screenId: "home",
+      name: "Actions",
+      type: "section",
+    },
+  ];
+
+  assert.equal(
+    previewProjectImport(current, JSON.stringify(imported)).valid,
+    true,
+  );
+
+  imported.project.elements[0].parentElementId = "missing";
+  assert.deepEqual(
+    previewProjectImport(current, JSON.stringify(imported)).errors,
+    ["Parent element does not exist."],
+  );
 });
 
 test("allows editable element fields but rejects element structure changes", () => {

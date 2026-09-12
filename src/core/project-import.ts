@@ -1,4 +1,6 @@
-import type { ProjectDocument } from "./project-change.ts";
+import { elementAncestors } from "../shared/element-tree.ts";
+import type { DomainElement, ProjectDocument } from "./project-change.ts";
+import { previewProjectChanges } from "./validate-project-changes.ts";
 import type { ProjectImportPreview } from "../shared/index.ts";
 
 export function previewProjectImport(
@@ -62,10 +64,27 @@ function supportedImportErrors(
     left.every((item) => right.some((other) => other.id === item.id));
   if (!sameIds(current.project.screens, imported.project.screens))
     errors.push("Adding or removing screens is not supported yet.");
-  if (!sameIds(current.project.elements, imported.project.elements))
-    errors.push("Adding or removing elements is not supported yet.");
-  else if (hasUnsupportedElementChange(current, imported))
+  const currentElementIds = new Set(
+    current.project.elements.map((item) => item.id),
+  );
+  if (
+    current.project.elements.some(
+      (item) =>
+        !imported.project.elements.some((other) => other.id === item.id),
+    )
+  )
+    errors.push("Removing elements is not supported yet.");
+  if (hasUnsupportedElementChange(current, imported))
     errors.push("Element structure or type changes are not supported.");
+  errors.push(
+    ...addedElementErrors(
+      current,
+      imported.project.elements.filter(
+        (item) => !currentElementIds.has(item.id),
+      ),
+      imported.project.elements,
+    ),
+  );
   if (
     !sameIds(current.project.features, imported.project.features) ||
     changedCollection(current.project.features, imported.project.features, [
@@ -94,11 +113,33 @@ function hasUnsupportedElementChange(
   const before = new Map(
     current.project.elements.map((item) => [item.id, item]),
   );
-  return imported.project.elements.some((item) =>
-    changedFields(before.get(item.id)!, item).some(
-      (field) => !allowed.has(field),
-    ),
-  );
+  return imported.project.elements.some((item) => {
+    const previous = before.get(item.id);
+    return previous
+      ? changedFields(previous, item).some((field) => !allowed.has(field))
+      : false;
+  });
+}
+
+function addedElementErrors(
+  current: ProjectDocument,
+  added: DomainElement[],
+  allElements: DomainElement[],
+) {
+  if (!added.length) return [];
+  const changes = [...added]
+    .sort(
+      (left, right) =>
+        elementAncestors(allElements, left).length -
+        elementAncestors(allElements, right).length,
+    )
+    .map((element) => ({ type: "ADD_ELEMENT" as const, element }));
+  return previewProjectChanges(current, {
+    projectId: current.id,
+    baseRevision: current.revision,
+    idempotencyKey: "project-import",
+    changes,
+  }).errors.map((issue) => issue.message);
 }
 
 function changedCollection(
@@ -180,6 +221,9 @@ function isProjectDocument(value: unknown): value is ProjectDocument {
     Array.isArray(project.screens) &&
     Array.isArray(project.elements) &&
     Array.isArray(project.features) &&
+    uniqueIds(project.screens) &&
+    uniqueIds(project.elements) &&
+    uniqueIds(project.features) &&
     project.screens.every(
       (item) =>
         item &&
@@ -189,6 +233,16 @@ function isProjectDocument(value: unknown): value is ProjectDocument {
     ) &&
     project.elements.every(isElement) &&
     project.features.every((item) => item && typeof item.id === "string")
+  );
+}
+
+function uniqueIds(items: unknown[]) {
+  const ids = items.map((item) =>
+    item && typeof item === "object" && "id" in item ? item.id : undefined,
+  );
+  return (
+    ids.every((id) => typeof id === "string") &&
+    new Set(ids).size === ids.length
   );
 }
 

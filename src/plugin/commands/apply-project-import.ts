@@ -1,10 +1,12 @@
 import type {
+  DomainElement,
   ProjectDocument,
   ProjectMetadata,
 } from "../../core/project-change";
-import type { Project } from "../../shared";
+import { elementAncestors, type Project } from "../../shared";
 import { readProject, saveProjectSnapshot } from "../storage/project";
 import {
+  createElementNode,
   renderButtonVariant,
   renderElementName,
   renderSectionDirection,
@@ -23,15 +25,49 @@ export async function applyProjectImport(document: ProjectDocument) {
     }),
   );
   const elementTargets = await Promise.all(
-    document.project.elements.map(async (element) => {
-      const stored = current.elements.find((item) => item.id === element.id);
-      const node = stored && (await figma.getNodeByIdAsync(stored.nodeId));
+    current.elements.map(async (stored) => {
+      const element = document.project.elements.find(
+        (item) => item.id === stored.id,
+      )!;
+      const node = await figma.getNodeByIdAsync(stored.nodeId);
       const expectedType = element.type === "text" ? "TEXT" : "FRAME";
-      if (!stored || node?.type !== expectedType)
+      if (node?.type !== expectedType)
         throw new Error(`Element ${element.id} is no longer available.`);
       return { element, stored, node: node as FrameNode | TextNode };
     }),
   );
+
+  await loadFont();
+  const nodes = new Map<string, BaseNode>(
+    elementTargets.map((item) => [item.element.id, item.node]),
+  );
+  const screenNodes = new Map(
+    screenTargets.map((item) => [item.screen.id, item.node]),
+  );
+  const added = document.project.elements
+    .filter((element) => !nodes.has(element.id))
+    .sort(
+      (left, right) =>
+        elementAncestors(document.project.elements, left).length -
+        elementAncestors(document.project.elements, right).length,
+    );
+  const created: SceneNode[] = [];
+  try {
+    for (const element of added) {
+      const parent = element.parentElementId
+        ? nodes.get(element.parentElementId)
+        : screenNodes.get(element.screenId);
+      if (parent?.type !== "FRAME")
+        throw new Error(`Parent for ${element.id} is no longer available.`);
+      const node = createElementNode(element, parent);
+      created.push(node);
+      nodes.set(element.id, node);
+      current.elements.push(withNodeId(element, node.id));
+    }
+  } catch (error) {
+    for (const node of created.reverse()) node.remove();
+    throw error;
+  }
 
   for (const { screen, stored, node } of screenTargets) {
     node.name = screen.name;
@@ -41,10 +77,6 @@ export async function applyProjectImport(document: ProjectDocument) {
     Object.assign(stored, screen);
   }
 
-  await loadFont();
-  const nodes = new Map(
-    elementTargets.map((item) => [item.element.id, item.node]),
-  );
   for (const { element, stored, node } of elementTargets) {
     renderElementName(node, stored, element.name);
     if (element.type === "button" && node.type === "FRAME")
@@ -82,4 +114,8 @@ export async function applyProjectImport(document: ProjectDocument) {
   };
   saveProjectSnapshot(project, metadata);
   return project;
+}
+
+function withNodeId(element: DomainElement, nodeId: string) {
+  return { ...element, nodeId };
 }

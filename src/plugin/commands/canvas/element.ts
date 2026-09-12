@@ -2,12 +2,13 @@ import {
   BLOCK_DEFINITIONS,
   canNestSection,
   elementTreeIds,
-  sectionLayout,
   type BlockType,
+  type Element,
 } from "../../../shared";
 import { readProject, saveProject } from "../../storage/project";
 import { focusNode, id, loadFont } from "./utils";
 import {
+  createElementNode,
   renderButtonVariant,
   renderElementName,
   renderSectionDirection,
@@ -43,85 +44,17 @@ export async function insertBlock(
   )
     throw new Error("Sections can only be nested one level deep.");
   const elementId = id();
-  const node = block === "text" ? figma.createText() : figma.createFrame();
-  node.name = BLOCK_DEFINITIONS[block].label;
-  if (node.type === "TEXT") {
-    node.characters = "Text";
-    node.fontSize = 16;
-  } else {
-    const isSection = block === "section";
-    const isImage = block === "image";
-    const isDivider = block === "divider";
-    node.resize(272, isSection ? 64 : isImage ? 160 : isDivider ? 1 : 40);
-    node.layoutMode = isSection ? "VERTICAL" : "HORIZONTAL";
-    node.primaryAxisAlignItems =
-      block === "button" || isImage ? "CENTER" : "MIN";
-    node.counterAxisAlignItems =
-      block === "button" || block === "input" || isImage ? "CENTER" : "MIN";
-    node.itemSpacing = isSection ? 12 : 0;
-    node.paddingTop = node.paddingBottom = isSection ? 12 : 0;
-    node.paddingLeft = node.paddingRight = isSection
-      ? 12
-      : block === "input" || block === "button"
-        ? 12
-        : 0;
-    node.cornerRadius = isDivider ? 0 : 4;
-    node.strokes = isSection
-      ? [{ type: "SOLID", color: { r: 0.75, g: 0.75, b: 0.75 } }]
-      : isImage || block === "button" || block === "input"
-        ? [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.2 } }]
-        : [];
-    if (isSection) node.dashPattern = [4, 4];
-    const filledButton = block === "button" && buttonVariant === "filled";
-    node.fills = [
-      {
-        type: "SOLID",
-        color:
-          isDivider || filledButton
-            ? { r: 0.15, g: 0.15, b: 0.15 }
-            : isImage
-              ? { r: 0.92, g: 0.92, b: 0.9 }
-              : { r: 1, g: 1, b: 1 },
-      },
-    ];
-    if (!isDivider && !isSection) {
-      const label = figma.createText();
-      label.characters =
-        block === "button" ? "Button" : block === "image" ? "Image" : "Input";
-      label.fontSize = 14;
-      label.fills = [
-        {
-          type: "SOLID",
-          color: filledButton
-            ? { r: 1, g: 1, b: 1 }
-            : { r: 0.35, g: 0.35, b: 0.35 },
-        },
-      ];
-      node.appendChild(label);
-    }
-    if (isSection) {
-      const layout = sectionLayout("vertical");
-      node.primaryAxisSizingMode = layout.primaryAxisSizingMode;
-      node.counterAxisSizingMode = layout.counterAxisSizingMode;
-    }
-    if (block === "button" || block === "input") node.minHeight = 40;
-    if (isImage) node.minHeight = 160;
-  }
-  node.setPluginData("sketchy:type", "element");
-  node.setPluginData("sketchy:screen-id", screenId);
-  node.setPluginData("sketchy:element-id", elementId);
-  (parentNode as FrameNode).appendChild(node);
-  if (node.type === "FRAME") node.layoutSizingHorizontal = "FILL";
-  project.elements.push({
+  const element: Omit<Element, "nodeId"> = {
     id: elementId,
-    nodeId: node.id,
     screenId,
-    name: node.name,
+    name: BLOCK_DEFINITIONS[block].label,
     type: block,
     parentElementId: parentElement?.id,
     buttonVariant: block === "button" ? buttonVariant : undefined,
     direction: block === "section" ? "vertical" : undefined,
-  });
+  };
+  const node = createElementNode(element, parentNode as FrameNode);
+  project.elements.push({ ...element, nodeId: node.id });
   saveProject(project);
   figma.currentPage.selection = [parentNode as FrameNode];
   return project;

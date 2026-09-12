@@ -20,7 +20,9 @@ export function previewProjectChanges(
   const errors: ChangeIssue[] = [];
   const warnings: ChangeIssue[] = [];
   const affected = new Set<string>();
-  const project = structuredClone(document.project);
+  const project = JSON.parse(
+    JSON.stringify(document.project),
+  ) as CanonicalProject;
 
   if (request.projectId !== document.id)
     errors.push({
@@ -137,6 +139,10 @@ export function previewProjectChanges(
         );
       if (parent && parent.screenId !== input.screenId)
         return fail("INVALID_PARENT", "Parent must belong to the same screen.");
+      if (input.buttonVariant && input.type !== "button")
+        return fail("INVALID_ELEMENT", "Only buttons have a button variant.");
+      if (input.direction && input.type !== "section")
+        return fail("INVALID_ELEMENT", "Only sections have a direction.");
       if (
         input.type === "section" &&
         parent &&
