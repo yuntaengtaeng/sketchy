@@ -39,13 +39,13 @@ Sketchy는 화면을 만들고 정상적인 화면 전환을 연결하는 첫 �
 
 ## 가장 어려웠던 선택
 
-| 선택 | 사용자가 알기 어려웠던 것 | 실제 결과 |
-|---|---|---|
-| Go to screen / Open popup / Stay on screen | 동작 종류만 고르는지 구조도 생성하는지 | Popup은 구조를 즉시 생성, Stay는 주로 설명 기록 |
-| Default / Case | 둘 다 Prototype에서 실행되는지 | 첫 Case만 실제 Figma reaction에 반영 |
-| Screen / State | 오류·로딩도 State로 만들 수 있는지 | 현재 State 생성은 Popup 중심 |
-| 새 Screen / Duplicate | 상태 표현에 어느 쪽이 맞는지 | Duplicate는 별도 일반 Screen 생성 |
-| Delete / Remove case | 현재 항목만 없어지는지 연결까지 없어지는지 | 소유 요소와 Feature가 연쇄 삭제될 수 있음 |
+| 선택                                       | 사용자가 알기 어려웠던 것                  | 실제 결과                                       |
+| ------------------------------------------ | ------------------------------------------ | ----------------------------------------------- |
+| Go to screen / Open popup / Stay on screen | 동작 종류만 고르는지 구조도 생성하는지     | Popup은 구조를 즉시 생성, Stay는 주로 설명 기록 |
+| Default / Case                             | 둘 다 Prototype에서 실행되는지             | 첫 Case만 실제 Figma reaction에 반영            |
+| Screen / State                             | 오류·로딩도 State로 만들 수 있는지         | 현재 State 생성은 Popup 중심                    |
+| 새 Screen / Duplicate                      | 상태 표현에 어느 쪽이 맞는지               | Duplicate는 별도 일반 Screen 생성               |
+| Delete / Remove case                       | 현재 항목만 없어지는지 연결까지 없어지는지 | 소유 요소와 Feature가 연쇄 삭제될 수 있음       |
 
 ## 잘 전달되는 부분
 
