@@ -179,7 +179,11 @@ async function callback(
     ).bind(userId, sessionToken, handoff.id),
   ]);
 
-  return html("You're connected to Sketchy. Return to Figma to continue.");
+  return html(
+    "You're connected to Sketchy. Return to Figma to continue.",
+    200,
+    sessionToken,
+  );
 }
 
 async function poll(environment: GoogleAuthEnvironment, request: Request) {
@@ -314,7 +318,7 @@ function jsonError(status: number, code: string, message: string) {
   return json({ error: { code, message } }, status);
 }
 
-function html(message: string, status = 200) {
+function html(message: string, status = 200, browserSession?: string) {
   return new Response(
     `<!doctype html><meta name="viewport" content="width=device-width"><title>Sketchy</title><main><h1>Sketchy</h1><p>${message}</p></main>`,
     {
@@ -322,8 +326,9 @@ function html(message: string, status = 200) {
       headers: {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "no-store",
-        "set-cookie":
-          "sketchy_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/auth/google/callback; Max-Age=0",
+        "set-cookie": browserSession
+          ? `sketchy_browser_session=${browserSession}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`
+          : "sketchy_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/auth/google/callback; Max-Age=0",
       },
     },
   );

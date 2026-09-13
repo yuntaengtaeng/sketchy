@@ -4,6 +4,7 @@ import { createBearerAuthenticator } from "./api/authentication.ts";
 import { ProjectService } from "./api/project-service.ts";
 import { createRemoteMcpHandler } from "./mcp/http.ts";
 import { createGoogleAuthHandler } from "./api/google-auth.ts";
+import { createMcpOAuthHandler } from "./api/mcp-oauth.ts";
 
 export type WorkerEnvironment = {
   DB: D1Database;
@@ -24,6 +25,8 @@ export async function handleRequest(
     environment.SKETCHY_USER_ID,
   );
   const url = new URL(request.url);
+  const oauthResponse = await createMcpOAuthHandler(environment)(request);
+  if (oauthResponse) return oauthResponse;
   const authResponse = await createGoogleAuthHandler(environment)(request);
   if (authResponse) return authResponse;
   if (url.pathname === "/mcp") {
@@ -31,6 +34,7 @@ export async function handleRequest(
     try {
       principal = await authenticate(request);
     } catch {
+      const resourceMetadata = `${url.origin}/.well-known/oauth-protected-resource/mcp`;
       return Response.json(
         {
           error: {
@@ -38,7 +42,12 @@ export async function handleRequest(
             message: "Authentication required.",
           },
         },
-        { status: 401 },
+        {
+          status: 401,
+          headers: {
+            "www-authenticate": `Bearer resource_metadata="${resourceMetadata}"`,
+          },
+        },
       );
     }
     const projectId = url.searchParams.get("projectId");

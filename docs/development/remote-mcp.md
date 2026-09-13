@@ -6,10 +6,10 @@ Export 없이 Figma Plugin과 AI Agent가 같은 Project를 사용하기 위한 
 ## 현재와 미래 범위
 
 - 현재: Figma Plugin의 Build·Flow·Spec은 일반 사용자도 로그인 없이 사용한다.
-- 현재: Google 로그인과 원격 API·MCP 기반의 내부 smoke test까지 구현했다.
+- 현재: Google 로그인, Project 최초 등록과 Codex용 Remote MCP OAuth를 구현했다.
 - 개발자용: Local MCP는 Sketchy 저장소를 가진 개발자와 내부 검증에서만 사용한다.
-- 미래: 일반 사용자용 Remote MCP 연결, Cloud Project 동기화, Agent Apply와
-  Free·Pro 제한은 아직 제품 기능으로 제공하지 않는다.
+- 미래: 지속적인 Cloud Project 동기화, Agent 변경의 Figma Apply와 Free·Pro 제한은
+  아직 제품 기능으로 제공하지 않는다.
 
 ## 초기 배포 결정
 
@@ -113,8 +113,9 @@ Plugin이 닫힌 동안 Figma에서 직접 바꾼 내용은 다음 Plugin 실행
 ## 인증 단계
 
 내부 smoke test는 Worker secret과 비교하는 개발용 Bearer Token을 사용한다.
-Figma Plugin의 Google 로그인과 Sketchy Session 발급은 구현됐다. 일반 사용자의
-Remote MCP 연결에 필요한 MCP OAuth 2.1 승인 흐름은 미래 작업이다.
+Figma Plugin의 Google 로그인과 Sketchy Session 발급을 구현했다. Codex Remote MCP는
+Protected Resource Metadata, Authorization Server Metadata, Dynamic Client
+Registration과 Authorization Code + PKCE를 사용한다.
 
 - 내부 랜덤 `userId`에 Google의 안정적인 계정 식별자를 연결한다.
 - OAuth Token에서 사용자 ID와 `project:read`, `project:write` 권한을 얻는다.
@@ -143,7 +144,7 @@ Handoff는 10분 뒤 만료되고 polling secret이 일치할 때 한 번만 세
 Google callback은 state와 HttpOnly·SameSite cookie를 함께 검사한다. Sketchy 세션은
 30일 뒤 만료되며 Plugin의 사용자별 `clientStorage`에 저장한다.
 
-향후 일반 사용자는 Figma Plugin에서 Google로 로그인하고, MCP Client에는 URL만
+일반 사용자는 Figma Plugin에서 Google로 로그인하고, MCP Client에는 URL만
 등록한다. MCP Client가 브라우저 기반 승인과 PKCE를 처리하므로 Project ID,
 Cloudflare Access, Service Token, Worker secret을 직접 입력하지 않는다. 고객용
 Production 경로는 Cloudflare Access 좌석에 사용자를 등록하지 않으며 Access는

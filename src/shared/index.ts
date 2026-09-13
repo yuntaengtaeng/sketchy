@@ -180,6 +180,7 @@ export type PluginMessage =
   | { type: "READY" }
   | { type: "SAVE_AUTH_SESSION"; session: AuthSession }
   | { type: "SIGN_OUT" }
+  | { type: "CONNECT_CODEX" }
   | { type: "EXPORT_PROJECT" }
   | { type: "PREVIEW_PROJECT_IMPORT"; contents: string }
   | { type: "APPLY_PROJECT_IMPORT"; revision: number }
@@ -237,5 +238,6 @@ export type UiMessage =
     }
   | { type: "PROJECT_EXPORT"; fileName: string; contents: string }
   | { type: "AUTH_STATE"; account?: SketchyAccount }
+  | { type: "CODEX_CONNECTION"; command: string }
   | { type: "PROJECT_IMPORT_PREVIEW"; preview: ProjectImportPreview }
   | { type: "ERROR"; message: string };

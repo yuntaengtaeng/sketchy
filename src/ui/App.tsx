@@ -21,6 +21,7 @@ export default function App() {
   const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
   const [account, setAccount] = useState<SketchyAccount>();
+  const [codexCommand, setCodexCommand] = useState("");
   const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
   const context =
@@ -38,6 +39,8 @@ export default function App() {
         setElementId(message.selectedElementId);
       }
       if (message?.type === "AUTH_STATE") setAccount(message.account);
+      if (message?.type === "CODEX_CONNECTION")
+        setCodexCommand(message.command);
       if (message?.type === "ERROR") {
         clearTimeout(errorTimer);
         setError(message.message);
@@ -68,7 +71,11 @@ export default function App() {
         </p>
       )}
       {route.name === "settings" && (
-        <Settings settings={project.settings} account={account} />
+        <Settings
+          settings={project.settings}
+          account={account}
+          codexCommand={codexCommand}
+        />
       )}
       {route.name === "workspace" && tab === "build" && (
         <Build project={project} screen={screen} element={element} />

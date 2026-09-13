@@ -23,6 +23,7 @@ import {
   cleanProject,
   readProject,
   readProjectMetadata,
+  saveProjectSnapshot,
   updateProjectSettings,
 } from "./storage/project";
 
@@ -87,6 +88,55 @@ figma.ui.onmessage = async (message: PluginMessage) => {
     if (message.type === "SIGN_OUT") {
       await figma.clientStorage.deleteAsync(AUTH_SESSION_KEY);
       await postAuthState();
+    }
+    if (message.type === "CONNECT_CODEX") {
+      const session = (await figma.clientStorage.getAsync(AUTH_SESSION_KEY)) as
+        AuthSession | undefined;
+      if (!session) throw new Error("Sign in before connecting Codex.");
+      const project = await cleanProject(readProject());
+      let metadata = readProjectMetadata();
+      let document = createProjectDocument(
+        project,
+        metadata,
+        figma.fileKey || "local-development",
+      );
+      const endpoint = "https://sketchy.dbsxo360.workers.dev";
+      const create = () =>
+        fetch(`${endpoint}/api/v1/projects`, {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${session.token}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(document),
+        });
+      let response = await create();
+      if (response.status === 409) {
+        const existing = await fetch(
+          `${endpoint}/api/v1/projects/${encodeURIComponent(document.id)}`,
+          { headers: { authorization: `Bearer ${session.token}` } },
+        );
+        if (!existing.ok) {
+          metadata = {
+            id: `project-${crypto.randomUUID()}`,
+            revision: 0,
+            updatedAt: new Date().toISOString(),
+          };
+          saveProjectSnapshot(project, metadata);
+          document = createProjectDocument(
+            project,
+            metadata,
+            figma.fileKey || "local-development",
+          );
+          response = await create();
+        }
+      }
+      if (!response.ok && response.status !== 409)
+        throw new Error("Could not connect this project. Try again.");
+      figma.ui.postMessage({
+        type: "CODEX_CONNECTION",
+        command: `codex mcp add sketchy --url "${endpoint}/mcp?projectId=${encodeURIComponent(document.id)}"\ncodex mcp login sketchy`,
+      });
     }
     if (message.type === "EXPORT_PROJECT") {
       const document = createProjectDocument(

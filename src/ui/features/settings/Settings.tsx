@@ -12,11 +12,14 @@ import styles from "./Settings.module.css";
 export default function Settings({
   settings,
   account,
+  codexCommand,
 }: {
   settings: ProjectSettings;
   account?: SketchyAccount;
+  codexCommand: string;
 }) {
   const [signInStatus, setSignInStatus] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
 
   async function signIn() {
     try {
@@ -98,14 +101,25 @@ export default function Settings({
         <p className={styles.note}>Existing screens keep their current size.</p>
       </section>
       <section>
-        <h2>Account</h2>
+        <h2>AI agents</h2>
         {account ? (
-          <div className={styles.account}>
-            <span>
-              Signed in as <b>{account.email}</b>
-            </span>
-            <button onClick={() => post({ type: "SIGN_OUT" })}>Sign out</button>
-          </div>
+          <>
+            <p className="muted">Use Codex with this Figma file.</p>
+            <button
+              className={styles.connect}
+              onClick={() => post({ type: "CONNECT_CODEX" })}
+            >
+              Connect Codex
+            </button>
+            <div className={styles.account}>
+              <small>
+                Signed in as <b>{account.email}</b>
+              </small>
+              <button onClick={() => post({ type: "SIGN_OUT" })}>
+                Sign out
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <p className="muted">Sign in for future cloud features.</p>
@@ -125,6 +139,25 @@ export default function Settings({
           <p className={styles.status} role="status">
             {signInStatus}
           </p>
+        )}
+        {codexCommand && (
+          <div className={styles.instructions} role="status">
+            <b>Finish in your terminal</b>
+            <code>{codexCommand}</code>
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(codexCommand);
+                  setCopyStatus("Copied. Paste and run it in your terminal.");
+                } catch {
+                  setCopyStatus("Copy the commands above and run them.");
+                }
+              }}
+            >
+              Copy setup commands
+            </button>
+            {copyStatus && <small>{copyStatus}</small>}
+          </div>
         )}
       </section>
     </>

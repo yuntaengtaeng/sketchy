@@ -38,11 +38,28 @@
 }
 
 .account {
-  display: grid;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-top: 12px;
 }
 
 .account button {
-  justify-self: start;
+  padding: 4px 7px;
+  min-height: 28px;
+}
+
+.instructions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid var(--sketchy-line);
+}
+
+.instructions code {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 10px;
 }
