@@ -121,6 +121,18 @@ export type Project = {
   features: Feature[];
 };
 
+export type SketchyAccount = {
+  id: string;
+  email: string;
+  name?: string;
+  pictureUrl?: string;
+};
+
+export type AuthSession = {
+  token: string;
+  user: SketchyAccount;
+};
+
 export type ProjectImportPreview = {
   valid: boolean;
   applied?: boolean;
@@ -166,6 +178,8 @@ export const createEmptyProject = (): Project => ({
 
 export type PluginMessage =
   | { type: "READY" }
+  | { type: "SAVE_AUTH_SESSION"; session: AuthSession }
+  | { type: "SIGN_OUT" }
   | { type: "EXPORT_PROJECT" }
   | { type: "PREVIEW_PROJECT_IMPORT"; contents: string }
   | { type: "APPLY_PROJECT_IMPORT"; revision: number }
@@ -222,5 +236,6 @@ export type UiMessage =
       selectedElementId?: string;
     }
   | { type: "PROJECT_EXPORT"; fileName: string; contents: string }
+  | { type: "AUTH_STATE"; account?: SketchyAccount }
   | { type: "PROJECT_IMPORT_PREVIEW"; preview: ProjectImportPreview }
   | { type: "ERROR"; message: string };

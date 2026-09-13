@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   createEmptyProject,
   type ProjectImportPreview,
+  type SketchyAccount,
   type UiMessage,
 } from "../shared";
 import { BackNavigation, Header, type Tab } from "./components/header";
@@ -21,6 +22,7 @@ export default function App() {
   const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
   const [importPreview, setImportPreview] = useState<ProjectImportPreview>();
+  const [account, setAccount] = useState<SketchyAccount>();
   const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
   const context =
@@ -41,6 +43,7 @@ export default function App() {
         download(message.fileName, message.contents);
         setImportPreview(undefined);
       }
+      if (message?.type === "AUTH_STATE") setAccount(message.account);
       if (message?.type === "PROJECT_IMPORT_PREVIEW")
         setImportPreview(message.preview);
       if (message?.type === "ERROR") {
@@ -73,7 +76,11 @@ export default function App() {
         </p>
       )}
       {route.name === "settings" && (
-        <Settings settings={project.settings} importPreview={importPreview} />
+        <Settings
+          settings={project.settings}
+          importPreview={importPreview}
+          account={account}
+        />
       )}
       {route.name === "workspace" && tab === "build" && (
         <Build project={project} screen={screen} element={element} />

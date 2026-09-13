@@ -1,9 +1,11 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   SCREEN_PRESETS,
+  type AuthSession,
   type ProjectImportPreview,
   type ProjectSettings,
   type ScreenPreset,
+  type SketchyAccount,
 } from "../../../shared";
 import { post } from "../../plugin";
 import styles from "./Settings.module.css";
@@ -11,11 +13,64 @@ import styles from "./Settings.module.css";
 export default function Settings({
   settings,
   importPreview,
+  account,
 }: {
   settings: ProjectSettings;
   importPreview?: ProjectImportPreview;
+  account?: SketchyAccount;
 }) {
   const importInput = useRef<HTMLInputElement>(null);
+  const [signInStatus, setSignInStatus] = useState("");
+
+  async function connectAgent() {
+    try {
+      setSignInStatus("Opening Google sign-in…");
+      const started = await fetch(
+        "https://sketchy.dbsxo360.workers.dev/auth/plugin/start",
+        { method: "POST" },
+      );
+      if (!started.ok) throw new Error("Could not start sign-in.");
+      const login = (await started.json()) as {
+        handoffId: string;
+        pollToken: string;
+        authorizationUrl: string;
+        expiresAt: string;
+      };
+      window.open(login.authorizationUrl, "_blank");
+      setSignInStatus("Complete sign-in in your browser…");
+
+      while (Date.now() < Date.parse(login.expiresAt)) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        const response = await fetch(
+          "https://sketchy.dbsxo360.workers.dev/auth/plugin/session",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              handoffId: login.handoffId,
+              pollToken: login.pollToken,
+            }),
+          },
+        );
+        if (response.status === 202) continue;
+        if (!response.ok) throw new Error("Sign-in could not be completed.");
+        const result = (await response.json()) as AuthSession & {
+          status: "complete";
+        };
+        post({
+          type: "SAVE_AUTH_SESSION",
+          session: { token: result.token, user: result.user },
+        });
+        setSignInStatus("");
+        return;
+      }
+      throw new Error("Sign-in timed out. Try again.");
+    } catch (error) {
+      setSignInStatus(
+        error instanceof Error ? error.message : "Sign-in failed.",
+      );
+    }
+  }
   return (
     <>
       <section>
@@ -48,7 +103,37 @@ export default function Settings({
       </section>
       <section>
         <h2>AI agents</h2>
-        <p className="muted">Export the current project for Codex or Claude.</p>
+        {account ? (
+          <div className={styles.account}>
+            <span>
+              Connected as <b>{account.email}</b>
+            </span>
+            <button onClick={() => post({ type: "SIGN_OUT" })}>Sign out</button>
+          </div>
+        ) : (
+          <>
+            <p className="muted">
+              Connect Codex or Claude and keep agent changes in sync.
+            </p>
+            <button
+              className={styles.connect}
+              disabled={!!signInStatus}
+              onClick={connectAgent}
+            >
+              Connect AI agent
+            </button>
+            <small className={styles.note}>
+              Google sign-in opens in your browser. Build, Flow and Spec remain
+              available without an account.
+            </small>
+          </>
+        )}
+        {signInStatus && (
+          <p className={styles.status} role="status">
+            {signInStatus}
+          </p>
+        )}
+        <p className={styles.legacy}>Or use the local file workflow</p>
         <button
           className={styles.export}
           onClick={() => post({ type: "EXPORT_PROJECT" })}

@@ -23,3 +23,13 @@ CREATE TABLE sessions (
 );
 
 CREATE INDEX sessions_user_id ON sessions (user_id);
+
+CREATE TABLE auth_handoffs (
+  id TEXT PRIMARY KEY,
+  poll_token_hash TEXT NOT NULL,
+  oauth_state TEXT NOT NULL UNIQUE,
+  user_id TEXT REFERENCES users (id) ON DELETE CASCADE,
+  session_token TEXT,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);

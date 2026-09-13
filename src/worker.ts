@@ -3,11 +3,14 @@ import { createProjectApi } from "./api/http.ts";
 import { createBearerAuthenticator } from "./api/authentication.ts";
 import { ProjectService } from "./api/project-service.ts";
 import { createRemoteMcpHandler } from "./mcp/http.ts";
+import { createGoogleAuthHandler } from "./api/google-auth.ts";
 
 export type WorkerEnvironment = {
   DB: D1Database;
   SKETCHY_API_TOKEN: string;
   SKETCHY_USER_ID: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
 };
 
 export async function handleRequest(
@@ -21,6 +24,8 @@ export async function handleRequest(
     environment.SKETCHY_USER_ID,
   );
   const url = new URL(request.url);
+  const authResponse = await createGoogleAuthHandler(environment)(request);
+  if (authResponse) return authResponse;
   if (url.pathname === "/mcp") {
     let principal;
     try {

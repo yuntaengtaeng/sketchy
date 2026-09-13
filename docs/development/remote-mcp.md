@@ -120,6 +120,19 @@ Plugin이 닫힌 동안 Figma에서 직접 바꾼 내용은 다음 Plugin 실행
 않는다. `sessions`에는 만료 시각과 불투명 Bearer Token의 SHA-256 해시만 저장한다.
 Google access token과 refresh token은 Sketchy 세션 발급 후 보관하지 않는다.
 
+Plugin 로그인은 다음 일회성 handoff를 사용한다.
+
+```text
+Plugin → POST /auth/plugin/start
+Browser → GET /auth/google/start → Google
+Google → GET /auth/google/callback
+Plugin → POST /auth/plugin/session → Sketchy Session
+```
+
+Handoff는 10분 뒤 만료되고 polling secret이 일치할 때 한 번만 세션을 반환한다.
+Google callback은 state와 HttpOnly·SameSite cookie를 함께 검사한다. Sketchy 세션은
+30일 뒤 만료되며 Plugin의 사용자별 `clientStorage`에 저장한다.
+
 일반 사용자는 Figma Plugin에서 Google로 로그인하고, MCP Client에는 URL만
 등록한다. MCP Client가 브라우저 기반 승인과 PKCE를 처리하므로 Project ID,
 Cloudflare Access, Service Token, Worker secret을 직접 입력하지 않는다. 고객용

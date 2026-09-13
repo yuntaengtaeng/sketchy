@@ -1,5 +1,5 @@
 import type { ProjectDocument } from "../core/project-change";
-import type { PluginMessage, Project } from "../shared";
+import type { AuthSession, PluginMessage, Project } from "../shared";
 import { previewProjectImport } from "../core/project-import";
 import { createProjectDocument } from "../core/project-change";
 import {
@@ -33,6 +33,13 @@ let redrawTimer: ReturnType<typeof setTimeout>;
 let suppressTimer: ReturnType<typeof setTimeout>;
 let pendingImport:
   { baseRevision: number; document: ProjectDocument } | undefined;
+const AUTH_SESSION_KEY = "sketchy:auth-session";
+
+async function postAuthState() {
+  const session = (await figma.clientStorage.getAsync(AUTH_SESSION_KEY)) as
+    AuthSession | undefined;
+  figma.ui.postMessage({ type: "AUTH_STATE", account: session?.user });
+}
 
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -69,7 +76,18 @@ async function sync(project: Project = readProject(), draw = false) {
 
 figma.ui.onmessage = async (message: PluginMessage) => {
   try {
-    if (message.type === "READY") await sync(readProject(), true);
+    if (message.type === "READY") {
+      await postAuthState();
+      await sync(readProject(), true);
+    }
+    if (message.type === "SAVE_AUTH_SESSION") {
+      await figma.clientStorage.setAsync(AUTH_SESSION_KEY, message.session);
+      await postAuthState();
+    }
+    if (message.type === "SIGN_OUT") {
+      await figma.clientStorage.deleteAsync(AUTH_SESSION_KEY);
+      await postAuthState();
+    }
     if (message.type === "EXPORT_PROJECT") {
       const document = createProjectDocument(
         await cleanProject(readProject()),

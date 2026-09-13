@@ -5,5 +5,8 @@
   "documentAccess": "dynamic-page",
   "main": "dist/plugin.js",
   "ui": "dist/index.html",
-  "editorType": ["figma"]
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["https://sketchy.dbsxo360.workers.dev"]
+  }
 }

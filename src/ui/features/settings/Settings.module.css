@@ -29,6 +29,29 @@
   width: 100%;
 }
 
+.connect {
+  width: 100%;
+  background: var(--sketchy-ink);
+  color: var(--figma-color-bg, #fafafa);
+}
+
+.status,
+.legacy {
+  margin-top: 12px;
+  color: var(--figma-color-text-secondary, #777);
+  font-size: 11px;
+}
+
+.account {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.account button {
+  justify-self: start;
+}
+
 .import {
   width: 100%;
   margin-top: 8px;
