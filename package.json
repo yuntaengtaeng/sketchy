@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "mcp": "tsx src/mcp/server.ts",
-    "test:mcp": "node --experimental-strip-types --test tests/canvas-name.test.ts tests/mcp-read.test.ts tests/mcpb-manifest.test.ts tests/project-export.test.ts tests/project-import.test.ts tests/project-migration.test.ts tests/validate-feature-action.test.ts",
+    "test": "node --experimental-strip-types --test \"tests/*.test.ts\"",
     "build:mcpb": "vite build --config vite.mcpb.config.ts && node scripts/build-mcpb.mjs",
     "build": "tsc --noEmit && vite build && vite build --config vite.plugin.config.ts && npm run build:mcpb",
     "check": "tsc --noEmit && prettier --check .",
