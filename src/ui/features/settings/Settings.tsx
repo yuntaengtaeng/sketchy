@@ -22,7 +22,7 @@ export default function Settings({
   const importInput = useRef<HTMLInputElement>(null);
   const [signInStatus, setSignInStatus] = useState("");
 
-  async function connectAgent() {
+  async function signIn() {
     try {
       setSignInStatus("Opening Google sign-in…");
       const started = await fetch(
@@ -102,29 +102,26 @@ export default function Settings({
         <p className={styles.note}>Existing screens keep their current size.</p>
       </section>
       <section>
-        <h2>AI agents</h2>
+        <h2>Account</h2>
         {account ? (
           <div className={styles.account}>
             <span>
-              Connected as <b>{account.email}</b>
+              Signed in as <b>{account.email}</b>
             </span>
             <button onClick={() => post({ type: "SIGN_OUT" })}>Sign out</button>
           </div>
         ) : (
           <>
-            <p className="muted">
-              Connect Codex or Claude and keep agent changes in sync.
-            </p>
+            <p className="muted">Sign in for future cloud features.</p>
             <button
               className={styles.connect}
               disabled={!!signInStatus}
-              onClick={connectAgent}
+              onClick={signIn}
             >
-              Connect AI agent
+              Continue with Google
             </button>
             <small className={styles.note}>
-              Google sign-in opens in your browser. Build, Flow and Spec remain
-              available without an account.
+              Build, Flow and Spec work without an account.
             </small>
           </>
         )}
@@ -133,7 +130,12 @@ export default function Settings({
             {signInStatus}
           </p>
         )}
-        <p className={styles.legacy}>Or use the local file workflow</p>
+      </section>
+      <section>
+        <h2>Developer tools</h2>
+        <p className="muted">
+          Local MCP requires the Sketchy repository and development setup.
+        </p>
         <button
           className={styles.export}
           onClick={() => post({ type: "EXPORT_PROJECT" })}

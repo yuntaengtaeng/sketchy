@@ -35,8 +35,7 @@
   color: var(--figma-color-bg, #fafafa);
 }
 
-.status,
-.legacy {
+.status {
   margin-top: 12px;
   color: var(--figma-color-text-secondary, #777);
   font-size: 11px;
