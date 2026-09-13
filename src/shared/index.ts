@@ -4,7 +4,7 @@ type BlockDefinition = {
   triggers: FeatureTrigger["type"][];
 };
 
-export * from "./element-tree";
+export * from "./element-tree.ts";
 
 export const BLOCK_DEFINITIONS = {
   text: { label: "Text", canAddToSection: true, triggers: [] },

@@ -1,13 +1,12 @@
 import {
   createEmptyProject,
-  SCREEN_PRESETS,
-  type Feature,
   type Project,
   type ProjectSettings,
 } from "../../shared";
 import { readingOrder } from "../reading-order";
 import { adoptCanvasName } from "../canvas-name";
 import type { ProjectMetadata } from "../../core/project-change";
+import { migrateStoredProject, parseStoredProject } from "./project-migration";
 
 const KEY = "sketchy:project";
 const METADATA_KEY = "sketchy:project-metadata";
@@ -35,67 +34,16 @@ export function readProjectMetadata(): ProjectMetadata {
 
 export function readProject(): Project {
   try {
-    const stored = JSON.parse(figma.root.getPluginData(KEY)) || {};
-    const screenPreset = stored.settings?.screenPreset;
-    const features: Feature[] = stored.features
-      ? stored.features.map(
-          (feature: Feature & { sourceElementId?: string }) => ({
-            ...feature,
-            action: ["toggle-state", "set-state"].includes(
-              feature.action.type as string,
-            )
-              ? { type: "describe" as const }
-              : feature.action,
-            trigger:
-              feature.trigger ||
-              (feature.sourceElementId
-                ? { type: "click" as const, elementId: feature.sourceElementId }
-                : undefined),
-            sourceElementId: undefined,
-          }),
-        )
-      : (stored.interactions || []).map(
-          (item: {
-            id: string;
-            sourceElementId: string;
-            destinationScreenId: string;
-          }) => ({
-            id: item.id,
-            screenId:
-              stored.elements?.find(
-                (element: { id: string }) =>
-                  element.id === item.sourceElementId,
-              )?.screenId || "",
-            name:
-              stored.elements?.find(
-                (element: { id: string }) =>
-                  element.id === item.sourceElementId,
-              )?.name || "Feature",
-            trigger: {
-              type: "click" as const,
-              elementId: item.sourceElementId,
-            },
-            action: {
-              type: "navigate" as const,
-              destinationScreenId: item.destinationScreenId,
-            },
-          }),
-        );
-    return {
-      settings: {
-        screenPreset:
-          typeof screenPreset === "string" && screenPreset in SCREEN_PRESETS
-            ? (screenPreset as keyof typeof SCREEN_PRESETS)
-            : "mobile",
-      },
-      screens: stored.screens || [],
-      elements: stored.elements || [],
-      features,
-    };
+    return migrateStoredProject(parseStoredProject(readStoredProjectData()));
   } catch {
     return createEmptyProject();
   }
 }
+
+function readStoredProjectData(): string {
+  return figma.root.getPluginData(KEY);
+}
+
 export const saveProject = (project: Project) => {
   figma.root.setPluginData(KEY, JSON.stringify(project));
   const metadata = readProjectMetadata();
