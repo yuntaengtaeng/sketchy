@@ -20,6 +20,7 @@ export type ProjectRecord = {
 export type ProjectStore = {
   create(record: ProjectRecord): Promise<boolean>;
   get(projectId: string): Promise<ProjectRecord | undefined>;
+  listByOwner(ownerId: string): Promise<ProjectRecord[]>;
   replace(record: ProjectRecord, expectedRevision: number): Promise<boolean>;
 };
 
@@ -44,6 +45,13 @@ export class ProjectService {
   async getProject(principal: ProjectPrincipal, projectId: string) {
     const record = await this.readOwned(principal, projectId, "project:read");
     return getProject(record.document);
+  }
+
+  async listProjects(principal: ProjectPrincipal) {
+    requireScope(principal, "project:read");
+    return (await this.store.listByOwner(principal.userId)).map(
+      ({ document }) => getProject(document),
+    );
   }
 
   async getScreen(

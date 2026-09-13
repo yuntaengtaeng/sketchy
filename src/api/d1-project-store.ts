@@ -45,6 +45,22 @@ export class D1ProjectStore implements ProjectStore {
     return { ownerId: row.owner_id, document };
   }
 
+  async listByOwner(ownerId: string) {
+    const result = await this.database
+      .prepare(
+        `SELECT owner_id, document FROM projects
+         WHERE owner_id = ? ORDER BY updated_at DESC`,
+      )
+      .bind(ownerId)
+      .all<ProjectRow>();
+    return result.results.map((row) => ({
+      ownerId: row.owner_id,
+      document: projectDocumentSchema.parse(
+        JSON.parse(row.document),
+      ) as ProjectDocument,
+    }));
+  }
+
   async replace(record: ProjectRecord, expectedRevision: number) {
     const result = await this.database
       .prepare(

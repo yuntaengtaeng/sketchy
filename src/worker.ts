@@ -55,18 +55,11 @@ export async function handleRequest(
         },
       );
     }
-    const projectId = url.searchParams.get("projectId");
-    if (!projectId)
-      return Response.json(
-        {
-          error: {
-            code: "PROJECT_ID_REQUIRED",
-            message: "projectId is required.",
-          },
-        },
-        { status: 400 },
-      );
-    return createRemoteMcpHandler(service, principal, projectId).fetch(request);
+    return createRemoteMcpHandler(
+      service,
+      principal,
+      url.searchParams.get("projectId") ?? undefined,
+    ).fetch(request);
   }
   const response = await createProjectApi(service, authenticate)(request);
   for (const [name, value] of Object.entries(apiCorsHeaders()))

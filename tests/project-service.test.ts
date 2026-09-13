@@ -41,6 +41,11 @@ test("keeps ownership and revision checks at the Project service boundary", asyn
     async get(projectId) {
       return records.get(projectId);
     },
+    async listByOwner(ownerId) {
+      return [...records.values()].filter(
+        (record) => record.ownerId === ownerId,
+      );
+    },
     async replace(record, expectedRevision) {
       const current = records.get(record.document.id);
       if (current?.document.revision !== expectedRevision) return false;
@@ -50,6 +55,10 @@ test("keeps ownership and revision checks at the Project service boundary", asyn
   };
   const service = new ProjectService(store);
   await service.create(owner, document);
+  assert.deepEqual(
+    (await service.listProjects(owner)).map((project) => project.id),
+    ["project"],
+  );
 
   const request: ProjectChangeRequest = {
     projectId: document.id,

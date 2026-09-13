@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   SCREEN_PRESETS,
+  type AgentConnection,
   type AuthSession,
   type ProjectSettings,
   type ScreenPreset,
@@ -12,11 +13,11 @@ import styles from "./Settings.module.css";
 export default function Settings({
   settings,
   account,
-  codexCommand,
+  agentConnection,
 }: {
   settings: ProjectSettings;
   account?: SketchyAccount;
-  codexCommand: string;
+  agentConnection?: AgentConnection;
 }) {
   const [signInStatus, setSignInStatus] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
@@ -104,13 +105,33 @@ export default function Settings({
         <h2>AI agents</h2>
         {account ? (
           <>
-            <p className="muted">Use Codex with this Figma file.</p>
-            <button
-              className={styles.connect}
-              onClick={() => post({ type: "CONNECT_CODEX" })}
-            >
-              Connect Codex
-            </button>
+            <p className="muted">Connect your Sketchy projects once.</p>
+            <div className={styles.agentActions}>
+              <button
+                className={styles.connect}
+                onClick={() => post({ type: "CONNECT_AGENT", agent: "codex" })}
+              >
+                Connect Codex CLI & App
+              </button>
+              <button
+                onClick={() =>
+                  post({ type: "CONNECT_AGENT", agent: "claude-code" })
+                }
+              >
+                Connect Claude Code
+              </button>
+              <button
+                onClick={() => {
+                  post({ type: "CONNECT_AGENT", agent: "claude-app" });
+                  window.open(
+                    "https://claude.ai/settings/connectors",
+                    "_blank",
+                  );
+                }}
+              >
+                Connect Claude App
+              </button>
+            </div>
             <div className={styles.account}>
               <small>
                 Signed in as <b>{account.email}</b>
@@ -140,25 +161,33 @@ export default function Settings({
             {signInStatus}
           </p>
         )}
-        {codexCommand && (
+        {agentConnection && (
           <div className={styles.instructions} role="status">
-            <b>Finish in your terminal</b>
+            <b>
+              {agentConnection.agent === "claude-app"
+                ? "Add a custom connector in Claude"
+                : "Finish in your terminal"}
+            </b>
             <textarea
-              aria-label="Codex setup commands"
+              aria-label={`${agentConnection.agent} setup`}
               readOnly
-              value={codexCommand}
+              value={agentConnection.setup}
               onFocus={(event) => event.currentTarget.select()}
             />
             <button
               onClick={async () => {
                 setCopyStatus(
-                  (await copyText(codexCommand))
-                    ? "Copied. Paste and run it in your terminal."
-                    : "Select the commands above and press Ctrl+C.",
+                  (await copyText(agentConnection.setup))
+                    ? agentConnection.agent === "claude-app"
+                      ? "Copied. Paste it as the connector URL."
+                      : "Copied. Paste and run it in your terminal."
+                    : "Select the text above and press Ctrl+C.",
                 );
               }}
             >
-              Copy setup commands
+              {agentConnection.agent === "claude-app"
+                ? "Copy MCP URL"
+                : "Copy setup commands"}
             </button>
             {copyStatus && <small>{copyStatus}</small>}
           </div>

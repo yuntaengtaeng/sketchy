@@ -89,7 +89,7 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       await figma.clientStorage.deleteAsync(AUTH_SESSION_KEY);
       await postAuthState();
     }
-    if (message.type === "CONNECT_CODEX") {
+    if (message.type === "CONNECT_AGENT") {
       const session = (await figma.clientStorage.getAsync(AUTH_SESSION_KEY)) as
         AuthSession | undefined;
       if (!session) throw new Error("Sign in before connecting Codex.");
@@ -134,8 +134,16 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       if (!response.ok && response.status !== 409)
         throw new Error("Could not connect this project. Try again.");
       figma.ui.postMessage({
-        type: "CODEX_CONNECTION",
-        command: `codex mcp add sketchy-figma --url "${endpoint}/mcp?projectId=${encodeURIComponent(document.id)}"\ncodex mcp login sketchy-figma`,
+        type: "AGENT_CONNECTION",
+        connection: {
+          agent: message.agent,
+          setup:
+            message.agent === "codex"
+              ? `codex mcp add sketchy-figma --url "${endpoint}/mcp"\ncodex mcp login sketchy-figma`
+              : message.agent === "claude-code"
+                ? `claude mcp add --transport http --scope user sketchy-figma "${endpoint}/mcp"`
+                : `${endpoint}/mcp`,
+        },
       });
     }
     if (message.type === "EXPORT_PROJECT") {

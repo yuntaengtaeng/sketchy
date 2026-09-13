@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   createEmptyProject,
+  type AgentConnection,
   type SketchyAccount,
   type UiMessage,
 } from "../shared";
@@ -21,7 +22,7 @@ export default function App() {
   const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
   const [account, setAccount] = useState<SketchyAccount>();
-  const [codexCommand, setCodexCommand] = useState("");
+  const [agentConnection, setAgentConnection] = useState<AgentConnection>();
   const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
   const context =
@@ -39,8 +40,8 @@ export default function App() {
         setElementId(message.selectedElementId);
       }
       if (message?.type === "AUTH_STATE") setAccount(message.account);
-      if (message?.type === "CODEX_CONNECTION")
-        setCodexCommand(message.command);
+      if (message?.type === "AGENT_CONNECTION")
+        setAgentConnection(message.connection);
       if (message?.type === "ERROR") {
         clearTimeout(errorTimer);
         setError(message.message);
@@ -74,7 +75,7 @@ export default function App() {
         <Settings
           settings={project.settings}
           account={account}
-          codexCommand={codexCommand}
+          agentConnection={agentConnection}
         />
       )}
       {route.name === "workspace" && tab === "build" && (

@@ -31,6 +31,11 @@
   color: var(--figma-color-bg, #fafafa);
 }
 
+.agentActions {
+  display: grid;
+  gap: 8px;
+}
+
 .status {
   margin-top: 12px;
   color: var(--figma-color-text-secondary, #777);

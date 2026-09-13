@@ -59,8 +59,10 @@ Worker는 `SKETCHY_API_TOKEN`, `SKETCHY_USER_ID` 환경값과 D1 `DB` binding으
 기존 HTTP API를 조립한다. 개발용 사용자 ID는 Wrangler 설정에 두고, 로컬에서는
 Token을 `.dev.vars`에 넣은 뒤 `npm run dev:api`로 실행한다.
 
-Remote MCP는 URL의 `projectId`로 한 Project를 선택한다. 각 Tool에 projectId를
-반복 입력하지 않으며 로컬 MCP와 같은 네 Tool 계약을 유지한다.
+일반 사용자용 Remote MCP는 계정 단위 `/mcp` URL을 한 번만 등록한다.
+`list_projects`로 연결된 Project를 찾으며, Project가 하나면 기본값으로 사용한다.
+여러 개일 때만 Tool의 `projectId`로 대상을 고른다. 기존 `?projectId=` URL은
+개발 검증과 이전 연결의 호환을 위해 유지한다.
 
 ### 배포와 smoke test 상태
 

@@ -127,6 +127,26 @@ test("serves the Project API with a Worker D1 binding", async () => {
     );
     assert.equal(called.status, 200);
     assert.equal((await called.text()).includes("worker-project"), true);
+
+    const accountList = await handleRequest(
+      new Request("https://sketchy.test/mcp", {
+        method: "POST",
+        headers: {
+          accept: "application/json, text/event-stream",
+          authorization: "Bearer secret",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 3,
+          method: "tools/call",
+          params: { name: "list_projects", arguments: {} },
+        }),
+      }),
+      environment,
+    );
+    assert.equal(accountList.status, 200);
+    assert.equal((await accountList.text()).includes("worker-project"), true);
   } finally {
     await miniflare.dispose();
   }

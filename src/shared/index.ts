@@ -133,6 +133,11 @@ export type AuthSession = {
   user: SketchyAccount;
 };
 
+export type AgentConnection = {
+  agent: "codex" | "claude-code" | "claude-app";
+  setup: string;
+};
+
 export type ProjectImportPreview = {
   valid: boolean;
   applied?: boolean;
@@ -180,7 +185,7 @@ export type PluginMessage =
   | { type: "READY" }
   | { type: "SAVE_AUTH_SESSION"; session: AuthSession }
   | { type: "SIGN_OUT" }
-  | { type: "CONNECT_CODEX" }
+  | { type: "CONNECT_AGENT"; agent: AgentConnection["agent"] }
   | { type: "EXPORT_PROJECT" }
   | { type: "PREVIEW_PROJECT_IMPORT"; contents: string }
   | { type: "APPLY_PROJECT_IMPORT"; revision: number }
@@ -238,6 +243,6 @@ export type UiMessage =
     }
   | { type: "PROJECT_EXPORT"; fileName: string; contents: string }
   | { type: "AUTH_STATE"; account?: SketchyAccount }
-  | { type: "CODEX_CONNECTION"; command: string }
+  | { type: "AGENT_CONNECTION"; connection: AgentConnection }
   | { type: "PROJECT_IMPORT_PREVIEW"; preview: ProjectImportPreview }
   | { type: "ERROR"; message: string };

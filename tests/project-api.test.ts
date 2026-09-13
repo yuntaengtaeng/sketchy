@@ -34,6 +34,9 @@ test("serves the Project API through development Bearer authentication", async (
     async get(projectId) {
       return projectId === record.document.id ? record : undefined;
     },
+    async listByOwner() {
+      return [record];
+    },
     async replace() {
       return true;
     },
