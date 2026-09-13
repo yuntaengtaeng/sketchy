@@ -39,20 +39,33 @@ Project 생성 이후 모든 요청의 path `projectId`, 인증 사용자, reque
 `projectId`가 일치해야 한다. 알 수 없는 필드는 거절한다.
 
 현재 `ProjectService`가 인증 사용자와 Scope, 소유권, revision 비교 및 기존
-Preview/Apply 호출을 담당한다. 저장 구현은 `ProjectStore` 경계 뒤에 있으며 다음
-단계에서 D1 Adapter를 연결한다. 플랫폼 중립 HTTP Adapter는 표준 `Request`와
-`Response`를 사용하며 개발용 Bearer Token 인증과 위 API 경로를 제공한다.
+Preview/Apply 호출을 담당한다. 저장 구현은 `ProjectStore` 경계 뒤의 D1 Adapter가
+담당한다. 플랫폼 중립 HTTP Adapter는 표준 `Request`와 `Response`를 사용하며
+개발용 Bearer Token 인증과 위 API 경로를 제공한다.
 
 `D1ProjectStore`는 Project 문서와 소유자, revision을 `projects` 테이블에 저장한다.
 교체 쿼리는 기존 revision과 소유자가 모두 일치할 때만 성공한다. 로컬
 마이그레이션은 `npm run d1:migrate:local`로 실행한다.
 
 Worker는 `SKETCHY_API_TOKEN`, `SKETCHY_USER_ID` 환경값과 D1 `DB` binding으로
-기존 HTTP API를 조립한다. 로컬에서는 두 환경값을 `.dev.vars`에 넣고
-`npm run dev:api`로 실행한다.
+기존 HTTP API를 조립한다. 개발용 사용자 ID는 Wrangler 설정에 두고, 로컬에서는
+Token을 `.dev.vars`에 넣은 뒤 `npm run dev:api`로 실행한다.
 
 Remote MCP는 URL의 `projectId`로 한 Project를 선택한다. 각 Tool에 projectId를
 반복 입력하지 않으며 로컬 MCP와 같은 네 Tool 계약을 유지한다.
+
+### 배포와 smoke test 상태
+
+2026-09-13에 `https://sketchy.dbsxo360.workers.dev`로 Worker를 배포했다.
+
+- 원격 D1 `sketchy` binding과 migration을 적용했다.
+- `SKETCHY_USER_ID=developer`와 Worker secret `SKETCHY_API_TOKEN`을 연결했다.
+- Production과 Preview URL은 Cloudflare Access로 보호한다.
+- 자동화 smoke test는 Access Service Token과 Worker Bearer Token을 함께 사용한다.
+- 기존 Figma Project를 `POST /api/v1/projects`로 올리고 D1 조회까지 확인했다.
+
+Service Token과 개발용 Bearer Token은 내부 검증용이다. 공개 Plugin에 넣거나
+일반 사용자에게 설정하도록 요구하지 않는다.
 
 ### 원자적 Apply
 
@@ -91,14 +104,22 @@ Plugin이 닫힌 동안 Figma에서 직접 바꾼 내용은 다음 Plugin 실행
 ## 인증 단계
 
 내부 smoke test에서는 Worker secret과 비교하는 개발용 Bearer Token 하나를 쓴다.
-외부 사용자를 받기 전에는 OAuth로 교체한다.
+외부 사용자를 받기 전에는 Google 로그인을 사용하는 OAuth 2.1로 교체한다.
 
-- 토큰에서 사용자 ID와 `project:read`, `project:write` 권한을 얻는다.
+- 내부 랜덤 `userId`에 Google의 안정적인 계정 식별자를 연결한다.
+- OAuth Token에서 사용자 ID와 `project:read`, `project:write` 권한을 얻는다.
 - Project 소유권은 인증 사용자 ID로 검사한다.
 - Figma Token이나 다른 MCP Token을 전달하거나 저장하지 않는다.
 - 개발용 Token은 외부 배포 전에 제거한다.
+- 결제 고객 ID와 Free/Pro 상태는 로그인 제공자와 분리해 내부 `userId`에 연결한다.
 
 인증 구현은 Adapter 책임이다. Project 문서에는 사용자 Token을 넣지 않는다.
+
+일반 사용자는 Figma Plugin에서 Google로 로그인하고, MCP Client에는 URL만
+등록한다. MCP Client가 브라우저 기반 승인과 PKCE를 처리하므로 Project ID,
+Cloudflare Access, Service Token, Worker secret을 직접 입력하지 않는다. 고객용
+Production 경로는 Cloudflare Access 좌석에 사용자를 등록하지 않으며 Access는
+Preview와 관리자 경로 보호에만 사용한다.
 
 ## Free와 Pro 확장 경계
 
@@ -128,6 +149,7 @@ Preview와 조회 호출은 Agent가 내부적으로 여러 번 실행할 수 �
 - 실시간 공동 편집
 - 무제한 변경 이력
 - Cloudflare 외 플랫폼 Adapter
-- 외부 사용자용 OAuth 구현
+- Google 외 로그인 제공자
 
-이 항목은 내부 Remote MCP smoke test가 끝난 뒤 실제 필요가 확인되면 추가한다.
+이 항목은 실제 필요가 확인되면 추가한다. 다음 구현은 Google OAuth 로그인과
+MCP OAuth 2.1 승인 흐름이다.

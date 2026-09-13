@@ -3,11 +3,14 @@
   "name": "sketchy",
   "main": "src/worker.ts",
   "compatibility_date": "2026-09-13",
+  "vars": {
+    "SKETCHY_USER_ID": "developer",
+  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "sketchy",
-      "database_id": "local",
+      "database_id": "2e7581be-e261-43b9-8ccf-2e8436681642",
       "migrations_dir": "migrations",
     },
   ],
