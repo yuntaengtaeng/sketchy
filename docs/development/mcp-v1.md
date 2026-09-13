@@ -279,6 +279,8 @@ Agent는 Preview 요약과 경고를 보여주고 사용자가 명시적으로 �
 Figma Plugin의 `Review agent changes`는 변경된 JSON을 읽어 Project ID와 revision을
 확인하고 Screen, Element, Action의 추가·수정·삭제 수를 보여준다. 이 검토 단계는
 Canvas를 변경하지 않는다.
+가져온 revision이 현재 Figma Project보다 오래되었으면 적용을 막고
+`Export latest project`로 최신 상태를 Agent에 다시 전달하도록 안내한다.
 
 현재 Projection은 일반 Screen 생성, 기존 Screen의 이름·Purpose, 기존 Element의
 이름·설명, Button style, Section direction과 새 Element를 `Apply to Figma`로

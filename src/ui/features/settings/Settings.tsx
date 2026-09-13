@@ -93,6 +93,19 @@ export default function Settings({
                 {item}
               </span>
             ))}
+            {importPreview.requiresExport && (
+              <>
+                <small>
+                  Export the latest project, then ask the agent to try again.
+                </small>
+                <button
+                  className={styles.apply}
+                  onClick={() => post({ type: "EXPORT_PROJECT" })}
+                >
+                  Export latest project
+                </button>
+              </>
+            )}
             {importPreview.valid && (
               <>
                 <small>Figma has not been changed yet.</small>

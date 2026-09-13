@@ -35,10 +35,13 @@ test("previews a newer import without changing the current project", () => {
   assert.equal(preview.valid, true);
   assert.deepEqual(preview.summary, ["Update screen Home: name"]);
   assert.equal(current.project.screens[0].name, "Home");
-  assert.equal(
-    previewProjectImport(current, JSON.stringify(current)).valid,
-    false,
-  );
+  assert.deepEqual(previewProjectImport(current, JSON.stringify(current)), {
+    valid: false,
+    summary: [],
+    errors: ["Agent changes are out of date."],
+    warnings: [],
+    requiresExport: true,
+  });
 
   imported.project.elements = [
     ...imported.project.elements,

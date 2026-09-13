@@ -124,6 +124,7 @@ export type Project = {
 export type ProjectImportPreview = {
   valid: boolean;
   applied?: boolean;
+  requiresExport?: boolean;
   revision?: number;
   summary: string[];
   errors: string[];

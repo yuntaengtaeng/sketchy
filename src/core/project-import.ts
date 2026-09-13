@@ -26,7 +26,10 @@ export function previewProjectImport(
   if (imported.id !== current.id)
     return invalid("Project ID does not match this Figma document.");
   if (imported.revision <= current.revision)
-    return invalid(`Imported revision must be newer than ${current.revision}.`);
+    return {
+      ...invalid("Agent changes are out of date."),
+      requiresExport: true,
+    };
 
   const summary = [
     ...collectionSummary(
