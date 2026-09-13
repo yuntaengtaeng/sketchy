@@ -1,8 +1,10 @@
 # 로컬 MCP 시작하기
 
-현재 Codex와 Claude Code용 로컬 MCP는 개발 검증용이므로 Sketchy 저장소와
-`npm install`이 필요하다. Claude Desktop은 빌드에 포함된 `sketchy.mcpb`를 설치할
-수 있다. 일반 사용자용 서버 연동은 이후 Sketchy API 기반 Remote MCP에서 제공한다.
+로컬 MCP는 Sketchy 저장소를 가진 개발자와 내부 검증 전용이다. 저장소와
+`npm install`이 필요하며, 일반 사용자의 무로그인 사용 범위를 뜻하지 않는다.
+일반 사용자는 계정 없이 Figma Plugin의 Build·Flow·Spec을 사용할 수 있다.
+Claude Desktop은 빌드에 포함된 `sketchy.mcpb`를 설치할 수 있다. 일반 사용자용
+Agent 연결은 이후 Sketchy API 기반 Remote MCP에서 제공한다.
 
 ## 준비
 
