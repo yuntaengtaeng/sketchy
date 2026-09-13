@@ -328,6 +328,9 @@ Agent 변경을 Figma에 적용할 때 Element 읽기 순서도 같은 revision 
 Remote MCP, Sketchy API, 인증, 다중 Project와 Export 제거는 로컬 v1 완료 조건에
 포함하지 않는다.
 
+다음 단계의 무료 호스팅, HTTP API와 향후 Free/Pro 경계는
+[Remote MCP와 Sketchy API](./remote-mcp.md)를 따른다.
+
 ## Phase 0에서 결정하지 않는 것
 
 - API Framework, Hosting과 Database 제품
