@@ -1,4 +1,5 @@
 import { sha256 } from "./authentication.ts";
+import { renderOAuthConsentPage } from "./oauth-consent-page.ts";
 
 type OAuthEnvironment = { DB: D1Database };
 
@@ -242,13 +243,8 @@ function consent(
   projectId: string | null,
   clientName: string | null,
 ) {
-  const agent = escape(clientName || "AI agent");
-  const fields = [...params].map(
-    ([key, value]) =>
-      `<input type="hidden" name="${escape(key)}" value="${escape(value)}">`,
-  );
   return new Response(
-    `<!doctype html><meta name="viewport" content="width=device-width"><title>Connect ${agent} · Sketchy</title><main><h1>Connect ${agent}</h1><p>Allow ${agent} to read and update your Sketchy projects?</p>${projectId ? `<p><code>${escape(projectId)}</code></p>` : ""}<form method="post">${fields.join("")}<button name="decision" value="allow">Allow access</button></form></main>`,
+    renderOAuthConsentPage({ params, projectId, clientName }),
     {
       headers: {
         "content-type": "text/html; charset=utf-8",
@@ -304,14 +300,6 @@ async function pkceChallenge(verifier: string) {
     .replaceAll("+", "-")
     .replaceAll("/", "_")
     .replaceAll("=", "");
-}
-
-function escape(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
 }
 
 function oauthError(status: number, error: string) {

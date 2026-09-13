@@ -108,7 +108,6 @@ export default function Settings({
             <p className="muted">Connect your Sketchy projects once.</p>
             <div className={styles.agentActions}>
               <button
-                className={styles.connect}
                 onClick={() => post({ type: "CONNECT_AGENT", agent: "codex" })}
               >
                 Connect Codex
@@ -124,7 +123,7 @@ export default function Settings({
                 onClick={() => {
                   post({ type: "CONNECT_AGENT", agent: "claude-app" });
                   window.open(
-                    "https://claude.ai/settings/connectors",
+                    "https://claude.ai/customize/connectors",
                     "_blank",
                   );
                 }}
