@@ -38,6 +38,10 @@ Cloudflare D1
 Project 생성 이후 모든 요청의 path `projectId`, 인증 사용자, request의
 `projectId`가 일치해야 한다. 알 수 없는 필드는 거절한다.
 
+현재 `ProjectService`가 인증 사용자와 Scope, 소유권, revision 비교 및 기존
+Preview/Apply 호출을 담당한다. 저장 구현은 `ProjectStore` 경계 뒤에 있으며 다음
+단계에서 D1 Adapter를 연결한다.
+
 ### 원자적 Apply
 
 Apply는 D1 트랜잭션 안에서 다음 순서를 지킨다.
