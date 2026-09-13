@@ -25,6 +25,11 @@ export async function handleRequest(
     environment.SKETCHY_USER_ID,
   );
   const url = new URL(request.url);
+  if (
+    request.method === "OPTIONS" &&
+    url.pathname.startsWith("/api/v1/projects")
+  )
+    return new Response(null, { status: 204, headers: apiCorsHeaders() });
   const oauthResponse = await createMcpOAuthHandler(environment)(request);
   if (oauthResponse) return oauthResponse;
   const authResponse = await createGoogleAuthHandler(environment)(request);
@@ -63,7 +68,18 @@ export async function handleRequest(
       );
     return createRemoteMcpHandler(service, principal, projectId).fetch(request);
   }
-  return createProjectApi(service, authenticate)(request);
+  const response = await createProjectApi(service, authenticate)(request);
+  for (const [name, value] of Object.entries(apiCorsHeaders()))
+    response.headers.set(name, value);
+  return response;
+}
+
+function apiCorsHeaders() {
+  return {
+    "access-control-allow-origin": "*",
+    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-headers": "authorization, content-type",
+  };
 }
 
 export default {

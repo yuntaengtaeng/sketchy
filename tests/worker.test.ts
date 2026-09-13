@@ -42,6 +42,20 @@ test("serves the Project API with a Worker D1 binding", async () => {
     );
     assert.equal(unauthorized.status, 401);
 
+    const preflight = await handleRequest(
+      new Request("https://sketchy.test/api/v1/projects", {
+        method: "OPTIONS",
+        headers: {
+          origin: "https://www.figma.com",
+          "access-control-request-method": "POST",
+          "access-control-request-headers": "authorization, content-type",
+        },
+      }),
+      environment,
+    );
+    assert.equal(preflight.status, 204);
+    assert.equal(preflight.headers.get("access-control-allow-origin"), "*");
+
     const created = await handleRequest(
       new Request("https://sketchy.test/api/v1/projects", {
         method: "POST",
@@ -54,6 +68,7 @@ test("serves the Project API with a Worker D1 binding", async () => {
       environment,
     );
     assert.equal(created.status, 201);
+    assert.equal(created.headers.get("access-control-allow-origin"), "*");
 
     const project = await handleRequest(
       new Request("https://sketchy.test/api/v1/projects/worker-project", {
