@@ -115,6 +115,11 @@ Plugin이 닫힌 동안 Figma에서 직접 바꾼 내용은 다음 Plugin 실행
 
 인증 구현은 Adapter 책임이다. Project 문서에는 사용자 Token을 넣지 않는다.
 
+`users`는 내부 랜덤 ID만 소유하고 `external_identities`가 Google의 변경되지 않는
+`sub`를 사용자에게 연결한다. 이메일은 표시와 연락 정보이며 소유권 키로 사용하지
+않는다. `sessions`에는 만료 시각과 불투명 Bearer Token의 SHA-256 해시만 저장한다.
+Google access token과 refresh token은 Sketchy 세션 발급 후 보관하지 않는다.
+
 일반 사용자는 Figma Plugin에서 Google로 로그인하고, MCP Client에는 URL만
 등록한다. MCP Client가 브라우저 기반 승인과 PKCE를 처리하므로 Project ID,
 Cloudflare Access, Service Token, Worker secret을 직접 입력하지 않는다. 고객용

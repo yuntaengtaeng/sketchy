@@ -14,7 +14,7 @@ import {
   type ProjectPrincipal,
 } from "./project-service.ts";
 
-type Authenticate = (request: Request) => Promise<ProjectPrincipal>;
+export type Authenticate = (request: Request) => Promise<ProjectPrincipal>;
 
 export function createProjectApi(
   service: ProjectService,
@@ -144,7 +144,7 @@ function failure(status: number, code: string, message: string) {
   return Response.json({ error: { code, message } }, { status });
 }
 
-class ProjectApiError extends Error {
+export class ProjectApiError extends Error {
   readonly status: number;
   readonly code: string;
 

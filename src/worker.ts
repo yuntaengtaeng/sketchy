@@ -1,8 +1,6 @@
 import { D1ProjectStore } from "./api/d1-project-store.ts";
-import {
-  createDevelopmentBearerAuthenticator,
-  createProjectApi,
-} from "./api/http.ts";
+import { createProjectApi } from "./api/http.ts";
+import { createBearerAuthenticator } from "./api/authentication.ts";
 import { ProjectService } from "./api/project-service.ts";
 import { createRemoteMcpHandler } from "./mcp/http.ts";
 
@@ -17,7 +15,8 @@ export async function handleRequest(
   environment: WorkerEnvironment,
 ) {
   const service = new ProjectService(new D1ProjectStore(environment.DB));
-  const authenticate = createDevelopmentBearerAuthenticator(
+  const authenticate = createBearerAuthenticator(
+    environment.DB,
     environment.SKETCHY_API_TOKEN,
     environment.SKETCHY_USER_ID,
   );
