@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   createEmptyProject,
-  type ProjectImportPreview,
   type SketchyAccount,
   type UiMessage,
 } from "../shared";
@@ -10,7 +9,7 @@ import Build from "./features/build/Build";
 import Flow from "./features/flow/Flow";
 import Spec from "./features/spec/Spec";
 import Settings from "./features/settings/Settings";
-import { download, post } from "./plugin";
+import { post } from "./plugin";
 
 type Route = { name: "workspace" } | { name: "settings" };
 
@@ -21,7 +20,6 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("build");
   const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
-  const [importPreview, setImportPreview] = useState<ProjectImportPreview>();
   const [account, setAccount] = useState<SketchyAccount>();
   const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
@@ -39,13 +37,7 @@ export default function App() {
         setScreenId(message.selectedScreenId);
         setElementId(message.selectedElementId);
       }
-      if (message?.type === "PROJECT_EXPORT") {
-        download(message.fileName, message.contents);
-        setImportPreview(undefined);
-      }
       if (message?.type === "AUTH_STATE") setAccount(message.account);
-      if (message?.type === "PROJECT_IMPORT_PREVIEW")
-        setImportPreview(message.preview);
       if (message?.type === "ERROR") {
         clearTimeout(errorTimer);
         setError(message.message);
@@ -76,11 +68,7 @@ export default function App() {
         </p>
       )}
       {route.name === "settings" && (
-        <Settings
-          settings={project.settings}
-          importPreview={importPreview}
-          account={account}
-        />
+        <Settings settings={project.settings} account={account} />
       )}
       {route.name === "workspace" && tab === "build" && (
         <Build project={project} screen={screen} element={element} />

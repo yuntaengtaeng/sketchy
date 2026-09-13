@@ -1,8 +1,7 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   SCREEN_PRESETS,
   type AuthSession,
-  type ProjectImportPreview,
   type ProjectSettings,
   type ScreenPreset,
   type SketchyAccount,
@@ -12,14 +11,11 @@ import styles from "./Settings.module.css";
 
 export default function Settings({
   settings,
-  importPreview,
   account,
 }: {
   settings: ProjectSettings;
-  importPreview?: ProjectImportPreview;
   account?: SketchyAccount;
 }) {
-  const importInput = useRef<HTMLInputElement>(null);
   const [signInStatus, setSignInStatus] = useState("");
 
   async function signIn() {
@@ -129,87 +125,6 @@ export default function Settings({
           <p className={styles.status} role="status">
             {signInStatus}
           </p>
-        )}
-      </section>
-      <section>
-        <h2>Developer tools</h2>
-        <p className="muted">
-          Local MCP requires the Sketchy repository and development setup.
-        </p>
-        <button
-          className={styles.export}
-          onClick={() => post({ type: "EXPORT_PROJECT" })}
-        >
-          Export for Codex or Claude
-        </button>
-        <button
-          className={styles.import}
-          onClick={() => importInput.current?.click()}
-        >
-          Review agent changes
-        </button>
-        <input
-          ref={importInput}
-          className={styles.fileInput}
-          type="file"
-          accept="application/json,.json"
-          onChange={async (event) => {
-            const file = event.target.files?.[0];
-            if (file)
-              post({
-                type: "PREVIEW_PROJECT_IMPORT",
-                contents: await file.text(),
-              });
-            event.target.value = "";
-          }}
-        />
-        {importPreview && (
-          <div className={styles.preview} role="status">
-            <b>
-              {importPreview.applied
-                ? "Applied"
-                : importPreview.valid
-                  ? "Changes ready"
-                  : "Cannot apply"}
-            </b>
-            {[...importPreview.summary, ...importPreview.errors].map((item) => (
-              <span key={item}>{item}</span>
-            ))}
-            {importPreview.warnings.map((item) => (
-              <span key={item} className={styles.warning}>
-                {item}
-              </span>
-            ))}
-            {importPreview.requiresExport && (
-              <>
-                <small>
-                  Export the latest project, then ask the agent to try again.
-                </small>
-                <button
-                  className={styles.apply}
-                  onClick={() => post({ type: "EXPORT_PROJECT" })}
-                >
-                  Export latest project
-                </button>
-              </>
-            )}
-            {importPreview.valid && (
-              <>
-                <small>Figma has not been changed yet.</small>
-                <button
-                  className={styles.apply}
-                  onClick={() =>
-                    post({
-                      type: "APPLY_PROJECT_IMPORT",
-                      revision: importPreview.revision!,
-                    })
-                  }
-                >
-                  Apply to Figma
-                </button>
-              </>
-            )}
-          </div>
         )}
       </section>
     </>
