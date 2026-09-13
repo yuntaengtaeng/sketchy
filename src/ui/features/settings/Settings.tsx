@@ -111,7 +111,7 @@ export default function Settings({
                 className={styles.connect}
                 onClick={() => post({ type: "CONNECT_AGENT", agent: "codex" })}
               >
-                Connect Codex CLI & App
+                Connect Codex
               </button>
               <button
                 onClick={() =>
@@ -132,6 +132,9 @@ export default function Settings({
                 Connect Claude App
               </button>
             </div>
+            <small className={styles.note}>
+              Codex connects across the app, CLI, and IDE extension.
+            </small>
             <div className={styles.account}>
               <small>
                 Signed in as <b>{account.email}</b>
