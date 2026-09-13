@@ -65,7 +65,7 @@ test("registers Codex and exchanges a PKCE code once", async () => {
       state: "client-state",
       code_challenge: challenge,
       code_challenge_method: "S256",
-      resource: "https://sketchy.test/mcp?projectId=project-1",
+      resource: "https://sketchy.test/mcp",
     });
     const consent = await oauth(
       new Request(`https://sketchy.test/authorize?${params}`, {
@@ -101,7 +101,7 @@ test("registers Codex and exchanges a PKCE code once", async () => {
             client_id: clientId,
             redirect_uri: "http://127.0.0.1/callback",
             code_verifier: verifier,
-            resource: "https://sketchy.test/mcp?projectId=project-1",
+            resource: "https://sketchy.test/mcp",
           }),
         }),
       );

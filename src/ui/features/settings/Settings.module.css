@@ -58,8 +58,9 @@
   border: 1px solid var(--sketchy-line);
 }
 
-.instructions code {
+.instructions textarea {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-size: 10px;
+  min-height: 82px;
 }

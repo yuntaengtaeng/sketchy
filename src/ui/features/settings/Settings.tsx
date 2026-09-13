@@ -6,7 +6,7 @@ import {
   type ScreenPreset,
   type SketchyAccount,
 } from "../../../shared";
-import { post } from "../../plugin";
+import { copyText, post } from "../../plugin";
 import styles from "./Settings.module.css";
 
 export default function Settings({
@@ -143,15 +143,19 @@ export default function Settings({
         {codexCommand && (
           <div className={styles.instructions} role="status">
             <b>Finish in your terminal</b>
-            <code>{codexCommand}</code>
+            <textarea
+              aria-label="Codex setup commands"
+              readOnly
+              value={codexCommand}
+              onFocus={(event) => event.currentTarget.select()}
+            />
             <button
               onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(codexCommand);
-                  setCopyStatus("Copied. Paste and run it in your terminal.");
-                } catch {
-                  setCopyStatus("Copy the commands above and run them.");
-                }
+                setCopyStatus(
+                  (await copyText(codexCommand))
+                    ? "Copied. Paste and run it in your terminal."
+                    : "Select the commands above and press Ctrl+C.",
+                );
               }}
             >
               Copy setup commands

@@ -173,8 +173,7 @@ async function validateAuthorization(
     params.get("code_challenge_method") !== "S256" ||
     !resourceUrl ||
     resourceUrl.origin !== origin ||
-    resourceUrl.pathname !== "/mcp" ||
-    !resourceUrl.searchParams.get("projectId")
+    resourceUrl.pathname !== "/mcp"
   )
     return oauthError(400, "invalid_request");
   const client = await database
