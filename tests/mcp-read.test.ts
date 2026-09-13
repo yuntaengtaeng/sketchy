@@ -96,8 +96,10 @@ test("returns a stable preview without changing the stored project", () => {
   const second = previewChanges(document, request);
 
   assert.equal(projectChangeRequestSchema.safeParse(request).success, true);
+  const changesSchema = z.toJSONSchema(projectChangeRequestSchema).properties
+    ?.changes;
   assert.equal(
-    z.toJSONSchema(projectChangeRequestSchema).properties?.changes.maxItems,
+    typeof changesSchema === "object" ? changesSchema.maxItems : undefined,
     200,
   );
   assert.equal(first.valid, true);
@@ -138,8 +140,9 @@ test("applies an approved batch once and marks Figma projection pending", async 
   const replayed = await applyChanges(file, previewId, request);
   const stored = await readProjectDocument(file);
 
-  assert.equal(applied.applied, true);
+  assert.ok(applied.applied);
   assert.equal(applied.idempotent, false);
+  assert.ok(replayed.applied);
   assert.equal(replayed.idempotent, true);
   assert.equal(stored.revision, 5);
   assert.equal(stored.project.screens.at(-1)?.id, "complete");
@@ -155,7 +158,9 @@ test("keeps a create, edit, action, and delete workflow atomic across revisions"
     const current = await readProjectDocument(file);
     const preview = previewChanges(current, request);
     assert.equal(preview.valid, true);
-    return applyChanges(file, preview.previewId, request);
+    const result = await applyChanges(file, preview.previewId, request);
+    assert.ok(result.applied);
+    return result;
   };
   const created = {
     projectId: document.id,
@@ -183,6 +188,7 @@ test("keeps a create, edit, action, and delete workflow atomic across revisions"
     previewChanges(document, created).previewId,
     created,
   );
+  assert.ok(replayed.applied);
   assert.equal(replayed.idempotent, true);
 
   const edited = {

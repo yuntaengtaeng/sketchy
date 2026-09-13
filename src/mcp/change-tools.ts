@@ -37,7 +37,7 @@ export async function applyChanges(
   if (applied)
     return applied.previewId === previewId
       ? {
-          applied: true,
+          applied: true as const,
           idempotent: true,
           projectId: document.id,
           previousRevision: applied.revision - 1,
@@ -52,7 +52,8 @@ export async function applyChanges(
       "PREVIEW_MISMATCH",
       "previewId does not match this change request.",
     );
-  if (!preview.valid) return { applied: false, errors: preview.errors };
+  if (!preview.valid)
+    return { applied: false as const, errors: preview.errors };
 
   const project = previewProjectChanges(document, request).nextProject!;
   const revision = document.revision + 1;
@@ -85,7 +86,7 @@ export async function applyChanges(
   await writeProjectDocument(nextDocument, filePath);
 
   return {
-    applied: true,
+    applied: true as const,
     idempotent: false,
     projectId: document.id,
     previousRevision: document.revision,
@@ -95,7 +96,7 @@ export async function applyChanges(
 }
 
 function failed(code: string, message: string) {
-  return { applied: false, errors: [{ code, message }] };
+  return { applied: false as const, errors: [{ code, message }] };
 }
 
 function changeSummary(change: ProjectChange) {
