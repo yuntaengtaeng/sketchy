@@ -35,3 +35,7 @@
 ## 보관 문서
 
 - [v4 통합 원문](./archive/SKETCHY_PROJECT_v4.md) — 분리 전 원본. 현재 문서와 충돌하면 위 주제별 문서를 따른다.
+
+## UX 검토 자료
+
+- Google 로그인 도입 검토: [독립 검토 A](./research/oauth-login-ux-review-a.md), [독립 검토 B](./research/oauth-login-ux-review-b.md)
