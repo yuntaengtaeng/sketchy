@@ -135,7 +135,7 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         throw new Error("Could not connect this project. Try again.");
       figma.ui.postMessage({
         type: "CODEX_CONNECTION",
-        command: `codex mcp add sketchy --url "${endpoint}/mcp?projectId=${encodeURIComponent(document.id)}"\ncodex mcp login sketchy`,
+        command: `codex mcp add sketchy-figma --url "${endpoint}/mcp?projectId=${encodeURIComponent(document.id)}"\ncodex mcp login sketchy-figma`,
       });
     }
     if (message.type === "EXPORT_PROJECT") {
