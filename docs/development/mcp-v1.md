@@ -260,8 +260,8 @@ npm run mcp -- --project C:\path\to\sketchy.project.json
 
 Codex와 Claude Code에는 위 명령을 stdio MCP 명령으로 등록한다. 두 Client 모두
 동일한 `get_project`, `get_screen` Tool을 보게 된다. Canonical Store가 Sketchy
-API로 바뀔 때는 MCP Tool이 아니라 `readProjectDocument` 경계만 API 호출로
-교체한다.
+API로 바뀔 때는 MCP Tool과 Apply 계산은 유지하고 Project 읽기·쓰기 저장 경계만
+API 호출로 교체한다.
 
 이 단계의 JSON 저장소는 로컬 계약 검증용이다. 읽기와 Batch 쓰기를 지원하지만
 Plugin과 Agent가 실시간으로 같은 상태를 공유하는 것은 아니다. 실제 배포에서는

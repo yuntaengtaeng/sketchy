@@ -9,7 +9,10 @@ import type {
   ProjectDocument,
 } from "../src/core/project-change.ts";
 import { applyChanges, previewChanges } from "../src/mcp/change-tools.ts";
-import { readProjectDocument } from "../src/mcp/project-file.ts";
+import {
+  readProjectDocument,
+  writeProjectDocument,
+} from "../src/mcp/project-file.ts";
 import { getProject, getScreen } from "../src/mcp/read-tools.ts";
 import { projectChangeRequestSchema } from "../src/mcp/schemas.ts";
 
@@ -136,8 +139,8 @@ test("applies an approved batch once and marks Figma projection pending", async 
   };
   const previewId = previewChanges(document, request).previewId;
 
-  const applied = await applyChanges(file, previewId, request);
-  const replayed = await applyChanges(file, previewId, request);
+  const applied = await applyToFile(file, previewId, request);
+  const replayed = await applyToFile(file, previewId, request);
   const stored = await readProjectDocument(file);
 
   assert.ok(applied.applied);
@@ -158,7 +161,7 @@ test("keeps a create, edit, action, and delete workflow atomic across revisions"
     const current = await readProjectDocument(file);
     const preview = previewChanges(current, request);
     assert.equal(preview.valid, true);
-    const result = await applyChanges(file, preview.previewId, request);
+    const result = await applyToFile(file, preview.previewId, request);
     assert.ok(result.applied);
     return result;
   };
@@ -183,7 +186,7 @@ test("keeps a create, edit, action, and delete workflow atomic across revisions"
     ],
   };
   assert.equal((await apply(created)).revision, 5);
-  const replayed = await applyChanges(
+  const replayed = await applyToFile(
     file,
     previewChanges(document, created).previewId,
     created,
@@ -247,3 +250,18 @@ test("keeps a create, edit, action, and delete workflow atomic across revisions"
   assert.equal(stored.figmaProjection?.status, "pending");
   assert.deepEqual(stored.figmaProjection?.nodes, { checkout: "1:2" });
 });
+
+async function applyToFile(
+  file: string,
+  previewId: string,
+  request: ProjectChangeRequest,
+) {
+  const applied = applyChanges(
+    await readProjectDocument(file),
+    previewId,
+    request,
+  );
+  if (applied.nextDocument)
+    await writeProjectDocument(applied.nextDocument, file);
+  return applied.result;
+}

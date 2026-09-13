@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
 import { applyChanges, previewChanges } from "./change-tools.ts";
-import { readProjectDocument } from "./project-file.ts";
+import { readProjectDocument, writeProjectDocument } from "./project-file.ts";
 import { getProject, getScreen } from "./read-tools.ts";
 import {
   applyProjectChangesSchema,
@@ -71,14 +71,16 @@ void serveStdio(() => {
         "Atomically save the exact batch returned by preview_project_changes.",
       inputSchema: applyProjectChangesSchema,
     },
-    async ({ previewId, ...request }) =>
-      result(
-        await applyChanges(
-          projectFile,
-          previewId,
-          request as Parameters<typeof applyChanges>[2],
-        ),
-      ),
+    async ({ previewId, ...request }) => {
+      const applied = applyChanges(
+        await readProjectDocument(projectFile),
+        previewId,
+        request as Parameters<typeof applyChanges>[2],
+      );
+      if (applied.nextDocument)
+        await writeProjectDocument(applied.nextDocument, projectFile);
+      return result(applied.result);
+    },
   );
 
   return server;

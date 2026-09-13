@@ -5,7 +5,6 @@ import type {
   ProjectDocument,
 } from "../core/project-change.ts";
 import { previewProjectChanges } from "../core/validate-project-changes.ts";
-import { readProjectDocument, writeProjectDocument } from "./project-file.ts";
 
 export function previewChanges(
   document: ProjectDocument,
@@ -27,33 +26,44 @@ export function previewChanges(
   };
 }
 
-export async function applyChanges(
-  filePath: string | undefined,
+export function applyChanges(
+  document: ProjectDocument,
   previewId: string,
   request: ProjectChangeRequest,
 ) {
-  const document = await readProjectDocument(filePath);
   const applied = document.appliedBatches?.[request.idempotencyKey];
-  if (applied)
-    return applied.previewId === previewId
-      ? {
-          applied: true as const,
-          idempotent: true,
-          projectId: document.id,
-          previousRevision: applied.revision - 1,
-          revision: applied.revision,
-          projectionStatus: document.figmaProjection?.status,
-        }
-      : failed("IDEMPOTENCY_KEY_REUSED", "idempotencyKey was already used.");
+  if (applied) {
+    if (applied.previewId !== previewId)
+      return {
+        result: failed(
+          "IDEMPOTENCY_KEY_REUSED",
+          "idempotencyKey was already used.",
+        ),
+      };
+    return {
+      result: {
+        applied: true as const,
+        idempotent: true,
+        projectId: document.id,
+        previousRevision: applied.revision - 1,
+        revision: applied.revision,
+        projectionStatus: document.figmaProjection?.status,
+      },
+    };
+  }
 
   const preview = previewChanges(document, request);
   if (preview.previewId !== previewId)
-    return failed(
-      "PREVIEW_MISMATCH",
-      "previewId does not match this change request.",
-    );
+    return {
+      result: failed(
+        "PREVIEW_MISMATCH",
+        "previewId does not match this change request.",
+      ),
+    };
   if (!preview.valid)
-    return { applied: false as const, errors: preview.errors };
+    return {
+      result: { applied: false as const, errors: preview.errors },
+    };
 
   const project = previewProjectChanges(document, request).nextProject!;
   const revision = document.revision + 1;
@@ -83,15 +93,16 @@ export async function applyChanges(
       [request.idempotencyKey]: { revision, previewId },
     },
   };
-  await writeProjectDocument(nextDocument, filePath);
-
   return {
-    applied: true as const,
-    idempotent: false,
-    projectId: document.id,
-    previousRevision: document.revision,
-    revision,
-    projectionStatus: figmaProjection?.status,
+    result: {
+      applied: true as const,
+      idempotent: false,
+      projectId: document.id,
+      previousRevision: document.revision,
+      revision,
+      projectionStatus: figmaProjection?.status,
+    },
+    nextDocument,
   };
 }
 
