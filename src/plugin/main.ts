@@ -118,7 +118,7 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         );
         if (!existing.ok) {
           metadata = {
-            id: `project-${crypto.randomUUID()}`,
+            id: `project-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
             revision: 0,
             updatedAt: new Date().toISOString(),
           };
