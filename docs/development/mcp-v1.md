@@ -1,8 +1,8 @@
 # Sketchy MCP v1 설계
 
 이 문서는 Sketchy를 Codex, Claude Code, Claude Desktop에서 사용하기 위한
-Phase 0 계약이다. Server Framework보다 제품 데이터와 변경 경계를 먼저
-고정한다.
+제품 계약과 로컬 MCP v1 구현 상태를 함께 기록한다. Server Framework보다 제품
+데이터와 변경 경계를 먼저 고정한다.
 
 ## 목표 경험
 
@@ -56,6 +56,9 @@ Project다.
 - Figma Canvas는 Project의 Projection이다.
 - Figma `pluginData`는 현재 로컬 저장소로만 유지한다.
 - API 전환 시 기존 `pluginData` Project를 한 번 가져오는 migration을 둔다.
+
+현재 로컬 MCP v1만 JSON 파일을 임시 Canonical Store로 사용한다. 이 파일은
+제품 저장소가 아니라 API 전환 전 읽기·쓰기 계약을 검증하기 위한 개발 경계다.
 
 ## Canonical Project
 
@@ -159,7 +162,6 @@ type ChangePreview = {
   summary: string[];
   warnings: string[];
   affectedEntityIds: string[];
-  projectionTasks: FigmaProjectionTask[];
 };
 ```
 
@@ -207,9 +209,12 @@ Sketchy UI/MCP 변경 → 정식 Project 변경
 Figma Canvas 변경  → 외부 변경
 ```
 
-Plugin이 열려 있으면 `documentchange`로 외부 변경을 감지한다. 닫힌 동안의
-변경은 다음 Plugin 실행 또는 Agent 작업 전에 비교한다. 차이가 있으면 자동
+목표는 Plugin이 열려 있으면 `documentchange`로 외부 변경을 감지하고, 닫힌 동안의
+변경은 다음 Plugin 실행 또는 Agent 작업 전에 비교하는 것이다. 차이가 있으면 자동
 덮어쓰기 없이 `Canvas 변경 유지` 또는 `Sketchy로 복원`을 선택하게 한다.
+
+현재 로컬 v1은 `documentchange` 후 Project를 재정리하지만 위 선택 UI는 아직 없다.
+따라서 Export 이후 Canvas 직접 변경을 안전하게 구분하는 기능은 완료 전 과제로 둔다.
 
 Canvas 변경을 Sketchy 의미 모델로 가져오는 기능은 별도의 명시적인
 Import/Adopt 작업이다. v1에서는 자동 역동기화하지 않는다.
@@ -256,8 +261,9 @@ Codex와 Claude Code에는 위 명령을 stdio MCP 명령으로 등록한다. �
 API로 바뀔 때는 MCP Tool이 아니라 `readProjectDocument` 경계만 API 호출로
 교체한다.
 
-이 단계의 JSON 저장소는 읽기 흐름 검증용이다. Plugin과 Agent가 실시간으로 같은
-상태를 공유하는 것은 아니며, 쓰기 기능을 시작하기 전에 API 저장소로 전환한다.
+이 단계의 JSON 저장소는 로컬 계약 검증용이다. 읽기와 Batch 쓰기를 지원하지만
+Plugin과 Agent가 실시간으로 같은 상태를 공유하는 것은 아니다. 실제 배포에서는
+Sketchy API 저장소로 전환한다.
 
 ### Phase 2 — Model write
 
@@ -303,6 +309,25 @@ Agent 변경을 Figma에 적용할 때 Element 읽기 순서도 같은 revision 
 - Figma MCP Projection task 생성
 - node mapping과 sync status 기록
 - 실패 재시도와 외부 변경 감지
+
+## 로컬 MCP v1 완료 감사 — 2026-09-13
+
+완료:
+
+- Codex에서 `get_project`, `get_screen`, Preview와 Apply 실사용 검증
+- Screen, Element, 기본 Action과 조건 Case의 생성·수정·삭제
+- revision 충돌, idempotency와 Batch 원자성 검증
+- Plugin 변경 검토, Figma 반영, Export 후 `synced` 왕복 검증
+- 생성부터 삭제까지의 MCP 파일 회귀 테스트
+- Codex, Claude Code와 Claude Desktop 로컬 설정 문서
+
+완료 전 확인:
+
+- Claude Code와 Claude Desktop에서 읽기 및 Preview/Apply smoke test
+- Export 이후 Figma Canvas 직접 변경을 감지해 유지 또는 복원을 선택하는 충돌 UX
+
+Remote MCP, Sketchy API, 인증, 다중 Project와 Export 제거는 로컬 v1 완료 조건에
+포함하지 않는다.
 
 ## Phase 0에서 결정하지 않는 것
 
