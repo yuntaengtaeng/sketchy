@@ -47,6 +47,10 @@ Preview/Apply 호출을 담당한다. 저장 구현은 `ProjectStore` 경계 뒤
 교체 쿼리는 기존 revision과 소유자가 모두 일치할 때만 성공한다. 로컬
 마이그레이션은 `npm run d1:migrate:local`로 실행한다.
 
+Worker는 `SKETCHY_API_TOKEN`, `SKETCHY_USER_ID` 환경값과 D1 `DB` binding으로
+기존 HTTP API를 조립한다. 로컬에서는 두 환경값을 `.dev.vars`에 넣고
+`npm run dev:api`로 실행한다.
+
 ### 원자적 Apply
 
 Apply는 D1 트랜잭션 안에서 다음 순서를 지킨다.
