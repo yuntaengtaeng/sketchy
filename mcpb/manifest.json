@@ -1,0 +1,52 @@
+{
+  "manifest_version": "0.3",
+  "name": "sketchy",
+  "display_name": "Sketchy",
+  "version": "0.1.0",
+  "description": "Read and safely change Sketchy wireframe projects.",
+  "author": {
+    "name": "Sketchy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuntaengtaeng/sketchy"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.js",
+        "--project",
+        "${user_config.project_file}"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "get_project",
+      "description": "Get the current Sketchy project."
+    },
+    {
+      "name": "get_screen",
+      "description": "Get one Sketchy screen."
+    },
+    {
+      "name": "preview_project_changes",
+      "description": "Validate project changes without saving."
+    },
+    {
+      "name": "apply_project_changes",
+      "description": "Apply an approved project change batch."
+    }
+  ],
+  "user_config": {
+    "project_file": {
+      "type": "file",
+      "title": "Sketchy project",
+      "description": "Select the sketchy.project.json exported from the Figma plugin.",
+      "required": true
+    }
+  }
+}

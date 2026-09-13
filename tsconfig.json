@@ -11,5 +11,11 @@
     "skipLibCheck": true,
     "types": ["@figma/plugin-typings", "vite/client", "node"]
   },
-  "include": ["src", "tests", "vite.config.ts", "vite.plugin.config.ts"]
+  "include": [
+    "src",
+    "tests",
+    "vite.config.ts",
+    "vite.plugin.config.ts",
+    "vite.mcpb.config.ts"
+  ]
 }

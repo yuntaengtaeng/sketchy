@@ -1,8 +1,8 @@
 # 로컬 MCP 시작하기
 
-현재 로컬 MCP는 개발 검증용이다. `build`와 `manifest.json`만 받은 Plugin
-사용자는 실행할 수 없으며, Sketchy 저장소와 `npm install`이 필요하다. 일반 사용자용
-연동은 이후 Sketchy API 기반 Remote MCP에서 제공한다.
+현재 Codex와 Claude Code용 로컬 MCP는 개발 검증용이므로 Sketchy 저장소와
+`npm install`이 필요하다. Claude Desktop은 빌드에 포함된 `sketchy.mcpb`를 설치할
+수 있다. 일반 사용자용 서버 연동은 이후 Sketchy API 기반 Remote MCP에서 제공한다.
 
 ## 준비
 
@@ -36,30 +36,14 @@ claude.cmd mcp list
 
 ## Claude Desktop에 연결
 
-Claude Desktop의 Developer Settings에서 설정 파일을 열고 `mcpServers`에 추가한다.
+1. `npm run build`로 `dist/sketchy.mcpb`를 만든다.
+2. Claude Desktop의 **Settings → Extensions → Advanced settings**에서
+   **Install Extension…**을 누른다.
+3. `dist/sketchy.mcpb`를 선택한다.
+4. 설치 화면에서 Figma Plugin이 Export한 `sketchy.project.json`을 선택한다.
 
-```json
-{
-  "mcpServers": {
-    "sketchy": {
-      "command": "cmd",
-      "args": [
-        "/c",
-        "npm.cmd",
-        "--prefix",
-        "C:/path/to/sketchy",
-        "run",
-        "mcp",
-        "--",
-        "--project",
-        "C:/path/to/sketchy/sketchy.project.json"
-      ]
-    }
-  }
-}
-```
-
-저장 후 Claude Desktop을 다시 실행한다.
+Claude Desktop은 현재 로컬 MCP를 Desktop Extension으로 설치한다. 이전 방식인
+`claude_desktop_config.json` 수동 편집은 사용하지 않는다.
 
 ## 변경 적용
 

@@ -321,11 +321,9 @@ Agent 변경을 Figma에 적용할 때 Element 읽기 순서도 같은 revision 
 - revision 충돌, idempotency와 Batch 원자성 검증
 - Plugin 변경 검토, Figma 반영, Export 후 `synced` 왕복 검증
 - 생성부터 삭제까지의 MCP 파일 회귀 테스트
-- Codex, Claude Code와 Claude Desktop 로컬 설정 문서
-
-완료 전 확인:
-
-- Claude Code와 Claude Desktop에서 읽기 및 Preview/Apply smoke test
+- Codex와 Claude Code 실사용 smoke test
+- Claude Desktop용 `sketchy.mcpb` 빌드와 로컬 설정 문서
+- Claude Desktop에서 읽기, Preview/Apply와 Figma 반영 smoke test
 
 Remote MCP, Sketchy API, 인증, 다중 Project와 Export 제거는 로컬 v1 완료 조건에
 포함하지 않는다.
@@ -337,6 +335,6 @@ Remote MCP, Sketchy API, 인증, 다중 Project와 Export 제거는 로컬 v1 �
 - 다중 Figma 파일 Projection
 - 실시간 공동 편집
 - Canvas → Sketchy 자동 역동기화
-- Claude Desktop 전용 DXT 패키지
+- Claude Desktop Extension 서명과 공개 Directory 배포
 
 이 항목은 Phase 1 또는 실제 사용 근거가 생길 때 결정한다.
