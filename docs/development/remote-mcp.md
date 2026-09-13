@@ -40,7 +40,8 @@ Project 생성 이후 모든 요청의 path `projectId`, 인증 사용자, reque
 
 현재 `ProjectService`가 인증 사용자와 Scope, 소유권, revision 비교 및 기존
 Preview/Apply 호출을 담당한다. 저장 구현은 `ProjectStore` 경계 뒤에 있으며 다음
-단계에서 D1 Adapter를 연결한다.
+단계에서 D1 Adapter를 연결한다. 플랫폼 중립 HTTP Adapter는 표준 `Request`와
+`Response`를 사용하며 개발용 Bearer Token 인증과 위 API 경로를 제공한다.
 
 ### 원자적 Apply
 
