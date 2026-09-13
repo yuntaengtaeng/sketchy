@@ -1,8 +1,4 @@
-import {
-  canNestSection,
-  elementAncestors,
-  elementTreeIds,
-} from "../shared/element-tree.ts";
+import { canNestSection, elementTreeIds } from "../shared/element-tree.ts";
 import type { Feature, FeatureAction } from "../shared/index.ts";
 import type {
   CanonicalProject,
@@ -12,6 +8,7 @@ import type {
   ProjectChangeRequest,
   ProjectDocument,
 } from "./project-change";
+import { validateFeatureAction } from "./validate-feature-action.ts";
 
 export function previewProjectChanges(
   document: ProjectDocument,
@@ -337,55 +334,8 @@ function validAction(
   action: FeatureAction,
   fail: (code: string, message: string) => void,
 ) {
-  if (element.type !== "button") {
-    fail("TRIGGER_NOT_SUPPORTED", "Only buttons support actions in v1.");
-    return false;
-  }
-  const sourceScreen = project.screens.find(
-    (item) => item.id === element.screenId,
-  );
-  if (
-    (action.type === "navigate" || action.type === "overlay") &&
-    !action.destinationScreenId
-  ) {
-    fail("DESTINATION_REQUIRED", `${action.type} needs a destination.`);
-    return false;
-  }
-  const destination =
-    "destinationScreenId" in action && action.destinationScreenId
-      ? project.screens.find((item) => item.id === action.destinationScreenId)
-      : undefined;
-  if (
-    "destinationScreenId" in action &&
-    action.destinationScreenId &&
-    !destination
-  ) {
-    fail("DESTINATION_NOT_FOUND", "Destination screen does not exist.");
-    return false;
-  }
-  if (action.type === "navigate" && destination?.kind) {
-    fail("INVALID_DESTINATION", "Navigate needs a regular screen.");
-    return false;
-  }
-  if (action.type === "overlay" && sourceScreen?.kind) {
-    fail("NESTED_OVERLAY", "A popup cannot open another popup.");
-    return false;
-  }
-  if (
-    action.type === "overlay" &&
-    destination &&
-    (destination.kind !== "popup" ||
-      destination.baseScreenId !== element.screenId)
-  ) {
-    fail("INVALID_DESTINATION", "Overlay needs a popup from the same screen.");
-    return false;
-  }
-  const insidePopup = elementAncestors(project.elements, element).some(
-    (item) => item.role === "popup",
-  );
-  if (action.type === "close-overlay" && !insidePopup) {
-    fail("NOT_INSIDE_POPUP", "Only an element inside a popup can close it.");
-    return false;
-  }
-  return true;
+  const issue = validateFeatureAction(project, element, action);
+  if (!issue) return true;
+  fail(issue.code, issue.message);
+  return false;
 }

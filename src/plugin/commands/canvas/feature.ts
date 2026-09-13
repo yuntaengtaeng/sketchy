@@ -4,6 +4,7 @@ import {
   type FeatureAction,
   type Project,
 } from "../../../shared";
+import { validateFeatureAction } from "../../../core/validate-feature-action";
 import { readProject, saveProject } from "../../storage/project";
 import {
   updateCloseOverlay,
@@ -97,31 +98,21 @@ export async function saveFeature(
     !("setReactionsAsync" in source)
   )
     throw new Error("Select a Sketchy button.");
-  if (
-    "destinationScreenId" in action &&
-    action.destinationScreenId &&
-    !destination
-  )
-    throw new Error("Select an existing destination screen.");
-  if (action.type === "navigate" && destination?.kind)
-    throw new Error("Select a screen destination.");
-  if (
-    action.type === "overlay" &&
-    destination &&
-    (destination.kind !== "popup" ||
-      destination.baseScreenId !== element.screenId)
-  )
-    throw new Error("Select a popup destination.");
-  const sourceScreen = project.screens.find(
-    (screen) => screen.id === element.screenId,
-  );
-  const insidePopup =
-    project.elements.find((item) => item.id === element.parentElementId)
-      ?.role === "popup";
-  if (action.type === "overlay" && sourceScreen?.kind)
-    throw new Error("A popup cannot open another popup.");
-  if (action.type === "close-overlay" && !insidePopup)
-    throw new Error("Only a popup can be closed.");
+  const issue = validateFeatureAction(project, element, action, true);
+  if (issue)
+    throw new Error(
+      {
+        TRIGGER_NOT_SUPPORTED: "Select a Sketchy button.",
+        DESTINATION_REQUIRED: "Select a destination screen.",
+        DESTINATION_NOT_FOUND: "Select an existing destination screen.",
+        INVALID_DESTINATION:
+          action.type === "overlay"
+            ? "Select a popup destination."
+            : "Select a screen destination.",
+        NESTED_OVERLAY: "A popup cannot open another popup.",
+        NOT_INSIDE_POPUP: "Only a popup can be closed.",
+      }[issue.code],
+    );
   const previous = project.features.filter(
     (feature) => feature.trigger?.elementId === sourceElementId,
   );
