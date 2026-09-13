@@ -2,7 +2,7 @@ import { sha256 } from "./authentication.ts";
 
 type OAuthEnvironment = { DB: D1Database };
 
-type ClientRow = { redirect_uris: string };
+type ClientRow = { redirect_uris: string; client_name: string | null };
 
 type CodeRow = {
   client_id: string;
@@ -92,12 +92,12 @@ async function authorize(database: D1Database, request: Request) {
     request.method === "POST"
       ? new URLSearchParams(await request.text())
       : new URL(request.url).searchParams;
-  const error = await validateAuthorization(
+  const validation = await validateAuthorization(
     database,
     params,
     new URL(request.url).origin,
   );
-  if (error) return error;
+  if (validation instanceof Response) return validation;
 
   const session = cookie(request, "sketchy_browser_session");
   const user = session
@@ -119,6 +119,7 @@ async function authorize(database: D1Database, request: Request) {
     return consent(
       params,
       new URL(params.get("resource")!).searchParams.get("projectId"),
+      validation.client_name,
     );
   if (params.get("decision") !== "allow")
     return redirectError(params, "access_denied");
@@ -177,11 +178,14 @@ async function validateAuthorization(
   )
     return oauthError(400, "invalid_request");
   const client = await database
-    .prepare("SELECT redirect_uris FROM oauth_clients WHERE id = ?")
+    .prepare(
+      "SELECT redirect_uris, client_name FROM oauth_clients WHERE id = ?",
+    )
     .bind(clientId)
     .first<ClientRow>();
   if (!client || !JSON.parse(client.redirect_uris).includes(redirectUri))
     return oauthError(400, "invalid_client");
+  return client;
 }
 
 async function token(database: D1Database, request: Request) {
@@ -233,13 +237,18 @@ async function token(database: D1Database, request: Request) {
   );
 }
 
-function consent(params: URLSearchParams, projectId: string | null) {
+function consent(
+  params: URLSearchParams,
+  projectId: string | null,
+  clientName: string | null,
+) {
+  const agent = escape(clientName || "AI agent");
   const fields = [...params].map(
     ([key, value]) =>
       `<input type="hidden" name="${escape(key)}" value="${escape(value)}">`,
   );
   return new Response(
-    `<!doctype html><meta name="viewport" content="width=device-width"><title>Connect Codex · Sketchy</title><main><h1>Connect Codex</h1><p>Allow Codex to read and update this Sketchy project?</p>${projectId ? `<p><code>${escape(projectId)}</code></p>` : ""}<form method="post">${fields.join("")}<button name="decision" value="allow">Allow access</button></form></main>`,
+    `<!doctype html><meta name="viewport" content="width=device-width"><title>Connect ${agent} · Sketchy</title><main><h1>Connect ${agent}</h1><p>Allow ${agent} to read and update your Sketchy projects?</p>${projectId ? `<p><code>${escape(projectId)}</code></p>` : ""}<form method="post">${fields.join("")}<button name="decision" value="allow">Allow access</button></form></main>`,
     {
       headers: {
         "content-type": "text/html; charset=utf-8",

@@ -73,6 +73,7 @@ test("registers Codex and exchanges a PKCE code once", async () => {
       }),
     );
     assert.equal(consent?.status, 200);
+    assert.match(await consent!.clone().text(), /Connect Codex/);
     assert.match(await consent!.text(), /Allow access/);
 
     params.set("decision", "allow");
