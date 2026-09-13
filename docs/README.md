@@ -25,6 +25,7 @@
 ## Claude · AI 에이전트
 
 - Claude 진입점: 루트의 [`CLAUDE.md`](../CLAUDE.md)
+- Codex·Claude에서 Sketchy 사용: [로컬 MCP 시작하기](./workflows/mcp-local-setup.md)
 - 페르소나 생성 또는 UX 검증 요청: [AI 페르소나 검증 실행 가이드](./research/persona-validation.md)
 - 기능 명세서 생성 요청: [기능 명세서 생성 가이드](./workflows/functional-spec.md)
 - 상호작용 UI 변경: [기능 모델의 Interaction UI 원칙](./product/feature-model.md#interaction-ui-원칙)
