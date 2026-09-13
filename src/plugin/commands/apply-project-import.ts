@@ -5,7 +5,11 @@ import type {
   ProjectMetadata,
 } from "../../core/project-change";
 import { elementAncestors, type Project } from "../../shared";
-import { readProject, saveProjectSnapshot } from "../storage/project";
+import {
+  normalizeElementOrder,
+  readProject,
+  saveProjectSnapshot,
+} from "../storage/project";
 import {
   createElementNode,
   renderButtonVariant,
@@ -210,6 +214,7 @@ export async function applyProjectImport(document: ProjectDocument) {
   current.elements = current.elements.filter((element) =>
     importedElementIds.has(element.id),
   );
+  await normalizeElementOrder(current);
 
   const project: Project = {
     settings: current.settings,

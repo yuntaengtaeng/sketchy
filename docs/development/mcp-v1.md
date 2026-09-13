@@ -293,6 +293,8 @@ Screen 삭제 시 내부 Element, 파생 Popup과 해당 Screen을 향하는 Act
 반영하되 Figma의 기본 Click Prototype으로 만들지 않는다. 이후 Figma Project
 revision이 달라졌거나 Popup Screen 생성이나 기존 구조 변경이 섞이면 적용하지 않는다.
 반영 후 다시 Export하면 JSON Projection도 `synced`로 닫힌다.
+Agent 변경을 Figma에 적용할 때 Element 읽기 순서도 같은 revision 안에서
+정규화하므로, Export가 순서 보정만으로 revision을 추가 증가시키지 않는다.
 
 ### Phase 3 — Figma Projection
 

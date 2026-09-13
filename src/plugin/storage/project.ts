@@ -139,29 +139,11 @@ export async function cleanProject(project: Project) {
         )
         ?.remove();
   }
-  let orderChanged = false;
-  for (const screen of screens) {
-    const positioned = await Promise.all(
-      elements
-        .filter((element) => element.screenId === screen.id)
-        .map(async (element) => {
-          const node = await figma.getNodeByIdAsync(element.nodeId);
-          const box =
-            node && "absoluteBoundingBox" in node
-              ? node.absoluteBoundingBox
-              : undefined;
-          return {
-            item: element,
-            x: box?.x ?? Number.MAX_SAFE_INTEGER,
-            y: box?.y ?? Number.MAX_SAFE_INTEGER,
-          };
-        }),
-    );
-    readingOrder(positioned).forEach(({ item }, order) => {
-      if (item.order !== order) orderChanged = true;
-      item.order = order;
-    });
-  }
+  const orderChanged = await normalizeElementOrder({
+    ...project,
+    screens,
+    elements,
+  });
   const features = project.features.filter(
     (feature) =>
       screens.some((screen) => screen.id === feature.screenId) &&
@@ -184,4 +166,31 @@ export async function cleanProject(project: Project) {
     saveProject(project);
   }
   return project;
+}
+
+export async function normalizeElementOrder(project: Project) {
+  let changed = false;
+  for (const screen of project.screens) {
+    const positioned = await Promise.all(
+      project.elements
+        .filter((element) => element.screenId === screen.id)
+        .map(async (element) => {
+          const node = await figma.getNodeByIdAsync(element.nodeId);
+          const box =
+            node && "absoluteBoundingBox" in node
+              ? node.absoluteBoundingBox
+              : undefined;
+          return {
+            item: element,
+            x: box?.x ?? Number.MAX_SAFE_INTEGER,
+            y: box?.y ?? Number.MAX_SAFE_INTEGER,
+          };
+        }),
+    );
+    readingOrder(positioned).forEach(({ item }, order) => {
+      if (item.order !== order) changed = true;
+      item.order = order;
+    });
+  }
+  return changed;
 }
