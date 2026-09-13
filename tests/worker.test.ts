@@ -34,6 +34,14 @@ test("serves the Project API with a Worker D1 binding", async () => {
       },
     };
 
+    const unauthorized = await handleRequest(
+      new Request("https://sketchy.test/mcp?projectId=worker-project", {
+        method: "POST",
+      }),
+      environment,
+    );
+    assert.equal(unauthorized.status, 401);
+
     const created = await handleRequest(
       new Request("https://sketchy.test/api/v1/projects", {
         method: "POST",
@@ -58,6 +66,52 @@ test("serves the Project API with a Worker D1 binding", async () => {
       (await project.text()).includes('"id":"worker-project"'),
       true,
     );
+
+    const initialized = await handleRequest(
+      new Request("https://sketchy.test/mcp?projectId=worker-project", {
+        method: "POST",
+        headers: {
+          accept: "application/json, text/event-stream",
+          authorization: "Bearer secret",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2025-03-26",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0.0" },
+          },
+        }),
+      }),
+      environment,
+    );
+    assert.equal(initialized.status, 200);
+    const initialization = await initialized.text();
+    assert.equal(initialization.includes('"name":"sketchy"'), true);
+    assert.equal(initialization.includes('"tools"'), true);
+
+    const called = await handleRequest(
+      new Request("https://sketchy.test/mcp?projectId=worker-project", {
+        method: "POST",
+        headers: {
+          accept: "application/json, text/event-stream",
+          authorization: "Bearer secret",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: { name: "get_project", arguments: {} },
+        }),
+      }),
+      environment,
+    );
+    assert.equal(called.status, 200);
+    assert.equal((await called.text()).includes("worker-project"), true);
   } finally {
     await miniflare.dispose();
   }

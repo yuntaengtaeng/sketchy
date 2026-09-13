@@ -33,7 +33,7 @@ Cloudflare D1
 | `GET`  | `/api/v1/projects/{projectId}/screens/{screenId}` | 한 Screen의 Element와 Feature 조회        |
 | `POST` | `/api/v1/projects/{projectId}/previews`           | Batch 검증, 저장하지 않음                 |
 | `POST` | `/api/v1/projects/{projectId}/changes`            | 승인된 Preview를 원자적으로 적용          |
-| `POST` | `/mcp`                                            | 동일한 네 MCP Tool 제공                   |
+| `POST` | `/mcp?projectId={projectId}`                      | 동일한 네 MCP Tool 제공                   |
 
 Project 생성 이후 모든 요청의 path `projectId`, 인증 사용자, request의
 `projectId`가 일치해야 한다. 알 수 없는 필드는 거절한다.
@@ -50,6 +50,9 @@ Preview/Apply 호출을 담당한다. 저장 구현은 `ProjectStore` 경계 뒤
 Worker는 `SKETCHY_API_TOKEN`, `SKETCHY_USER_ID` 환경값과 D1 `DB` binding으로
 기존 HTTP API를 조립한다. 로컬에서는 두 환경값을 `.dev.vars`에 넣고
 `npm run dev:api`로 실행한다.
+
+Remote MCP는 URL의 `projectId`로 한 Project를 선택한다. 각 Tool에 projectId를
+반복 입력하지 않으며 로컬 MCP와 같은 네 Tool 계약을 유지한다.
 
 ### 원자적 Apply
 
