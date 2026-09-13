@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sketchy",
+  "compatibility_date": "2026-09-13",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sketchy",
+      "database_id": "local",
+      "migrations_dir": "migrations",
+    },
+  ],
+}

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "mcp": "tsx src/mcp/server.ts",
+    "d1:migrate:local": "wrangler d1 migrations apply sketchy --local",
     "test": "node --experimental-strip-types --test \"tests/*.test.ts\"",
     "build:mcpb": "vite build --config vite.mcpb.config.ts && node scripts/build-mcpb.mjs",
     "build": "tsc --noEmit && vite build && vite build --config vite.plugin.config.ts && npm run build:mcpb",
@@ -27,9 +28,12 @@
     "zod": "^4.6.2"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260911.1",
     "@playwright/test": "^1.63.0",
     "@types/node": "^22.20.2",
     "fflate": "^0.8.3",
-    "tsx": "^4.23.13"
+    "miniflare": "^5.20260911.0-alpha",
+    "tsx": "^4.23.13",
+    "wrangler": "^4.131.1"
   }
 }

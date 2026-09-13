@@ -9,7 +9,12 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["@figma/plugin-typings", "vite/client", "node"]
+    "types": [
+      "@figma/plugin-typings",
+      "@cloudflare/workers-types",
+      "vite/client",
+      "node"
+    ]
   },
   "include": [
     "src",

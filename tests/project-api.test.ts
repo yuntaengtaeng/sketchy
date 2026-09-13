@@ -47,7 +47,12 @@ test("serves the Project API through development Bearer authentication", async (
     new Request("https://sketchy.test/api/v1/projects/project"),
   );
   assert.equal(unauthorized.status, 401);
-  assert.equal((await unauthorized.json()).error.code, "UNAUTHORIZED");
+  assert.deepEqual(await unauthorized.json(), {
+    error: {
+      code: "UNAUTHORIZED",
+      message: "Authentication required.",
+    },
+  });
 
   const project = await api(
     new Request("https://sketchy.test/api/v1/projects/project", {
@@ -55,7 +60,13 @@ test("serves the Project API through development Bearer authentication", async (
     }),
   );
   assert.equal(project.status, 200);
-  assert.equal((await project.json()).revision, 3);
+  assert.deepEqual(await project.json(), {
+    id: "project",
+    revision: 3,
+    updatedAt: "2026-09-13T00:00:00.000Z",
+    settings: { screenPreset: "mobile" },
+    screens: [{ id: "home", name: "Home", purpose: "Start" }],
+  });
 
   const invalid = await api(
     new Request("https://sketchy.test/api/v1/projects/project/previews", {
@@ -68,5 +79,10 @@ test("serves the Project API through development Bearer authentication", async (
     }),
   );
   assert.equal(invalid.status, 400);
-  assert.equal((await invalid.json()).error.code, "INVALID_REQUEST");
+  assert.deepEqual(await invalid.json(), {
+    error: {
+      code: "INVALID_REQUEST",
+      message: "Invalid request body.",
+    },
+  });
 });

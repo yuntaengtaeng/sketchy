@@ -43,6 +43,10 @@ Preview/Apply 호출을 담당한다. 저장 구현은 `ProjectStore` 경계 뒤
 단계에서 D1 Adapter를 연결한다. 플랫폼 중립 HTTP Adapter는 표준 `Request`와
 `Response`를 사용하며 개발용 Bearer Token 인증과 위 API 경로를 제공한다.
 
+`D1ProjectStore`는 Project 문서와 소유자, revision을 `projects` 테이블에 저장한다.
+교체 쿼리는 기존 revision과 소유자가 모두 일치할 때만 성공한다. 로컬
+마이그레이션은 `npm run d1:migrate:local`로 실행한다.
+
 ### 원자적 Apply
 
 Apply는 D1 트랜잭션 안에서 다음 순서를 지킨다.
