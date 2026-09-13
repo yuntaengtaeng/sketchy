@@ -4,7 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import * as z from "zod/v4";
-import type { ProjectDocument } from "../src/core/project-change.ts";
+import type {
+  ProjectChangeRequest,
+  ProjectDocument,
+} from "../src/core/project-change.ts";
 import { applyChanges, previewChanges } from "../src/mcp/change-tools.ts";
 import { readProjectDocument } from "../src/mcp/project-file.ts";
 import { getProject, getScreen } from "../src/mcp/read-tools.ts";
@@ -141,4 +144,100 @@ test("applies an approved batch once and marks Figma projection pending", async 
   assert.equal(stored.revision, 5);
   assert.equal(stored.project.screens.at(-1)?.id, "complete");
   assert.equal(stored.figmaProjection?.status, "pending");
+});
+
+test("keeps a create, edit, action, and delete workflow atomic across revisions", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "sketchy-workflow-"));
+  const file = join(directory, "project.json");
+  await writeFile(file, JSON.stringify(document));
+
+  const apply = async (request: ProjectChangeRequest) => {
+    const current = await readProjectDocument(file);
+    const preview = previewChanges(current, request);
+    assert.equal(preview.valid, true);
+    return applyChanges(file, preview.previewId, request);
+  };
+  const created = {
+    projectId: document.id,
+    baseRevision: 4,
+    idempotencyKey: "workflow-create",
+    changes: [
+      {
+        type: "CREATE_SCREEN" as const,
+        screen: { id: "done", name: "Done", purpose: "Finish" },
+      },
+      {
+        type: "ADD_ELEMENT" as const,
+        element: {
+          id: "receipt",
+          screenId: "done",
+          name: "Receipt",
+          type: "text" as const,
+        },
+      },
+    ],
+  };
+  assert.equal((await apply(created)).revision, 5);
+  const replayed = await applyChanges(
+    file,
+    previewChanges(document, created).previewId,
+    created,
+  );
+  assert.equal(replayed.idempotent, true);
+
+  const edited = {
+    projectId: document.id,
+    baseRevision: 5,
+    idempotencyKey: "workflow-edit",
+    changes: [
+      {
+        type: "UPDATE_SCREEN" as const,
+        screenId: "done",
+        patch: { name: "Order complete" },
+      },
+      {
+        type: "UPDATE_ELEMENT" as const,
+        elementId: "buy",
+        patch: { name: "Place order", buttonVariant: "outline" as const },
+      },
+      {
+        type: "SET_ELEMENT_ACTION" as const,
+        featureId: "buy-action",
+        elementId: "buy",
+        action: { type: "navigate" as const, destinationScreenId: "done" },
+      },
+      {
+        type: "ADD_ELEMENT_CASE" as const,
+        elementId: "buy",
+        case: {
+          id: "buy-error",
+          condition: "Payment fails",
+          description: "Show an error",
+          action: { type: "describe" as const },
+        },
+      },
+    ],
+  };
+  assert.equal((await apply(edited)).revision, 6);
+
+  const removed = {
+    projectId: document.id,
+    baseRevision: 6,
+    idempotencyKey: "workflow-delete",
+    changes: [
+      { type: "DELETE_SCREEN" as const, screenId: "done" },
+      { type: "DELETE_ELEMENT" as const, elementId: "buy" },
+    ],
+  };
+  assert.equal((await apply(removed)).revision, 7);
+
+  const stored = await readProjectDocument(file);
+  assert.deepEqual(
+    stored.project.screens.map(({ id }) => id),
+    ["checkout"],
+  );
+  assert.deepEqual(stored.project.elements, []);
+  assert.deepEqual(stored.project.features, []);
+  assert.equal(stored.figmaProjection?.status, "pending");
+  assert.deepEqual(stored.figmaProjection?.nodes, { checkout: "1:2" });
 });
