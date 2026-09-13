@@ -30,6 +30,7 @@ figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
 
 let suppressDocumentChange = false;
 let redrawTimer: ReturnType<typeof setTimeout>;
+let suppressTimer: ReturnType<typeof setTimeout>;
 let pendingImport:
   { baseRevision: number; document: ProjectDocument } | undefined;
 
@@ -52,16 +53,18 @@ function selection() {
 }
 
 async function sync(project: Project = readProject(), draw = false) {
-  project = await cleanProject(project);
   if (draw) {
+    clearTimeout(suppressTimer);
     suppressDocumentChange = true;
-    try {
-      await renderFlow(project);
-    } finally {
-      setTimeout(() => (suppressDocumentChange = false), 200);
-    }
   }
-  figma.ui.postMessage({ type: "STATE", project, ...selection() });
+  try {
+    project = await cleanProject(project);
+    if (draw) await renderFlow(project);
+    figma.ui.postMessage({ type: "STATE", project, ...selection() });
+  } finally {
+    if (draw)
+      suppressTimer = setTimeout(() => (suppressDocumentChange = false), 200);
+  }
 }
 
 figma.ui.onmessage = async (message: PluginMessage) => {

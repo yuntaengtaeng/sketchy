@@ -6,6 +6,7 @@ import {
   type ProjectSettings,
 } from "../../shared";
 import { readingOrder } from "../reading-order";
+import { adoptCanvasName } from "../canvas-name";
 import type { ProjectMetadata } from "../../core/project-change";
 
 const KEY = "sketchy:project";
@@ -130,8 +131,23 @@ export async function cleanProject(project: Project) {
   const elements = (await Promise.all(project.elements.map(exists)))
     .filter(present)
     .filter((item) => screens.some((screen) => screen.id === item.screenId));
+  let nameChanged = false;
+  for (const screen of screens) {
+    const node = await figma.getNodeByIdAsync(screen.nodeId);
+    if (adoptCanvasName(screen, node?.name)) nameChanged = true;
+  }
   for (const element of elements) {
     const node = await figma.getNodeByIdAsync(element.nodeId);
+    const label =
+      node?.type === "TEXT"
+        ? node.characters
+        : node?.type === "FRAME" &&
+            element.type !== "section" &&
+            element.type !== "divider"
+          ? node.children.find((child) => child.type === "TEXT")?.characters
+          : undefined;
+    if (adoptCanvasName(element, label) || adoptCanvasName(element, node?.name))
+      nameChanged = true;
     if (node?.type === "FRAME")
       node.children
         .find(
@@ -144,15 +160,32 @@ export async function cleanProject(project: Project) {
     screens,
     elements,
   });
-  const features = project.features.filter(
-    (feature) =>
+  const features = project.features.filter((feature) => {
+    const destinationScreenId =
+      "destinationScreenId" in feature.action
+        ? feature.action.destinationScreenId
+        : undefined;
+    return (
       screens.some((screen) => screen.id === feature.screenId) &&
       !!feature.trigger?.elementId &&
-      elements.some((element) => element.id === feature.trigger?.elementId),
-  );
+      elements.some((element) => element.id === feature.trigger?.elementId) &&
+      (!destinationScreenId ||
+        screens.some((screen) => screen.id === destinationScreenId))
+    );
+  });
+  for (const feature of features) {
+    const element = elements.find(
+      (item) => item.id === feature.trigger?.elementId,
+    );
+    if (element && feature.name !== element.name) {
+      feature.name = element.name;
+      nameChanged = true;
+    }
+  }
   if (
     screens.length !== project.screens.length ||
     elements.length !== project.elements.length ||
+    nameChanged ||
     orderChanged ||
     features.length !== project.features.length ||
     features.some((feature, index) => feature !== project.features[index])

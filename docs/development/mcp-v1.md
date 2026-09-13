@@ -209,15 +209,17 @@ Sketchy UI/MCP 변경 → 정식 Project 변경
 Figma Canvas 변경  → 외부 변경
 ```
 
-목표는 Plugin이 열려 있으면 `documentchange`로 외부 변경을 감지하고, 닫힌 동안의
-변경은 다음 Plugin 실행 또는 Agent 작업 전에 비교하는 것이다. 차이가 있으면 자동
-덮어쓰기 없이 `Canvas 변경 유지` 또는 `Sketchy로 복원`을 선택하게 한다.
+Plugin이 열려 있으면 `documentchange`로 외부 변경을 감지하고, 닫힌 동안의 변경은
+다음 Plugin 실행 때 정리한다. 승인 전 우선순위는 사용자 Figma 작업이므로 Screen과
+Element의 삭제·이름·읽기 순서를 Sketchy Project에 반영하고 revision을 올린다. 이전
+Export를 기준으로 만든 Agent 변경은 기존 revision 검사에서 차단된다.
 
-현재 로컬 v1은 `documentchange` 후 Project를 재정리하지만 위 선택 UI는 아직 없다.
-따라서 Export 이후 Canvas 직접 변경을 안전하게 구분하는 기능은 완료 전 과제로 둔다.
+Section 부모 이동과 임의 스타일 변경은 의미 모델로 가져오지 않는다. 승인된 Agent
+변경은 사용자가 `Apply to Figma`를 누른 시점부터 우선한다. `Sketchy로 복원`은 실제
+복원 요구가 확인되기 전까지 제공하지 않는다.
 
-Canvas 변경을 Sketchy 의미 모델로 가져오는 기능은 별도의 명시적인
-Import/Adopt 작업이다. v1에서는 자동 역동기화하지 않는다.
+위 범위 밖의 Canvas 변경을 Sketchy 의미 모델로 가져오는 기능은 별도의 명시적인
+Import/Adopt 작업이다. v1에서는 범용 자동 역동기화하지 않는다.
 
 ## 권한과 보안
 
@@ -324,7 +326,6 @@ Agent 변경을 Figma에 적용할 때 Element 읽기 순서도 같은 revision 
 완료 전 확인:
 
 - Claude Code와 Claude Desktop에서 읽기 및 Preview/Apply smoke test
-- Export 이후 Figma Canvas 직접 변경을 감지해 유지 또는 복원을 선택하는 충돌 UX
 
 Remote MCP, Sketchy API, 인증, 다중 Project와 Export 제거는 로컬 v1 완료 조건에
 포함하지 않는다.
