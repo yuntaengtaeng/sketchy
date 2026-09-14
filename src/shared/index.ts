@@ -207,6 +207,7 @@ export type PluginMessage =
       buttonVariant?: "filled" | "outline";
     }
   | { type: "DELETE_ELEMENT"; elementId: string }
+  | { type: "MOVE_ELEMENT"; elementId: string; direction: "up" | "down" }
   | {
       type: "UPDATE_ELEMENT";
       elementId: string;

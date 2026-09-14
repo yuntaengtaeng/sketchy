@@ -1,6 +1,7 @@
 import {
   BLOCK_DEFINITIONS,
   canNestSection,
+  elementSiblings,
   elementTreeIds,
   type BlockType,
   type Element,
@@ -57,6 +58,36 @@ export async function insertBlock(
   project.elements.push({ ...element, nodeId: node.id });
   saveProject(project);
   figma.currentPage.selection = [parentNode as FrameNode];
+  return project;
+}
+
+// order는 figma 시각 위치에서 자동 계산되므로(normalizeElementOrder) 노드
+// 트리에서 실제 위치만 바꾸면 다음 sync에서 order가 알아서 따라온다
+export async function moveElement(elementId: string, direction: "up" | "down") {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  if (!element) return project;
+  const siblings = elementSiblings(project.elements, element);
+  const index = siblings.findIndex((item) => item.id === elementId);
+  const target = siblings[direction === "up" ? index - 1 : index + 1];
+  if (!target) return project;
+  const node = await figma.getNodeByIdAsync(element.nodeId);
+  const targetNode = await figma.getNodeByIdAsync(target.nodeId);
+  if (
+    !node ||
+    !targetNode ||
+    !("parent" in node) ||
+    node.parent?.type !== "FRAME" ||
+    node.parent !== targetNode.parent
+  )
+    return project;
+  const parent = node.parent;
+  const withoutNode = parent.children.filter((child) => child.id !== node.id);
+  const targetIndex = withoutNode.indexOf(targetNode as SceneNode);
+  parent.insertChild(
+    direction === "up" ? targetIndex : targetIndex + 1,
+    node as SceneNode,
+  );
   return project;
 }
 

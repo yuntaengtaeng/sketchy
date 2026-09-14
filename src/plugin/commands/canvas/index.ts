@@ -1,6 +1,7 @@
 export {
   deleteElement,
   insertBlock,
+  moveElement,
   selectElement,
   setButtonVariant,
   setSectionDirection,

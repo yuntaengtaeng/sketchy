@@ -79,7 +79,13 @@ const change = z.discriminatedUnion("type", [
     })
     .strict(),
   z.object({ type: z.literal("DELETE_SCREEN"), screenId: id }).strict(),
-  z.object({ type: z.literal("ADD_ELEMENT"), element }).strict(),
+  z
+    .object({
+      type: z.literal("ADD_ELEMENT"),
+      element,
+      insertAfterElementId: id.optional(),
+    })
+    .strict(),
   z
     .object({
       type: z.literal("UPDATE_ELEMENT"),

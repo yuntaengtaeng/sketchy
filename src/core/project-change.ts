@@ -103,7 +103,12 @@ export type ProjectChange =
   | { type: "CREATE_SCREEN"; screen: ScreenInput }
   | { type: "UPDATE_SCREEN"; screenId: string; patch: ScreenPatch }
   | { type: "DELETE_SCREEN"; screenId: string }
-  | { type: "ADD_ELEMENT"; element: ElementInput }
+  // insertAfterElementId 생략 시 형제 중 맨 끝에 추가, 지정 시 그 형제 바로 뒤에 삽입
+  | {
+      type: "ADD_ELEMENT";
+      element: ElementInput;
+      insertAfterElementId?: string;
+    }
   | { type: "UPDATE_ELEMENT"; elementId: string; patch: ElementPatch }
   | { type: "DELETE_ELEMENT"; elementId: string }
   | {

@@ -1,7 +1,22 @@
-.spec h1 {
-  font-size: 20px;
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
   border-bottom: 2px solid var(--sketchy-ink);
   padding-bottom: 8px;
+}
+
+.header h1 {
+  font-size: 20px;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.header button {
+  flex-shrink: 0;
+  padding: 4px 7px;
+  min-height: 28px;
 }
 
 .elements {

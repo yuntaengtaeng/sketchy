@@ -150,6 +150,74 @@ test("rejects a stale revision before producing an applicable project", () => {
   assert.equal(preview.nextProject, undefined);
 });
 
+test("inserts a new element right after the requested sibling", () => {
+  const source = document();
+  source.project.screens.push({ id: "screen", name: "Screen", purpose: "" });
+  source.project.elements.push(
+    { id: "address", screenId: "screen", name: "Address", type: "input" },
+    { id: "payment", screenId: "screen", name: "Payment", type: "input" },
+  );
+
+  const preview = previewProjectChanges(source, {
+    projectId: "project",
+    baseRevision: 3,
+    idempotencyKey: "insert-between",
+    changes: [
+      {
+        type: "ADD_ELEMENT",
+        insertAfterElementId: "address",
+        element: {
+          id: "name",
+          screenId: "screen",
+          name: "Name",
+          type: "input",
+        },
+      },
+    ],
+  });
+
+  assert.equal(preview.valid, true);
+  assert.deepEqual(
+    preview.nextProject?.elements.map((item) => item.id),
+    ["address", "name", "payment"],
+  );
+});
+
+test("rejects insertAfterElementId that is not a sibling", () => {
+  const source = document();
+  source.project.screens.push(
+    { id: "screen-a", name: "A", purpose: "" },
+    { id: "screen-b", name: "B", purpose: "" },
+  );
+  source.project.elements.push({
+    id: "other-screen-element",
+    screenId: "screen-b",
+    name: "Other",
+    type: "input",
+  });
+
+  const preview = previewProjectChanges(source, {
+    projectId: "project",
+    baseRevision: 3,
+    idempotencyKey: "insert-wrong-sibling",
+    changes: [
+      {
+        type: "ADD_ELEMENT",
+        insertAfterElementId: "other-screen-element",
+        element: {
+          id: "name",
+          screenId: "screen-a",
+          name: "Name",
+          type: "input",
+        },
+      },
+    ],
+  });
+
+  assert.equal(preview.valid, false);
+  assert.equal(preview.errors[0].code, "INVALID_SIBLING");
+});
+
 test("requires a destination for navigation", () => {
   const source = document();
   source.project.screens.push({ id: "screen", name: "Screen", purpose: "" });

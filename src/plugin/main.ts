@@ -9,6 +9,7 @@ import {
   deleteScreen,
   duplicateScreen,
   insertBlock,
+  moveElement,
   setButtonVariant,
   setSectionDirection,
   selectElement,
@@ -252,6 +253,8 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       );
     if (message.type === "DELETE_ELEMENT")
       await sync(await deleteElement(message.elementId), true);
+    if (message.type === "MOVE_ELEMENT")
+      await sync(await moveElement(message.elementId, message.direction), true);
     if (message.type === "UPDATE_ELEMENT")
       await sync(
         await updateElement(

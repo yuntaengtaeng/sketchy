@@ -1,5 +1,7 @@
 import type { Project, Screen } from "../../../shared";
+import { download } from "../../plugin";
 import {
+  buildProjectMarkdown,
   describeFeature,
   outlineElements,
   title,
@@ -23,7 +25,21 @@ export default function Spec({
   );
   return (
     <section className={styles.spec}>
-      <h1>{screen?.name || "Select a screen"}</h1>
+      <div className={styles.header}>
+        <h1>{screen?.name || "Select a screen"}</h1>
+        <button
+          disabled={!project.screens.length}
+          onClick={() =>
+            download(
+              "sketchy-spec.md",
+              buildProjectMarkdown(project),
+              "text/markdown",
+            )
+          }
+        >
+          Export as Markdown
+        </button>
+      </div>
       {screen && (
         <>
           {screen.purpose && (
@@ -62,6 +78,9 @@ function ElementList({ items }: { items: ElementOutline[] }) {
           <span>
             {number}. {element.name} ({title(element.type)})
           </span>
+          {element.description && (
+            <p className="muted">{element.description}</p>
+          )}
           {!!children.length && <ElementList items={children} />}
         </li>
       ))}

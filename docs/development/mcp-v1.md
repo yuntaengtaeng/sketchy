@@ -111,7 +111,11 @@ type ProjectChange =
   | { type: "CREATE_SCREEN"; screen: ScreenInput }
   | { type: "UPDATE_SCREEN"; screenId: string; patch: ScreenPatch }
   | { type: "DELETE_SCREEN"; screenId: string }
-  | { type: "ADD_ELEMENT"; element: ElementInput }
+  | {
+      type: "ADD_ELEMENT";
+      element: ElementInput;
+      insertAfterElementId?: string;
+    }
   | { type: "UPDATE_ELEMENT"; elementId: string; patch: ElementPatch }
   | { type: "DELETE_ELEMENT"; elementId: string }
   | { type: "SET_ELEMENT_ACTION"; elementId: string; action: FeatureAction }
@@ -125,6 +129,14 @@ type ProjectChange =
 Agent에게는 내부 Feature 생성보다 선택한 Element의 결과를 설정한다는 언어를
 제공한다. 내부적으로 Element Action/Case 변경이 Feature를 생성하거나
 갱신한다.
+
+`ADD_ELEMENT`의 `insertAfterElementId`를 생략하면 새 Element는 형제 중
+맨 끝에 추가된다. 지정하면 그 형제 바로 뒤에 끼워 넣는다 — 대상은 같은
+Screen, 같은 부모(Section 또는 Screen 직속)의 기존 Element여야 하며
+아니면 `INVALID_SIBLING`으로 거절한다. Element의 `order` 필드로 직접
+위치를 지정하는 방식은 두지 않는다. 이미 Plugin UI로 만들어진 Element는
+`order`가 비어 있어(Figma 시각 위치에서 자동 계산) 신규 Element에 임의의
+`order` 값을 줘도 기존 Element보다 항상 뒤로 정렬되기 때문이다.
 
 Preview와 Apply는 같은 검증기를 사용한다.
 

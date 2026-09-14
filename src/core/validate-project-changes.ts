@@ -146,7 +146,27 @@ export function previewProjectChanges(
         !canNestSection(project.elements, parent)
       )
         return fail("SECTION_DEPTH_EXCEEDED", "Section nesting is too deep.");
-      project.elements.push(input);
+      if (change.insertAfterElementId === undefined) {
+        project.elements.push(input);
+      } else {
+        const after = element(change.insertAfterElementId);
+        if (!after)
+          return fail(
+            "SIBLING_NOT_FOUND",
+            "insertAfterElementId does not exist.",
+          );
+        if (
+          after.screenId !== input.screenId ||
+          after.parentElementId !== input.parentElementId
+        )
+          return fail(
+            "INVALID_SIBLING",
+            "insertAfterElementId must be a sibling of the new element.",
+          );
+        // 배열 위치 자체가 순서다(동일 order는 안정 정렬로 배열 순서를 따름),
+        // 그 형제 바로 뒤에 끼워 넣으면 Figma 쪽도 같은 자리에 생성된다
+        project.elements.splice(project.elements.indexOf(after) + 1, 0, input);
+      }
       affected.add(input.id);
       return;
     }

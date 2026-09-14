@@ -124,6 +124,7 @@ export async function applyProjectImport(document: ProjectDocument) {
       screenNodes.set(screen.id, node);
       current.screens.push(withScreenNodeId(screen, node.id));
     }
+    const touchedParents = new Set<string>();
     for (const element of added) {
       const parent = element.parentElementId
         ? nodes.get(element.parentElementId)
@@ -134,6 +135,32 @@ export async function applyProjectImport(document: ProjectDocument) {
       created.push(node);
       nodes.set(element.id, node);
       current.elements.push(withNodeId(element, node.id));
+      touchedParents.add(
+        `${element.screenId}:${element.parentElementId ?? ""}`,
+      );
+    }
+    // createElementNode는 항상 끝에 붙이므로, insertAfterElementId로 가운데
+    // 삽입된 형제가 있으면 실제 Figma 자식 순서를 원본 Document 순서에 맞춰 재배치
+    for (const key of touchedParents) {
+      const separator = key.indexOf(":");
+      const screenId = key.slice(0, separator);
+      const parentElementId = key.slice(separator + 1) || undefined;
+      const parentNode = parentElementId
+        ? nodes.get(parentElementId)
+        : screenNodes.get(screenId);
+      if (parentNode?.type !== "FRAME") continue;
+      const siblingOrder = document.project.elements
+        .filter(
+          (item) =>
+            item.screenId === screenId &&
+            item.parentElementId === parentElementId,
+        )
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      siblingOrder.forEach((item, index) => {
+        const node = nodes.get(item.id);
+        if (node && "parent" in node && node.parent === parentNode)
+          parentNode.insertChild(index, node as SceneNode);
+      });
     }
   } catch (error) {
     for (const node of created.reverse()) node.remove();
