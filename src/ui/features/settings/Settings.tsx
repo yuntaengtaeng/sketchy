@@ -16,6 +16,8 @@ const SYNC_STATUS_TEXT: Record<SyncStatus, string> = {
   applied: "Agent changes applied",
   conflict: "Couldn't sync because this Figma file also changed. Try again.",
   "auth-expired": "Signed out because your session expired, sign in again.",
+  unsupported:
+    "Couldn't apply the latest agent changes, this file changed in a way Sketchy doesn't support yet.",
 };
 
 export default function Settings({
@@ -176,7 +178,11 @@ export default function Settings({
         {syncStatus && (
           <p
             className={styles.status}
-            role={syncStatus === "conflict" ? "alert" : "status"}
+            role={
+              syncStatus === "conflict" || syncStatus === "unsupported"
+                ? "alert"
+                : "status"
+            }
           >
             {SYNC_STATUS_TEXT[syncStatus]}
           </p>

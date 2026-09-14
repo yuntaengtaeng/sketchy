@@ -48,7 +48,7 @@ export default function App() {
       if (message?.type === "SYNC_STATUS") {
         clearTimeout(syncStatusTimer);
         setSyncStatus(message.status);
-        // syncing, applied는 지나가는 안내, conflict와 auth-expired는 조치가 필요해 유지
+        // syncing, applied는 지나가는 안내, 나머지는 조치가 필요해 유지
         if (message.status === "syncing" || message.status === "applied")
           syncStatusTimer = setTimeout(() => setSyncStatus(undefined), 4000);
       }

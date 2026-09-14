@@ -62,12 +62,24 @@ async function signOut() {
 // push, pull, projection 확인, 주기 폴링은 sync-loop 모듈에 위임
 const syncLoop = createSyncLoop({
   readSession: readAuthSession,
-  onProjectPulled: (project) => sync(project, true),
+  onProjectPulled: async (project) => {
+    // Sidebar가 다른 탭이어도 보이도록 Canvas 위에도 알림, Settings 문구와 별개
+    figma.notify("Agent changes applied to this file");
+    await sync(project, true);
+  },
   applyProjectImport,
   onStatusChange: (status) => {
     figma.ui.postMessage({ type: "SYNC_STATUS", status });
     // 인증 만료는 다시 로그인해야 하므로 로그아웃 상태로 되돌려 Sign-in 버튼을 노출
     if (status === "auth-expired") void signOut();
+    if (status === "conflict")
+      figma.notify("Couldn't sync, this Figma file also changed", {
+        error: true,
+      });
+    if (status === "unsupported")
+      figma.notify("Couldn't apply the latest agent changes to this file", {
+        error: true,
+      });
   },
 });
 

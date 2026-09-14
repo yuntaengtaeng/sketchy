@@ -121,7 +121,10 @@ export function createSyncLoop(deps: SyncLoopDeps) {
       current,
       JSON.stringify(remoteDocument),
     );
-    if (!preview.valid) return;
+    if (!preview.valid) {
+      setStatus("unsupported");
+      return;
+    }
     const project = await applyProjectImport(remoteDocument);
     // pushLocalChanges 재전송 방지를 위해 Canvas 반영 전 lastSyncedRevision 선반영
     writeSyncState({

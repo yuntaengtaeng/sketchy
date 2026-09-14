@@ -159,8 +159,9 @@ test("pulls, applies, and pins lastSyncedRevision before rendering", async () =>
   assert.deepEqual(statuses, ["syncing", "applied"]);
 });
 
-test("skips the pull when the imported document fails validation", async () => {
+test("skips the pull and flags unsupported when the imported document fails validation", async () => {
   const calls: string[] = [];
+  const statuses: SyncStatus[] = [];
   const remoteDocument: ProjectDocument = {
     id: "project",
     revision: 3,
@@ -172,6 +173,7 @@ test("skips the pull when the imported document fails validation", async () => {
     onProjectPulled: async () => {
       calls.push("render");
     },
+    onStatusChange: (status) => statuses.push(status),
     readProject: () => emptyProject,
     cleanProject: async (project) => project,
     readProjectMetadata: () => metadata(0),
@@ -186,6 +188,7 @@ test("skips the pull when the imported document fails validation", async () => {
   });
   await loop.checkRemoteProject();
   assert.deepEqual(calls, []);
+  assert.deepEqual(statuses, ["syncing", "unsupported"]);
 });
 
 test("flags a conflict when local and remote both moved past the last sync", async () => {

@@ -138,8 +138,10 @@ export type AgentConnection = {
   setup: string;
 };
 
-// Figma Plugin과 서버 사이 자동 동기화 상태, conflict와 auth-expired만 사용자 조치 필요
-export type SyncStatus = "syncing" | "applied" | "conflict" | "auth-expired";
+// Figma Plugin과 서버 사이 자동 동기화 상태
+// conflict, auth-expired, unsupported만 사용자 조치 필요
+export type SyncStatus =
+  "syncing" | "applied" | "conflict" | "auth-expired" | "unsupported";
 
 export type ProjectImportPreview = {
   valid: boolean;
