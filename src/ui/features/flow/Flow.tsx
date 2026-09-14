@@ -1,5 +1,6 @@
 import type { Feature, Project } from "../../../shared";
-import { post } from "../../plugin";
+import { download, post } from "../../plugin";
+import { buildProjectMarkdown } from "../spec/describe";
 import styles from "./Flow.module.css";
 
 export default function Flow({
@@ -85,7 +86,21 @@ export default function Flow({
           <hr className={styles.divider} />
         </>
       )}
-      <h2>Project flow</h2>
+      <div className={styles.header}>
+        <h2>Project flow</h2>
+        <button
+          disabled={!project.screens.length}
+          onClick={() =>
+            download(
+              "sketchy-spec.md",
+              buildProjectMarkdown(project),
+              "text/markdown",
+            )
+          }
+        >
+          Export as Markdown
+        </button>
+      </div>
       {!project.features.length && (
         <p className="muted">No behavior described yet.</p>
       )}

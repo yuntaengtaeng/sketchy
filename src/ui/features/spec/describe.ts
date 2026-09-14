@@ -26,23 +26,35 @@ export function outlineElements(
     });
 }
 
-export function buildProjectFlow(project: Project) {
-  const lines: string[] = [];
-  for (const screen of project.screens) {
-    const features = project.features.filter(
-      (feature) => feature.screenId === screen.id,
+export function buildProjectFlowDiagram(project: Project) {
+  const screenNodeId = new Map(
+    project.screens.map((screen, index) => [screen.id, `s${index}`]),
+  );
+  const lines = ["```mermaid", "flowchart TD"];
+  for (const screen of project.screens)
+    lines.push(
+      `  ${screenNodeId.get(screen.id)}["${mermaidLabel(screen.name)}"]`,
     );
-    for (const feature of features)
-      lines.push(`- ${screen.name}: ${describeFeature(project, feature)}`);
+  for (const feature of project.features) {
+    const action = feature.action;
+    if (!("destinationScreenId" in action) || !action.destinationScreenId)
+      continue;
+    const from = screenNodeId.get(feature.screenId);
+    const to = screenNodeId.get(action.destinationScreenId);
+    if (!from || !to) continue;
+    lines.push(`  ${from} -->|${mermaidLabel(feature.name)}| ${to}`);
   }
-  return lines;
+  lines.push("```");
+  return lines.join("\n");
+}
+
+function mermaidLabel(text: string) {
+  return text.replace(/"/g, "&quot;").replace(/[|\n]/g, " ").trim();
 }
 
 export function buildProjectMarkdown(project: Project) {
-  const lines: string[] = ["# Sketchy Spec", ""];
-  lines.push("## Project Flow", "");
-  const flow = buildProjectFlow(project);
-  lines.push(...(flow.length ? flow : ["No behavior described yet."]), "");
+  const lines: string[] = ["# Sketchy Spec", "", "## Project Flow", ""];
+  lines.push(buildProjectFlowDiagram(project), "");
   for (const screen of project.screens) {
     const elements = project.elements.filter(
       (element) => element.screenId === screen.id,

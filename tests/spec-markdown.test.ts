@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildProjectMarkdown } from "../src/ui/features/spec/describe.ts";
+import {
+  buildProjectFlowDiagram,
+  buildProjectMarkdown,
+} from "../src/ui/features/spec/describe.ts";
 import type { Project } from "../src/shared/index.ts";
 
 const project: Project = {
@@ -53,15 +56,33 @@ const project: Project = {
   ],
 };
 
-test("renders a project-wide flow overview before the per-screen breakdown", () => {
+test("renders a project-wide flow diagram before the per-screen breakdown", () => {
   const markdown = buildProjectMarkdown(project);
   const flowIndex = markdown.indexOf("## Project Flow");
   const screenIndex = markdown.indexOf("## Product detail");
   assert.ok(flowIndex >= 0 && flowIndex < screenIndex);
-  assert.match(
-    markdown,
-    /^- Product detail: Click Buy → Go to Order; Starts checkout$/m,
-  );
+  assert.match(markdown, /```mermaid\nflowchart TD/);
+});
+
+test("draws one node per screen and one edge per navigation feature", () => {
+  const diagram = buildProjectFlowDiagram(project);
+  assert.match(diagram, /s0\["Product detail"\]/);
+  assert.match(diagram, /s1\["Order"\]/);
+  assert.match(diagram, /s0 -->\|Buy\| s1/);
+});
+
+test("escapes quotes and pipes so labels cannot break the diagram syntax", () => {
+  const tricky: Project = {
+    ...project,
+    screens: [{ id: "a", name: 'Say "hi" | bye', purpose: "", nodeId: "1:1" }],
+    features: [],
+  };
+  const diagram = buildProjectFlowDiagram(tricky);
+  const nodeLine = diagram.split("\n").find((line) => line.startsWith("  s0["));
+  assert.ok(nodeLine);
+  assert.ok(!nodeLine!.includes('"hi"'));
+  assert.ok(!nodeLine!.slice(6, -2).includes("|"));
+  assert.match(nodeLine!, /&quot;hi&quot;/);
 });
 
 test("renders each screen with purpose, nested elements and behavior", () => {
