@@ -21,7 +21,13 @@ export default function Build({ project, screen, element }: Props) {
       <BuildNavigation project={project} screen={screen} element={element} />
       {element ? (
         <>
-          <ElementDetails project={project} element={element} />
+          {/* key로 element가 바뀔 때마다 다시 마운트, FeatureCaseEditor의
+          draft 선택 상태 같은 로컬 state가 다른 Element로 새지 않게 한다 */}
+          <ElementDetails
+            key={element.id}
+            project={project}
+            element={element}
+          />
           {element.type === "section" ? (
             <SectionEditor
               project={project}

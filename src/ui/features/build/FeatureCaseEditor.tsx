@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type {
   Element as SketchyElement,
   Feature,
@@ -42,10 +43,17 @@ export default function FeatureCaseEditor({
       ?.role === "popup";
   const choices = insidePopup ? popupChoices : screenChoices;
   const action = feature?.action;
+  // navigate는 overlay와 달리 목적지가 없으면 자동으로 만들어주지 않으므로,
+  // "Go to screen"을 누른 직후 목적지를 아직 안 고른 상태로 바로 저장을
+  // 시도하면 매번 "Select a destination screen" 오류가 뜬다. 목적지를
+  // 고를 때까지는 저장하지 않고 이 draft 상태로만 선택 UI를 보여준다.
+  const [draftingNavigate, setDraftingNavigate] = useState(false);
   const destinationAction =
     action?.type === "navigate" || action?.type === "overlay"
       ? action
-      : undefined;
+      : draftingNavigate
+        ? { type: "navigate" as const }
+        : undefined;
   const popupSection =
     destinationAction?.type === "overlay"
       ? project.elements.find(
@@ -80,18 +88,24 @@ export default function FeatureCaseEditor({
             <button
               key={value}
               type="button"
-              aria-pressed={action?.type === value}
+              aria-pressed={
+                action?.type === value ||
+                (value === "navigate" && draftingNavigate)
+              }
               onClick={() => {
                 if (action?.type === value) return;
+                if (value === "navigate") {
+                  setDraftingNavigate(true);
+                  return;
+                }
+                setDraftingNavigate(false);
                 onSave(
                   feature,
-                  value === "navigate"
-                    ? { type: "navigate" }
-                    : value === "overlay"
-                      ? { type: "overlay" }
-                      : value === "close-overlay"
-                        ? { type: "close-overlay" }
-                        : { type: "describe" },
+                  value === "overlay"
+                    ? { type: "overlay" }
+                    : value === "close-overlay"
+                      ? { type: "close-overlay" }
+                      : { type: "describe" },
                 );
               }}
             >
@@ -105,12 +119,14 @@ export default function FeatureCaseEditor({
           Destination
           <select
             value={destinationAction.destinationScreenId || ""}
-            onChange={(event) =>
+            onChange={(event) => {
+              if (!event.target.value) return;
+              setDraftingNavigate(false);
               onSave(feature, {
                 ...destinationAction,
                 destinationScreenId: event.target.value,
-              })
-            }
+              });
+            }}
           >
             <option value="">Choose destination</option>
             {project.screens
