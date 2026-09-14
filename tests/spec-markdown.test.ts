@@ -12,6 +12,7 @@ const project: Project = {
       purpose: "Show one product",
       nodeId: "1:1",
     },
+    { id: "order", name: "Order", purpose: "Confirm the order", nodeId: "1:5" },
   ],
   elements: [
     {
@@ -46,11 +47,22 @@ const project: Project = {
       screenId: "detail",
       name: "Buy",
       trigger: { type: "click", elementId: "buy" },
-      action: { type: "describe" },
+      action: { type: "navigate", destinationScreenId: "order" },
       description: "Starts checkout",
     },
   ],
 };
+
+test("renders a project-wide flow overview before the per-screen breakdown", () => {
+  const markdown = buildProjectMarkdown(project);
+  const flowIndex = markdown.indexOf("## Project Flow");
+  const screenIndex = markdown.indexOf("## Product detail");
+  assert.ok(flowIndex >= 0 && flowIndex < screenIndex);
+  assert.match(
+    markdown,
+    /^- Product detail: Click Buy → Go to Order; Starts checkout$/m,
+  );
+});
 
 test("renders each screen with purpose, nested elements and behavior", () => {
   const markdown = buildProjectMarkdown(project);

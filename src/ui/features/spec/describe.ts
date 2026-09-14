@@ -26,8 +26,23 @@ export function outlineElements(
     });
 }
 
+export function buildProjectFlow(project: Project) {
+  const lines: string[] = [];
+  for (const screen of project.screens) {
+    const features = project.features.filter(
+      (feature) => feature.screenId === screen.id,
+    );
+    for (const feature of features)
+      lines.push(`- ${screen.name}: ${describeFeature(project, feature)}`);
+  }
+  return lines;
+}
+
 export function buildProjectMarkdown(project: Project) {
   const lines: string[] = ["# Sketchy Spec", ""];
+  lines.push("## Project Flow", "");
+  const flow = buildProjectFlow(project);
+  lines.push(...(flow.length ? flow : ["No behavior described yet."]), "");
   for (const screen of project.screens) {
     const elements = project.elements.filter(
       (element) => element.screenId === screen.id,
