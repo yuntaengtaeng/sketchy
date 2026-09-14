@@ -79,8 +79,21 @@ async function route(
   if (request.method === "GET" && parts.length === 4)
     return success(await service.getProject(principal, projectId));
 
+  // Figma Plugin이 Canvas 편집 결과를 전체 문서로 업로드하는 push 경로
+  if (request.method === "PUT" && parts.length === 4) {
+    const document = (await readJson(
+      request,
+      projectDocumentSchema.strict(),
+    )) as ProjectDocument;
+    return success(await service.sync(principal, projectId, document));
+  }
+
   if (request.method === "GET" && parts.length === 6 && parts[4] === "screens")
     return success(await service.getScreen(principal, projectId, parts[5]));
+
+  // Figma Plugin이 pull 시 사용하는 전체 문서 조회, GET /projects/{id}의 요약본과 구분
+  if (request.method === "GET" && parts.length === 5 && parts[4] === "document")
+    return success(await service.getDocument(principal, projectId));
 
   if (
     request.method === "POST" &&

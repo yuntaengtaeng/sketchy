@@ -19,12 +19,16 @@ import {
 } from "./commands/canvas";
 import { applyProjectImport } from "./commands/apply-project-import";
 import { renderFlow } from "./commands/render-flow";
+import { SKETCHY_ENDPOINT } from "./commands/remote-sync";
+import { createSyncLoop } from "./sync-loop";
 import {
   cleanProject,
   readProject,
   readProjectMetadata,
+  readSyncState,
   saveProjectSnapshot,
   updateProjectSettings,
+  writeSyncState,
 } from "./storage/project";
 
 figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
@@ -36,11 +40,35 @@ let pendingImport:
   { baseRevision: number; document: ProjectDocument } | undefined;
 const AUTH_SESSION_KEY = "sketchy:auth-session";
 
-async function postAuthState() {
-  const session = (await figma.clientStorage.getAsync(AUTH_SESSION_KEY)) as
+async function readAuthSession() {
+  return (await figma.clientStorage.getAsync(AUTH_SESSION_KEY)) as
     AuthSession | undefined;
-  figma.ui.postMessage({ type: "AUTH_STATE", account: session?.user });
 }
+
+async function postAuthState() {
+  figma.ui.postMessage({
+    type: "AUTH_STATE",
+    account: (await readAuthSession())?.user,
+  });
+}
+
+async function signOut() {
+  await figma.clientStorage.deleteAsync(AUTH_SESSION_KEY);
+  await postAuthState();
+  syncLoop.stop();
+}
+
+// push, pull, projection 확인, 주기 폴링은 sync-loop 모듈에 위임
+const syncLoop = createSyncLoop({
+  readSession: readAuthSession,
+  onProjectPulled: (project) => sync(project, true),
+  applyProjectImport,
+  onStatusChange: (status) => {
+    figma.ui.postMessage({ type: "SYNC_STATUS", status });
+    // 인증 만료는 다시 로그인해야 하므로 로그아웃 상태로 되돌려 Sign-in 버튼을 노출
+    if (status === "auth-expired") void signOut();
+  },
+});
 
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -69,6 +97,7 @@ async function sync(project: Project = readProject(), draw = false) {
     project = await cleanProject(project);
     if (draw) await renderFlow(project);
     figma.ui.postMessage({ type: "STATE", project, ...selection() });
+    void syncLoop.pushLocalChanges(project);
   } finally {
     if (draw)
       suppressTimer = setTimeout(() => (suppressDocumentChange = false), 200);
@@ -80,18 +109,16 @@ figma.ui.onmessage = async (message: PluginMessage) => {
     if (message.type === "READY") {
       await postAuthState();
       await sync(readProject(), true);
+      if (readSyncState().connected) syncLoop.start();
     }
     if (message.type === "SAVE_AUTH_SESSION") {
       await figma.clientStorage.setAsync(AUTH_SESSION_KEY, message.session);
       await postAuthState();
+      if (readSyncState().connected) syncLoop.start();
     }
-    if (message.type === "SIGN_OUT") {
-      await figma.clientStorage.deleteAsync(AUTH_SESSION_KEY);
-      await postAuthState();
-    }
+    if (message.type === "SIGN_OUT") await signOut();
     if (message.type === "CONNECT_AGENT") {
-      const session = (await figma.clientStorage.getAsync(AUTH_SESSION_KEY)) as
-        AuthSession | undefined;
+      const session = await readAuthSession();
       if (!session) throw new Error("Sign in before connecting Codex.");
       const project = await cleanProject(readProject());
       let metadata = readProjectMetadata();
@@ -100,9 +127,8 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         metadata,
         figma.fileKey || "local-development",
       );
-      const endpoint = "https://sketchy.dbsxo360.workers.dev";
       const create = () =>
-        fetch(`${endpoint}/api/v1/projects`, {
+        fetch(`${SKETCHY_ENDPOINT}/api/v1/projects`, {
           method: "POST",
           headers: {
             authorization: `Bearer ${session.token}`,
@@ -113,7 +139,7 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       let response = await create();
       if (response.status === 409) {
         const existing = await fetch(
-          `${endpoint}/api/v1/projects/${encodeURIComponent(document.id)}`,
+          `${SKETCHY_ENDPOINT}/api/v1/projects/${encodeURIComponent(document.id)}`,
           { headers: { authorization: `Bearer ${session.token}` } },
         );
         if (!existing.ok) {
@@ -133,16 +159,21 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       }
       if (!response.ok && response.status !== 409)
         throw new Error("Could not connect this project. Try again.");
+      writeSyncState({
+        connected: true,
+        lastSyncedRevision: metadata.revision,
+      });
+      syncLoop.start();
       figma.ui.postMessage({
         type: "AGENT_CONNECTION",
         connection: {
           agent: message.agent,
           setup:
             message.agent === "codex"
-              ? `codex mcp add sketchy-figma --url "${endpoint}/mcp"\ncodex mcp login sketchy-figma`
+              ? `codex mcp add sketchy-figma --url "${SKETCHY_ENDPOINT}/mcp"\ncodex mcp login sketchy-figma`
               : message.agent === "claude-code"
-                ? `claude mcp add --transport http --scope user sketchy-figma "${endpoint}/mcp"`
-                : `${endpoint}/mcp`,
+                ? `claude mcp add --transport http --scope user sketchy-figma "${SKETCHY_ENDPOINT}/mcp"`
+                : `${SKETCHY_ENDPOINT}/mcp`,
         },
       });
     }

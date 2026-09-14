@@ -6,6 +6,9 @@ import type {
 } from "../core/project-change.ts";
 import { previewProjectChanges } from "../core/validate-project-changes.ts";
 
+// MCP, HTTP API가 공유하는 Preview, Apply 실행 레이어
+// 검증은 validate-project-changes에 위임하고 여기서는 revision, idempotency, Figma Projection 갱신만 담당
+
 export function previewChanges(
   document: ProjectDocument,
   request: ProjectChangeRequest,
@@ -66,22 +69,48 @@ export function applyChanges(
     };
 
   const project = previewProjectChanges(document, request).nextProject!;
-  const revision = document.revision + 1;
+  const projectionChange = request.changes.find(
+    (
+      change,
+    ): change is Extract<ProjectChange, { type: "RECORD_FIGMA_PROJECTION" }> =>
+      change.type === "RECORD_FIGMA_PROJECTION",
+  );
+  // Projection 확인 단독 배치는 Canonical Project를 바꾸지 않으므로 revision 유지
+  // 그 외 배치는 기존과 동일하게 revision 증가
+  const isProjectionOnly = request.changes.length === 1 && !!projectionChange;
+  const revision = isProjectionOnly ? document.revision : document.revision + 1;
   const entityIds = new Set([
     ...project.screens.map((item) => item.id),
     ...project.elements.map((item) => item.id),
   ]);
-  const figmaProjection = document.figmaProjection
+  // RECORD_FIGMA_PROJECTION이 있으면 그 값을 그대로 반영
+  // 없으면 Canonical Project가 바뀐 것이므로 기존 Projection을 pending으로 내리고
+  // 삭제된 엔티티의 node 매핑은 제거
+  const figmaProjection = projectionChange
     ? {
-        ...document.figmaProjection,
-        status: "pending" as const,
-        nodes: Object.fromEntries(
-          Object.entries(document.figmaProjection.nodes).filter(([id]) =>
-            entityIds.has(id),
-          ),
-        ),
+        fileKey: projectionChange.projection.fileKey,
+        status: projectionChange.projection.status,
+        lastSyncedRevision:
+          projectionChange.projection.status === "synced"
+            ? projectionChange.projection.revision
+            : document.figmaProjection?.lastSyncedRevision,
+        nodes:
+          projectionChange.projection.nodes ??
+          document.figmaProjection?.nodes ??
+          {},
+        lastError: projectionChange.projection.error,
       }
-    : undefined;
+    : document.figmaProjection
+      ? {
+          ...document.figmaProjection,
+          status: "pending" as const,
+          nodes: Object.fromEntries(
+            Object.entries(document.figmaProjection.nodes).filter(([id]) =>
+              entityIds.has(id),
+            ),
+          ),
+        }
+      : undefined;
   const nextDocument: ProjectDocument = {
     ...document,
     revision,

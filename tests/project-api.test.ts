@@ -88,4 +88,38 @@ test("serves the Project API through development Bearer authentication", async (
       message: "Invalid request body.",
     },
   });
+
+  const synced = await api(
+    new Request("https://sketchy.test/api/v1/projects/project", {
+      method: "PUT",
+      headers: {
+        authorization: "Bearer secret",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        ...record.document,
+        revision: 4,
+        project: {
+          ...record.document.project,
+          screens: [{ id: "home", name: "Main", purpose: "Start" }],
+        },
+      }),
+    }),
+  );
+  assert.equal(synced.status, 200);
+  assert.deepEqual(await synced.json(), {
+    id: "project",
+    revision: 4,
+    updatedAt: "2026-09-13T00:00:00.000Z",
+    settings: { screenPreset: "mobile" },
+    screens: [{ id: "home", name: "Main", purpose: "Start" }],
+  });
+
+  const full = await api(
+    new Request("https://sketchy.test/api/v1/projects/project/document", {
+      headers: { authorization: "Bearer secret" },
+    }),
+  );
+  assert.equal(full.status, 200);
+  assert.deepEqual(await full.json(), record.document);
 });

@@ -2,14 +2,40 @@ import {
   createEmptyProject,
   type Project,
   type ProjectSettings,
-} from "../../shared";
-import { readingOrder } from "../reading-order";
-import { adoptCanvasName } from "../canvas-name";
-import type { ProjectMetadata } from "../../core/project-change";
-import { migrateStoredProject, parseStoredProject } from "./project-migration";
+} from "../../shared/index.ts";
+import { readingOrder } from "../reading-order.ts";
+import { adoptCanvasName } from "../canvas-name.ts";
+import type { ProjectMetadata } from "../../core/project-change.ts";
+import {
+  migrateStoredProject,
+  parseStoredProject,
+} from "./project-migration.ts";
 
 const KEY = "sketchy:project";
 const METADATA_KEY = "sketchy:project-metadata";
+const SYNC_STATE_KEY = "sketchy:sync-state";
+
+// connected는 이 Figma 문서가 원격 Project에 연결됐는지
+// lastSyncedRevision은 로컬과 서버가 마지막으로 일치했던 revision, decideSync의 기준점
+export type SyncState = { connected: boolean; lastSyncedRevision: number };
+
+export function readSyncState(): SyncState {
+  try {
+    const stored = JSON.parse(figma.root.getPluginData(SYNC_STATE_KEY));
+    if (
+      typeof stored.connected === "boolean" &&
+      Number.isInteger(stored.lastSyncedRevision)
+    )
+      return stored;
+  } catch {
+    // Fall back to the disconnected default below.
+  }
+  return { connected: false, lastSyncedRevision: 0 };
+}
+
+export function writeSyncState(state: SyncState) {
+  figma.root.setPluginData(SYNC_STATE_KEY, JSON.stringify(state));
+}
 
 export function readProjectMetadata(): ProjectMetadata {
   try {

@@ -3,6 +3,7 @@ import {
   createEmptyProject,
   type AgentConnection,
   type SketchyAccount,
+  type SyncStatus,
   type UiMessage,
 } from "../shared";
 import { BackNavigation, Header, type Tab } from "./components/header";
@@ -23,6 +24,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [account, setAccount] = useState<SketchyAccount>();
   const [agentConnection, setAgentConnection] = useState<AgentConnection>();
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>();
   const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
   const context =
@@ -32,6 +34,7 @@ export default function App() {
 
   useEffect(() => {
     let errorTimer: ReturnType<typeof setTimeout>;
+    let syncStatusTimer: ReturnType<typeof setTimeout>;
     onmessage = ({ data }) => {
       const message = data.pluginMessage as UiMessage;
       if (message?.type === "STATE") {
@@ -42,6 +45,13 @@ export default function App() {
       if (message?.type === "AUTH_STATE") setAccount(message.account);
       if (message?.type === "AGENT_CONNECTION")
         setAgentConnection(message.connection);
+      if (message?.type === "SYNC_STATUS") {
+        clearTimeout(syncStatusTimer);
+        setSyncStatus(message.status);
+        // syncing, applied는 지나가는 안내, conflict와 auth-expired는 조치가 필요해 유지
+        if (message.status === "syncing" || message.status === "applied")
+          syncStatusTimer = setTimeout(() => setSyncStatus(undefined), 4000);
+      }
       if (message?.type === "ERROR") {
         clearTimeout(errorTimer);
         setError(message.message);
@@ -49,7 +59,10 @@ export default function App() {
       }
     };
     post({ type: "READY" });
-    return () => clearTimeout(errorTimer);
+    return () => {
+      clearTimeout(errorTimer);
+      clearTimeout(syncStatusTimer);
+    };
   }, []);
 
   return (
@@ -76,6 +89,7 @@ export default function App() {
           settings={project.settings}
           account={account}
           agentConnection={agentConnection}
+          syncStatus={syncStatus}
         />
       )}
       {route.name === "workspace" && tab === "build" && (

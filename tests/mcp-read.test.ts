@@ -251,6 +251,47 @@ test("keeps a create, edit, action, and delete workflow atomic across revisions"
   assert.deepEqual(stored.figmaProjection?.nodes, { checkout: "1:2" });
 });
 
+test("records a Figma projection confirmation without touching the project", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "sketchy-projection-"));
+  const file = join(directory, "project.json");
+  const pending: ProjectDocument = {
+    ...document,
+    figmaProjection: { ...document.figmaProjection!, status: "pending" },
+  };
+  await writeFile(file, JSON.stringify(pending));
+  const request = {
+    projectId: document.id,
+    baseRevision: pending.revision,
+    idempotencyKey: "confirm-projection",
+    changes: [
+      {
+        type: "RECORD_FIGMA_PROJECTION" as const,
+        projection: {
+          fileKey: "figma-file",
+          status: "synced" as const,
+          revision: pending.revision,
+          nodes: { checkout: "1:2", buy: "1:3" },
+        },
+      },
+    ],
+  };
+  const previewId = previewChanges(pending, request).previewId;
+
+  const applied = await applyToFile(file, previewId, request);
+  const stored = await readProjectDocument(file);
+
+  assert.ok(applied.applied);
+  assert.equal(stored.revision, pending.revision);
+  assert.equal((applied as { revision: number }).revision, pending.revision);
+  assert.deepEqual(stored.project, pending.project);
+  assert.equal(stored.figmaProjection?.status, "synced");
+  assert.equal(stored.figmaProjection?.lastSyncedRevision, pending.revision);
+  assert.deepEqual(stored.figmaProjection?.nodes, {
+    checkout: "1:2",
+    buy: "1:3",
+  });
+});
+
 async function applyToFile(
   file: string,
   previewId: string,

@@ -7,6 +7,9 @@ import type {
   Screen,
 } from "../shared/index.ts";
 
+// Sketchy Canonical Project 모델과 변경 배치 타입 정의
+// Figma nodeId 없이 순수 도메인 데이터만 다루는 서버, MCP 공용 레이어
+
 export type DomainScreen = Omit<Screen, "nodeId">;
 export type DomainElement = Omit<Element, "nodeId">;
 
@@ -17,6 +20,7 @@ export type CanonicalProject = {
   features: Feature[];
 };
 
+/** Figma Canvas 반영 상태, pending은 Plugin 적용 대기, synced는 Plugin이 확인 완료 */
 export type FigmaProjection = {
   fileKey: string;
   status: "pending" | "synced" | "failed";
@@ -31,6 +35,7 @@ export type ProjectDocument = {
   updatedAt: string;
   project: CanonicalProject;
   figmaProjection?: FigmaProjection;
+  // idempotencyKey별 적용 결과 기록, 동일 키 재요청 시 중복 적용 대신 이 값으로 응답
   appliedBatches?: Record<string, { revision: number; previewId: string }>;
 };
 
@@ -39,6 +44,7 @@ export type ProjectMetadata = Pick<
   "id" | "revision" | "updatedAt"
 >;
 
+/** Figma Plugin이 Canvas 상태로부터 전체 ProjectDocument 생성, 항상 synced 상태로 시작 */
 export function createProjectDocument(
   project: Project,
   metadata: ProjectMetadata,
@@ -119,6 +125,7 @@ export type ProjectChange =
       patch: FeatureCasePatch;
     }
   | { type: "REMOVE_ELEMENT_CASE"; featureId: string }
+  // Plugin이 Canvas 반영을 확인할 때 보내는 유일한 변경, 단독 배치일 때만 revision 유지
   | { type: "RECORD_FIGMA_PROJECTION"; projection: ProjectionResult };
 
 export type ProjectChangeRequest = {

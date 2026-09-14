@@ -24,6 +24,8 @@ export type ProjectStore = {
   replace(record: ProjectRecord, expectedRevision: number): Promise<boolean>;
 };
 
+// Project 소유권 확인, scope 검사, revision 충돌 처리를 담당하는 서비스 경계
+// D1, MCP 로컬 파일 등 실제 저장 방식은 ProjectStore 구현체에 위임
 export class ProjectService {
   private readonly store: ProjectStore;
 
@@ -45,6 +47,13 @@ export class ProjectService {
   async getProject(principal: ProjectPrincipal, projectId: string) {
     const record = await this.readOwned(principal, projectId, "project:read");
     return getProject(record.document);
+  }
+
+  // Figma Plugin이 pull 시 사용하는 전체 ProjectDocument 조회
+  // getProject의 요약본과 달리 elements, features를 포함해 Canvas 재구성에 사용
+  async getDocument(principal: ProjectPrincipal, projectId: string) {
+    const record = await this.readOwned(principal, projectId, "project:read");
+    return record.document;
   }
 
   async listProjects(principal: ProjectPrincipal) {
@@ -69,6 +78,46 @@ export class ProjectService {
         "Screen does not exist.",
       );
     }
+  }
+
+  // Figma Plugin이 Canvas 편집 결과를 전체 문서로 밀어올리는 push
+  // Agent 배치처럼 개별 변경을 검증하지 않고 revision이 정확히 하나 앞선 문서만 허용
+  // appliedBatches는 클라이언트 값을 신뢰하지 않고 서버 보관본을 그대로 유지
+  async sync(
+    principal: ProjectPrincipal,
+    projectId: string,
+    document: ProjectDocument,
+  ) {
+    requireProjectId(projectId, document.id);
+    const record = await this.readOwned(principal, projectId, "project:write");
+    const expectedRevision = record.document.revision;
+    if (document.revision !== expectedRevision + 1)
+      throw new ProjectServiceError(
+        409,
+        "REVISION_CONFLICT",
+        "Project changed on the server before this sync.",
+      );
+
+    const saved = await this.store.replace(
+      {
+        ...record,
+        document: {
+          ...document,
+          appliedBatches: record.document.appliedBatches,
+        },
+      },
+      expectedRevision,
+    );
+    if (!saved)
+      throw new ProjectServiceError(
+        409,
+        "REVISION_CONFLICT",
+        "Project changed on the server before this sync.",
+      );
+    return getProject({
+      ...document,
+      appliedBatches: record.document.appliedBatches,
+    });
   }
 
   async preview(

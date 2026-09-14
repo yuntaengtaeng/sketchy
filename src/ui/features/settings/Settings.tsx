@@ -6,18 +6,28 @@ import {
   type ProjectSettings,
   type ScreenPreset,
   type SketchyAccount,
+  type SyncStatus,
 } from "../../../shared";
 import { copyText, post } from "../../plugin";
 import styles from "./Settings.module.css";
+
+const SYNC_STATUS_TEXT: Record<SyncStatus, string> = {
+  syncing: "Syncing agent changes…",
+  applied: "Agent changes applied",
+  conflict: "Couldn't sync because this Figma file also changed. Try again.",
+  "auth-expired": "Signed out because your session expired, sign in again.",
+};
 
 export default function Settings({
   settings,
   account,
   agentConnection,
+  syncStatus,
 }: {
   settings: ProjectSettings;
   account?: SketchyAccount;
   agentConnection?: AgentConnection;
+  syncStatus?: SyncStatus;
 }) {
   const [signInStatus, setSignInStatus] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
@@ -161,6 +171,14 @@ export default function Settings({
         {signInStatus && (
           <p className={styles.status} role="status">
             {signInStatus}
+          </p>
+        )}
+        {syncStatus && (
+          <p
+            className={styles.status}
+            role={syncStatus === "conflict" ? "alert" : "status"}
+          >
+            {SYNC_STATUS_TEXT[syncStatus]}
           </p>
         )}
         {agentConnection && (

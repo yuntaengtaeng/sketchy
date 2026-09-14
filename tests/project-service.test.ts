@@ -108,3 +108,74 @@ test("keeps ownership and revision checks at the Project service boundary", asyn
   );
   store.replace = originalReplace;
 });
+
+test("syncs a Figma-authored document only when it targets the next revision", async () => {
+  const records = new Map<string, ProjectRecord>();
+  const store: ProjectStore = {
+    async create(record) {
+      records.set(record.document.id, record);
+      return true;
+    },
+    async get(projectId) {
+      return records.get(projectId);
+    },
+    async listByOwner() {
+      return [];
+    },
+    async replace(record, expectedRevision) {
+      const current = records.get(record.document.id);
+      if (current?.document.revision !== expectedRevision) return false;
+      records.set(record.document.id, record);
+      return true;
+    },
+  };
+  const service = new ProjectService(store);
+  await service.create(owner, document);
+
+  const batch: ProjectChangeRequest = {
+    projectId: document.id,
+    baseRevision: 0,
+    idempotencyKey: "agent-rename",
+    changes: [
+      { type: "UPDATE_SCREEN", screenId: "home", patch: { name: "Landing" } },
+    ],
+  };
+  const preview = await service.preview(owner, document.id, batch);
+  await service.apply(owner, document.id, preview.previewId, batch);
+
+  const next: ProjectDocument = {
+    ...document,
+    revision: 2,
+    project: {
+      ...document.project,
+      screens: [{ id: "home", name: "Main", purpose: "Start" }],
+    },
+  };
+  const synced = await service.sync(owner, document.id, next);
+  assert.equal(synced.revision, 2);
+  assert.equal(synced.screens[0].name, "Main");
+
+  const replayed = await service.apply(
+    owner,
+    document.id,
+    preview.previewId,
+    batch,
+  );
+  assert.equal(replayed.applied, true);
+  assert.equal((replayed as { idempotent: boolean }).idempotent, true);
+
+  await assert.rejects(
+    service.sync(owner, document.id, { ...next, revision: 4 }),
+    (error: unknown) =>
+      error instanceof ProjectServiceError &&
+      error.status === 409 &&
+      error.code === "REVISION_CONFLICT",
+  );
+  await assert.rejects(
+    service.sync(owner, document.id, { ...next, revision: 2 }),
+    (error: unknown) =>
+      error instanceof ProjectServiceError &&
+      error.status === 409 &&
+      error.code === "REVISION_CONFLICT",
+  );
+});

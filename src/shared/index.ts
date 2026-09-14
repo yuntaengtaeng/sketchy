@@ -138,6 +138,9 @@ export type AgentConnection = {
   setup: string;
 };
 
+// Figma Plugin과 서버 사이 자동 동기화 상태, conflict와 auth-expired만 사용자 조치 필요
+export type SyncStatus = "syncing" | "applied" | "conflict" | "auth-expired";
+
 export type ProjectImportPreview = {
   valid: boolean;
   applied?: boolean;
@@ -245,4 +248,5 @@ export type UiMessage =
   | { type: "AUTH_STATE"; account?: SketchyAccount }
   | { type: "AGENT_CONNECTION"; connection: AgentConnection }
   | { type: "PROJECT_IMPORT_PREVIEW"; preview: ProjectImportPreview }
+  | { type: "SYNC_STATUS"; status: SyncStatus }
   | { type: "ERROR"; message: string };
