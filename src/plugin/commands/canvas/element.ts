@@ -63,31 +63,28 @@ export async function insertBlock(
 
 // order는 figma 시각 위치에서 자동 계산되므로(normalizeElementOrder) 노드
 // 트리에서 실제 위치만 바꾸면 다음 sync에서 order가 알아서 따라온다
+// 형제 판정은 실제 Figma 자식 배열(시각적 진실)을 기준으로 하고, model의
+// order 필드(오래됐을 수 있음)는 어떤 요소들이 형제인지 판단할 때만 쓴다
 export async function moveElement(elementId: string, direction: "up" | "down") {
   const project = readProject();
   const element = project.elements.find((item) => item.id === elementId);
   if (!element) return project;
-  const siblings = elementSiblings(project.elements, element);
-  const index = siblings.findIndex((item) => item.id === elementId);
-  const target = siblings[direction === "up" ? index - 1 : index + 1];
-  if (!target) return project;
   const node = await figma.getNodeByIdAsync(element.nodeId);
-  const targetNode = await figma.getNodeByIdAsync(target.nodeId);
-  if (
-    !node ||
-    !targetNode ||
-    !("parent" in node) ||
-    node.parent?.type !== "FRAME" ||
-    node.parent !== targetNode.parent
-  )
+  if (!node || !("parent" in node) || node.parent?.type !== "FRAME")
     return project;
   const parent = node.parent;
-  const withoutNode = parent.children.filter((child) => child.id !== node.id);
-  const targetIndex = withoutNode.indexOf(targetNode as SceneNode);
-  parent.insertChild(
-    direction === "up" ? targetIndex : targetIndex + 1,
-    node as SceneNode,
+  const siblingElementIds = new Set(
+    elementSiblings(project.elements, element).map((item) => item.id),
   );
+  const visualSiblings = parent.children.filter((child) =>
+    siblingElementIds.has(child.getPluginData("sketchy:element-id")),
+  );
+  const index = visualSiblings.indexOf(node as SceneNode);
+  const target = visualSiblings[direction === "up" ? index - 1 : index + 1];
+  if (index === -1 || !target) return project;
+  // insertChild(index, ...)의 index는 이동 대상을 뺀 배열이 아니라 원본
+  // 자식 배열 기준이므로, target의 원래 위치를 그대로 넘기면 된다
+  parent.insertChild(parent.children.indexOf(target), node as SceneNode);
   return project;
 }
 
