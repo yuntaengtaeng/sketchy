@@ -35,6 +35,7 @@
 ## 보관 문서
 
 - [v4 통합 원문](./archive/SKETCHY_PROJECT_v4.md) — 분리 전 원본. 현재 문서와 충돌하면 위 주제별 문서를 따른다.
+- [MCP × Figma Agent 연동 구상](./archive/mcp-figma-agent-concept.md) — Remote MCP 이전 초기 탐색안. 실행 기준은 [Sketchy MCP v1 설계](./development/mcp-v1.md)와 [Remote MCP와 Sketchy API](./development/remote-mcp.md)를 따른다.
 
 ## UX 검토 자료
 

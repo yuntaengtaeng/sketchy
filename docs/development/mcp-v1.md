@@ -210,16 +210,19 @@ Figma Canvas 변경  → 외부 변경
 ```
 
 Plugin이 열려 있으면 `documentchange`로 외부 변경을 감지하고, 닫힌 동안의 변경은
-다음 Plugin 실행 때 정리한다. 승인 전 우선순위는 사용자 Figma 작업이므로 Screen과
-Element의 삭제·이름·읽기 순서를 Sketchy Project에 반영하고 revision을 올린다. 이전
-Export를 기준으로 만든 Agent 변경은 기존 revision 검사에서 차단된다.
+다음 Plugin 실행 때 정리한다. Screen과 Element의 삭제·이름·읽기 순서를 Sketchy
+Project에 반영하고 revision을 올린다.
 
-Section 부모 이동과 임의 스타일 변경은 의미 모델로 가져오지 않는다. 승인된 Agent
-변경은 사용자가 `Apply to Figma`를 누른 시점부터 우선한다. `Sketchy로 복원`은 실제
-복원 요구가 확인되기 전까지 제공하지 않는다.
+이 revision 상승은 API 연결 이후 Plugin과 Agent 사이 자동 양방향 동기화의
+입력이 된다. Plugin은 열려 있는 동안 이 revision을 서버에 자동으로 push하고,
+Agent가 올린 revision을 자동으로 pull해 Canvas에 반영한다. 로컬과 원격이 동시에
+바뀌면 어느 쪽도 자동으로 덮어쓰지 않고 상태만 알린다. 구체적인 계약은
+[Remote MCP와 Sketchy API의 자동 양방향 동기화](./remote-mcp.md#자동-양방향-동기화)를
+따른다.
 
-위 범위 밖의 Canvas 변경을 Sketchy 의미 모델로 가져오는 기능은 별도의 명시적인
-Import/Adopt 작업이다. v1에서는 범용 자동 역동기화하지 않는다.
+Section 부모 이동과 임의 스타일 변경은 의미 모델로 가져오지 않는다. 위 범위
+밖의 Canvas 변경을 Sketchy 의미 모델로 가져오는 기능은 별도의 명시적인
+Import/Adopt 작업이다.
 
 ## 권한과 보안
 
@@ -312,6 +315,14 @@ Agent 변경을 Figma에 적용할 때 Element 읽기 순서도 같은 revision 
 - node mapping과 sync status 기록
 - 실패 재시도와 외부 변경 감지
 
+node mapping·sync status 기록과 외부 변경 감지는 Remote MCP 전환 이후 자동
+양방향 동기화로 완료했다. Plugin이 poll로 revision 차이를 감지해 pull하고,
+Canvas에 반영한 뒤 `RECORD_FIGMA_PROJECTION`으로 `synced` 상태를 기록한다.
+실패는 조용히 재시도하되 인증 만료·충돌만 Settings에 상태로 알린다. 자세한
+계약은 [Remote MCP와 Sketchy API의 자동 양방향 동기화](./remote-mcp.md#자동-양방향-동기화)를
+따른다. Figma MCP를 이용한 Projection task 생성(native Figma content 조립)은
+아직 남아 있다.
+
 ## 로컬 MCP v1 완료 감사 — 2026-09-13
 
 완료:
@@ -337,7 +348,6 @@ Remote MCP, Sketchy API, 인증, 다중 Project와 Export 제거는 로컬 v1 �
 - 과금 모델
 - 다중 Figma 파일 Projection
 - 실시간 공동 편집
-- Canvas → Sketchy 자동 역동기화
 - Claude Desktop Extension 서명과 공개 Directory 배포
 
 이 항목은 Phase 1 또는 실제 사용 근거가 생길 때 결정한다.

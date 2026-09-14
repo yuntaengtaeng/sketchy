@@ -7,9 +7,10 @@ Export 없이 Figma Plugin과 AI Agent가 같은 Project를 사용하기 위한 
 
 - 현재: Figma Plugin의 Build·Flow·Spec은 일반 사용자도 로그인 없이 사용한다.
 - 현재: Google 로그인, Project 최초 등록과 Codex용 Remote MCP OAuth를 구현했다.
+- 현재: Plugin이 열려 있는 동안 Agent 변경과 Figma Canvas 편집을 양방향으로
+  자동 동기화한다. `Apply to Figma`나 `Export` 같은 수동 단계는 없다.
 - 개발자용: Local MCP는 Sketchy 저장소를 가진 개발자와 내부 검증에서만 사용한다.
-- 미래: 지속적인 Cloud Project 동기화, Agent 변경의 Figma Apply와 Free·Pro 제한은
-  아직 제품 기능으로 제공하지 않는다.
+- 미래: Free·Pro 제한은 아직 제품 기능으로 제공하지 않는다.
 
 ## 초기 배포 결정
 
@@ -34,14 +35,22 @@ Cloudflare D1
 
 개별 Screen이나 Element CRUD를 만들지 않는다. 기존 Batch 계약을 그대로 사용한다.
 
-| Method | Path                                              | 역할                                      |
-| ------ | ------------------------------------------------- | ----------------------------------------- |
-| `POST` | `/api/v1/projects`                                | 기존 pluginData Project를 최초 한 번 연결 |
-| `GET`  | `/api/v1/projects/{projectId}`                    | Project, revision과 Screen 목록 조회      |
-| `GET`  | `/api/v1/projects/{projectId}/screens/{screenId}` | 한 Screen의 Element와 Feature 조회        |
-| `POST` | `/api/v1/projects/{projectId}/previews`           | Batch 검증, 저장하지 않음                 |
-| `POST` | `/api/v1/projects/{projectId}/changes`            | 승인된 Preview를 원자적으로 적용          |
-| `POST` | `/mcp?projectId={projectId}`                      | 동일한 네 MCP Tool 제공                   |
+| Method | Path                                              | 역할                                                          |
+| ------ | ------------------------------------------------- | ------------------------------------------------------------- |
+| `POST` | `/api/v1/projects`                                | 기존 pluginData Project를 최초 한 번 연결                     |
+| `GET`  | `/api/v1/projects/{projectId}`                    | Project, revision과 Screen 목록 조회 (Agent용 요약)           |
+| `GET`  | `/api/v1/projects/{projectId}/document`           | elements·features를 포함한 전체 Document 조회 (Plugin pull용) |
+| `PUT`  | `/api/v1/projects/{projectId}`                    | Figma Canvas 편집을 전체 Document로 반영 (Plugin push용)      |
+| `GET`  | `/api/v1/projects/{projectId}/screens/{screenId}` | 한 Screen의 Element와 Feature 조회                            |
+| `POST` | `/api/v1/projects/{projectId}/previews`           | Batch 검증, 저장하지 않음                                     |
+| `POST` | `/api/v1/projects/{projectId}/changes`            | 승인된 Preview를 원자적으로 적용                              |
+| `POST` | `/mcp?projectId={projectId}`                      | 동일한 네 MCP Tool 제공                                       |
+
+`GET /{projectId}`는 Agent가 매 요청마다 읽기에 가볍도록 elements를 뺀 요약만
+반환한다. Plugin의 poll도 이 요약만 조회해 revision을 비교하고, 실제로 반영할
+때만 `/document`로 전체 내용을 받는다. `PUT`은 `POST /projects`와 같은 전체
+Document Schema를 받지만 `revision`이 서버 현재값 + 1일 때만 허용하고, 그 외에는
+Batch Apply와 동일하게 `409 REVISION_CONFLICT`를 반환한다.
 
 Project 생성 이후 모든 요청의 path `projectId`, 인증 사용자, request의
 `projectId`가 일치해야 한다. 알 수 없는 필드는 거절한다.
@@ -93,24 +102,47 @@ revision이 다르면 `409 REVISION_CONFLICT`를 반환하며 일부 변경은 �
 ## Export 제거 흐름
 
 최초 연결 때만 Plugin의 기존 `pluginData` Project를 API에 올린다. 이후에는
-Project ID만 pluginData에 남기고 Plugin과 Agent 모두 API의 최신 revision을 읽는다.
+Project ID와 동기화 상태(`sketchy:sync-state`)만 pluginData에 남기고 Plugin과
+Agent 모두 API의 최신 revision을 읽는다.
 
 ```text
 Plugin 최초 연결
 → 기존 Project 업로드
 → API Project ID 저장
 → 이후 API에서 읽기·쓰기
-
-Agent Apply
-→ API revision 증가
-→ Plugin에서 변경 검토
-→ Figma Canvas 반영
-→ Projection synced 기록
 ```
 
-Plugin이 닫힌 동안 Figma에서 직접 바꾼 내용은 다음 Plugin 실행 때 기존 원칙대로
-먼저 정리한 후 API Batch로 반영한다. revision 충돌 시 사용자 Canvas를 자동으로
-덮어쓰지 않는다.
+## 자동 양방향 동기화
+
+Plugin이 열려 있는 동안 4초 간격으로 revision 요약을 poll하고,
+`localRevision`·`remoteRevision`·`lastSyncedRevision` 세 값만으로 다음 행동을
+정한다 (`src/plugin/sync-decision.ts`).
+
+```text
+로컬만 lastSynced보다 앞섬   → push
+원격만 lastSynced보다 앞섬   → pull
+둘 다 lastSynced보다 앞섬    → conflict, 아무 것도 하지 않음
+```
+
+```text
+Agent Apply                         Figma Canvas 직접 편집
+→ API revision 증가                  → documentchange 감지 (debounce)
+→ Plugin poll이 revision 차이 감지    → PUT 전체 Document (revision = 현재 + 1)
+→ GET /document로 전체 내용 조회      → 실패 시(주로 revision 충돌) 재시도하지 않고
+→ 기존 Import 검증기로 Canvas 반영      다음 poll의 conflict 판정에 맡김
+→ RECORD_FIGMA_PROJECTION으로
+  Projection을 synced로 확인 기록
+```
+
+`RECORD_FIGMA_PROJECTION` 단독 배치는 Canonical Project를 바꾸지 않으므로
+revision을 증가시키지 않는다. Pull 직후 이 확인 배치가 revision을 다시 올리면
+Plugin이 자기 자신의 확인을 다시 pull 대상으로 오판하는 진동이 생기기 때문이다.
+
+Plugin이 닫혀 있던 동안의 Agent 변경은 다음 실행의 첫 poll에서 즉시 pull한다.
+로컬과 원격이 동시에 바뀌면(conflict) 어느 쪽도 자동으로 덮어쓰지 않고 Settings의
+AI agents 영역에 상태만 표시한다 (`syncing` / `applied` / `conflict` /
+`auth-expired`). `auth-expired`는 401·403 응답에서만 발생하며 Plugin이 자동으로
+로그아웃해 재로그인을 유도한다.
 
 ## 인증 단계
 
