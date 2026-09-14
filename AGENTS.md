@@ -2,7 +2,14 @@
 
 Use `docs/README.md` to find product documents by role. This file is the single source of truth for agent instructions; `CLAUDE.md` imports it for Claude.
 
-Use the project-local `.agents/skills/ponytail/SKILL.md` skill at full intensity for every coding task in this repository.
+For every coding task, read and apply `.agents/skills/sketchy-code-style/SKILL.md` first. It is the highest-priority code guidance in this repository. Then apply `.agents/skills/ponytail/SKILL.md` at full intensity; when they conflict, `sketchy-code-style` wins.
+
+Also apply every specialist skill whose runtime is affected:
+
+- `.agents/skills/sketchy-figma-react/SKILL.md` for `src/ui`, `src/plugin`, or the Main ↔ UI contract.
+- `.agents/skills/sketchy-api-worker/SKILL.md` for `src/api`, Worker HTTP routes, authentication, OAuth, D1, or remote persistence.
+- `.agents/skills/sketchy-mcp/SKILL.md` for `src/mcp`, MCP tools/schemas/transports, or Preview/Apply agent workflows.
+- Cross-runtime changes use every applicable specialist skill. Keep shared domain rules in `core`/`shared`, not in runtime adapters.
 
 - Understand the affected flow before editing; fix root causes in the shared path.
 - Reuse existing code, then standard APIs, then installed dependencies.
