@@ -41,9 +41,19 @@ export async function renderFlow(project: Project) {
       "destinationScreenId" in feature.action &&
       feature.action.destinationScreenId,
   );
-  // 연결선 개수만큼 순차 await하던 것도 병렬로, 각 호출은 앞부분 조회 하나만
-  // await하고 그 뒤로는 동기 그리기라 서로 겹쳐 그릴 위험이 없다
-  await Promise.all(
-    links.map((link) => renderConnector(project, link, links, nodes)),
+  // 조회(느린 부분)만 병렬로 먼저 끝내고, 실제로 선을 그리는 동기 작업은
+  // 원래 배열 순서대로 순차 실행해 겹치는 연결선의 Z-order가 실행마다
+  // 달라지지 않게 한다
+  const sources = await Promise.all(
+    links.map((link) => {
+      const elementId = link.trigger?.elementId;
+      const element = elementId
+        ? project.elements.find((item) => item.id === elementId)
+        : undefined;
+      return element ? figma.getNodeByIdAsync(element.nodeId) : null;
+    }),
+  );
+  links.forEach((link, index) =>
+    renderConnector(project, link, links, nodes, sources[index]),
   );
 }

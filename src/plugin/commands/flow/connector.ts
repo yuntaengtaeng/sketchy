@@ -6,11 +6,12 @@ import {
 } from "../../flow-routing";
 import { drawLine, markGenerated } from "./generated";
 
-export async function renderConnector(
+export function renderConnector(
   project: Project,
   link: Feature,
   links: Feature[],
   nodes: Map<string, FrameNode>,
+  source: BaseNode | null,
 ) {
   if (
     !("destinationScreenId" in link.action) ||
@@ -22,7 +23,6 @@ export async function renderConnector(
   );
   const sourceScreen = element && nodes.get(element.screenId);
   const destination = nodes.get(link.action.destinationScreenId);
-  const source = element && (await figma.getNodeByIdAsync(element.nodeId));
   if (
     !element ||
     !sourceScreen ||

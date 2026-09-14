@@ -292,6 +292,44 @@ test("records a Figma projection confirmation without touching the project", asy
   });
 });
 
+test("does not trust a projection confirmation mixed into a content-changing batch", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "sketchy-mixed-batch-"));
+  const file = join(directory, "project.json");
+  await writeFile(file, JSON.stringify(document));
+  const request = {
+    projectId: document.id,
+    baseRevision: document.revision,
+    idempotencyKey: "mixed-batch",
+    changes: [
+      {
+        type: "UPDATE_SCREEN" as const,
+        screenId: "checkout",
+        patch: { name: "Checkout page" },
+      },
+      {
+        type: "RECORD_FIGMA_PROJECTION" as const,
+        projection: {
+          fileKey: "figma-file",
+          status: "synced" as const,
+          revision: document.revision,
+          nodes: { checkout: "1:2", buy: "1:3" },
+        },
+      },
+    ],
+  };
+  const previewId = previewChanges(document, request).previewId;
+
+  const applied = await applyToFile(file, previewId, request);
+  const stored = await readProjectDocument(file);
+
+  assert.ok(applied.applied);
+  // Content changed alongside the confirmation, so the batch's own revision
+  // must advance and the projection must not be trusted as synced - the new
+  // screen name was never actually confirmed on the Figma canvas.
+  assert.equal(stored.revision, document.revision + 1);
+  assert.equal(stored.figmaProjection?.status, "pending");
+});
+
 async function applyToFile(
   file: string,
   previewId: string,

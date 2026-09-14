@@ -83,10 +83,11 @@ export function applyChanges(
     ...project.screens.map((item) => item.id),
     ...project.elements.map((item) => item.id),
   ]);
-  // RECORD_FIGMA_PROJECTION이 있으면 그 값을 그대로 반영
-  // 없으면 Canonical Project가 바뀐 것이므로 기존 Projection을 pending으로 내리고
-  // 삭제된 엔티티의 node 매핑은 제거
-  const figmaProjection = projectionChange
+  // Projection 확인 단독 배치일 때만 그 값을 그대로 반영
+  // 다른 change와 섞였으면 Canonical Project도 같이 바뀐 것이므로, 그
+  // 배치가 확인하지 않은 새 콘텐츠까지 synced로 잘못 표시하지 않도록
+  // 기존 Projection을 pending으로 내리고 삭제된 엔티티의 node 매핑만 정리
+  const figmaProjection = isProjectionOnly
     ? {
         fileKey: projectionChange.projection.fileKey,
         status: projectionChange.projection.status,
