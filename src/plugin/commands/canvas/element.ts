@@ -80,11 +80,17 @@ export async function moveElement(elementId: string, direction: "up" | "down") {
     siblingElementIds.has(child.getPluginData("sketchy:element-id")),
   );
   const index = visualSiblings.indexOf(node as SceneNode);
-  const target = visualSiblings[direction === "up" ? index - 1 : index + 1];
-  if (index === -1 || !target) return project;
-  // insertChild(index, ...)의 index는 이동 대상을 뺀 배열이 아니라 원본
-  // 자식 배열 기준이므로, target의 원래 위치를 그대로 넘기면 된다
-  parent.insertChild(parent.children.indexOf(target), node as SceneNode);
+  const swapIndex = direction === "up" ? index - 1 : index + 1;
+  if (index === -1 || swapIndex < 0 || swapIndex >= visualSiblings.length)
+    return project;
+  const reordered = [...visualSiblings];
+  [reordered[index], reordered[swapIndex]] = [
+    reordered[swapIndex],
+    reordered[index],
+  ];
+  // insertChild의 self-move index 계산이 믿을 수 없어(제자리 no-op 확인됨),
+  // 대신 원하는 최종 순서대로 appendChild를 반복해 끝에서부터 다시 쌓는다
+  for (const sibling of reordered) parent.appendChild(sibling);
   return project;
 }
 
