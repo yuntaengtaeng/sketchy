@@ -11,11 +11,13 @@ async function screenNode(screen: Screen) {
 
 export async function renderFlow(project: Project) {
   await loadFont();
+  // 화면 수만큼 순차 await하면 화면이 많을수록 매번 눈에 띄게 느려지므로 병렬 조회
+  const screenNodes = await Promise.all(project.screens.map(screenNode));
   const nodes = new Map<string, FrameNode>();
-  for (const screen of project.screens) {
-    const node = await screenNode(screen);
+  project.screens.forEach((screen, index) => {
+    const node = screenNodes[index];
     if (node) nodes.set(screen.id, node);
-  }
+  });
   const pages = new Set(
     [...nodes.values()]
       .map((node) => node.parent)
@@ -39,5 +41,9 @@ export async function renderFlow(project: Project) {
       "destinationScreenId" in feature.action &&
       feature.action.destinationScreenId,
   );
-  for (const link of links) await renderConnector(project, link, links, nodes);
+  // 연결선 개수만큼 순차 await하던 것도 병렬로, 각 호출은 앞부분 조회 하나만
+  // await하고 그 뒤로는 동기 그리기라 서로 겹쳐 그릴 위험이 없다
+  await Promise.all(
+    links.map((link) => renderConnector(project, link, links, nodes)),
+  );
 }

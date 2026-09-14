@@ -1,5 +1,6 @@
 import {
   createEmptyProject,
+  type BlockType,
   type Project,
   type ProjectSettings,
 } from "../../shared/index.ts";
@@ -95,40 +96,58 @@ export function updateProjectSettings(settings: ProjectSettings) {
   saveProject(project);
   return project;
 }
+// Element가 화면에서 실제로 보여주는 글자, Text는 내용, Button/Input은
+// 안에 넣은 Label Text, Section/Divider는 표시할 글자가 없어 undefined
+function elementLabel(node: BaseNode | null, type: BlockType) {
+  if (node?.type === "TEXT") return node.characters;
+  if (node?.type !== "FRAME" || type === "section" || type === "divider")
+    return undefined;
+  return node.children.find((child) => child.type === "TEXT")?.characters;
+}
+
 export async function cleanProject(project: Project) {
-  const exists = async <T extends { nodeId: string }>(item: T) =>
-    (await figma.getNodeByIdAsync(item.nodeId)) ? item : undefined;
-  const present = <T>(item: T | undefined): item is T => item !== undefined;
-  const screens = (await Promise.all(project.screens.map(exists))).filter(
-    present,
-  );
-  const elements = (await Promise.all(project.elements.map(exists)))
-    .filter(present)
-    .filter((item) => screens.some((screen) => screen.id === item.screenId));
+  // Screen, Element 각각 존재 확인과 이름 동기화에 같은 nodeId를 두 번
+  // 순차 조회하던 것을 한 번의 병렬 조회로 합친다
   let nameChanged = false;
-  for (const screen of screens) {
-    const node = await figma.getNodeByIdAsync(screen.nodeId);
-    if (adoptCanvasName(screen, node?.name)) nameChanged = true;
-  }
-  for (const element of elements) {
-    const node = await figma.getNodeByIdAsync(element.nodeId);
-    const label =
-      node?.type === "TEXT"
-        ? node.characters
-        : node?.type === "FRAME" &&
-            element.type !== "section" &&
-            element.type !== "divider"
-          ? node.children.find((child) => child.type === "TEXT")?.characters
-          : undefined;
-    if (adoptCanvasName(element, label) || adoptCanvasName(element, node?.name))
-      nameChanged = true;
-    if (node?.type === "FRAME")
-      node.children
-        .find(
-          (child) => child.getPluginData("sketchy:role") === "state-indicator",
-        )
-        ?.remove();
-  }
+  const screenLookups = await Promise.all(
+    project.screens.map(async (screen) => ({
+      screen,
+      node: await figma.getNodeByIdAsync(screen.nodeId),
+    })),
+  );
+  const screens = screenLookups
+    .filter(({ node }) => node)
+    .map(({ screen, node }) => {
+      if (adoptCanvasName(screen, node?.name)) nameChanged = true;
+      return screen;
+    });
+
+  const elementLookups = await Promise.all(
+    project.elements.map(async (element) => ({
+      element,
+      node: await figma.getNodeByIdAsync(element.nodeId),
+    })),
+  );
+  const elements = elementLookups
+    .filter(
+      ({ element, node }) =>
+        node && screens.some((screen) => screen.id === element.screenId),
+    )
+    .map(({ element, node }) => {
+      if (
+        adoptCanvasName(element, elementLabel(node, element.type)) ||
+        adoptCanvasName(element, node?.name)
+      )
+        nameChanged = true;
+      if (node?.type === "FRAME")
+        node.children
+          .find(
+            (child) =>
+              child.getPluginData("sketchy:role") === "state-indicator",
+          )
+          ?.remove();
+      return element;
+    });
   const orderChanged = await normalizeElementOrder({
     ...project,
     screens,
@@ -177,23 +196,29 @@ export async function cleanProject(project: Project) {
 
 export async function normalizeElementOrder(project: Project) {
   let changed = false;
-  for (const screen of project.screens) {
-    const positioned = await Promise.all(
-      project.elements
-        .filter((element) => element.screenId === screen.id)
-        .map(async (element) => {
-          const node = await figma.getNodeByIdAsync(element.nodeId);
-          const box =
-            node && "absoluteBoundingBox" in node
-              ? node.absoluteBoundingBox
-              : undefined;
-          return {
-            item: element,
+  // 화면별로 순차 조회하면 화면이 많을수록 느려지므로 전체 Element를 한 번에 병렬 조회
+  const positions = new Map(
+    await Promise.all(
+      project.elements.map(async (element) => {
+        const node = await figma.getNodeByIdAsync(element.nodeId);
+        const box =
+          node && "absoluteBoundingBox" in node
+            ? node.absoluteBoundingBox
+            : undefined;
+        return [
+          element.id,
+          {
             x: box?.x ?? Number.MAX_SAFE_INTEGER,
             y: box?.y ?? Number.MAX_SAFE_INTEGER,
-          };
-        }),
-    );
+          },
+        ] as const;
+      }),
+    ),
+  );
+  for (const screen of project.screens) {
+    const positioned = project.elements
+      .filter((element) => element.screenId === screen.id)
+      .map((item) => ({ item, ...positions.get(item.id)! }));
     readingOrder(positioned).forEach(({ item }, order) => {
       if (item.order !== order) changed = true;
       item.order = order;
