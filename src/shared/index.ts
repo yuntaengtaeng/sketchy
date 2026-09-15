@@ -13,6 +13,18 @@ export const BLOCK_DEFINITIONS = {
   image: { label: "Image", canAddToSection: true, triggers: [] },
   divider: { label: "Divider", canAddToSection: true, triggers: [] },
   section: { label: "Section", canAddToSection: true, triggers: [] },
+  // List Item, Card만 Button처럼 click 트리거를 바로 연결한다, 나머지는 지금은
+  // 순수 시각 요소로만 추가하고 트리거는 블록별로 나중에 확장한다
+  listItem: { label: "List Item", canAddToSection: true, triggers: ["click"] },
+  card: { label: "Card", canAddToSection: true, triggers: ["click"] },
+  tableRow: { label: "Table Row", canAddToSection: true, triggers: [] },
+  tabs: { label: "Tabs", canAddToSection: true, triggers: [] },
+  navigation: { label: "Navigation", canAddToSection: true, triggers: [] },
+  select: { label: "Select", canAddToSection: true, triggers: [] },
+  checkbox: { label: "Checkbox", canAddToSection: true, triggers: [] },
+  radio: { label: "Radio", canAddToSection: true, triggers: [] },
+  switch: { label: "Switch", canAddToSection: true, triggers: [] },
+  search: { label: "Search", canAddToSection: true, triggers: [] },
 } satisfies Record<string, BlockDefinition>;
 
 export type BlockType = keyof typeof BLOCK_DEFINITIONS;
@@ -54,14 +66,43 @@ export type ElementBase = {
 // (예: text에 buttonVariant)은 타입 단계에서 아예 만들 수 없게 한다
 export type ButtonVariant = { buttonVariant?: "filled" | "outline" };
 export type SectionDirection = { direction?: "vertical" | "horizontal" };
+// Hug/Fill 같은 Figma 용어 대신 결과로 이름 붙인다, stretch가 기존 기본 동작
+export type ButtonLayout = { layout?: "stretch" | "start" | "center" | "end" };
+// Weight은 Regular로 고정, low-fi 목적상 크기만으로 5단계를 구분한다
+export type TextSize = {
+  textSize?: "display" | "title" | "subtitle" | "body" | "caption";
+};
+// Checkbox/Radio/Switch가 공유하는 하나의 boolean, 세 필드로 안 쪼갠다
+export type Checked = { checked?: boolean };
+export type TabItems = { tabItems?: string[] };
+export type SelectOptions = {
+  options?: string[];
+  displayState?: "collapsed" | "expanded";
+};
+
+// BlockType별로 반복되는 "ElementBase & {type} & trait들" 조립을 한 곳에 모은다
+type ElementVariant<
+  T extends BlockType,
+  Traits extends object = object,
+> = ElementBase & { type: T } & Traits;
 
 export type Element =
-  | (ElementBase & { type: "text" })
-  | (ElementBase & { type: "button" } & ButtonVariant)
-  | (ElementBase & { type: "input" })
-  | (ElementBase & { type: "image" })
-  | (ElementBase & { type: "divider" })
-  | (ElementBase & { type: "section" } & SectionDirection);
+  | ElementVariant<"text", TextSize>
+  | ElementVariant<"button", ButtonVariant & ButtonLayout>
+  | ElementVariant<"input">
+  | ElementVariant<"image">
+  | ElementVariant<"divider">
+  | ElementVariant<"section", SectionDirection>
+  | ElementVariant<"listItem">
+  | ElementVariant<"card">
+  | ElementVariant<"tableRow">
+  | ElementVariant<"tabs", TabItems>
+  | ElementVariant<"navigation">
+  | ElementVariant<"select", SelectOptions>
+  | ElementVariant<"checkbox", Checked>
+  | ElementVariant<"radio", Checked>
+  | ElementVariant<"switch", Checked>
+  | ElementVariant<"search">;
 
 export function duplicateScreenElements(
   elements: Element[],
@@ -235,6 +276,24 @@ export type PluginMessage =
       type: "SET_SECTION_DIRECTION";
       elementId: string;
       direction: "vertical" | "horizontal";
+    }
+  | {
+      type: "SET_BUTTON_LAYOUT";
+      elementId: string;
+      layout: "stretch" | "start" | "center" | "end";
+    }
+  | {
+      type: "SET_TEXT_SIZE";
+      elementId: string;
+      size: "display" | "title" | "subtitle" | "body" | "caption";
+    }
+  | { type: "SET_CHECKED"; elementId: string; checked: boolean }
+  | { type: "SET_TAB_ITEMS"; elementId: string; items: string[] }
+  | { type: "SET_SELECT_OPTIONS"; elementId: string; options: string[] }
+  | {
+      type: "SET_SELECT_DISPLAY_STATE";
+      elementId: string;
+      displayState: "collapsed" | "expanded";
     }
   | {
       type: "SAVE_FEATURE";
