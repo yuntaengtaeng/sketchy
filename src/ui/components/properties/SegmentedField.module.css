@@ -16,11 +16,14 @@
   color: var(--figma-color-bg, #fafafa);
 }
 
-/* 선택 표시(배경 채움)만 유일한 시각 신호로 남긴다. hover나 클릭 후 남는
-   포커스 링에 별도 테두리를 얹으면 "여러 개가 강조됐다"는 착시가 생긴다 */
+/* 선택 표시(배경 채움)만 유일한 시각 신호로 남긴다. hover/active/focus가
+   다른 버튼에 남으면(Figma iframe에서 빠른 연속 클릭 시 :active가 안
+   풀리고 남는 경우 포함) "선택이 바뀐 것처럼" 보이는 착시가 생긴다 */
 .segmented button:not([aria-pressed="true"]):hover,
+.segmented button:not([aria-pressed="true"]):active,
 .segmented button:not([aria-pressed="true"]):focus-visible {
   background: transparent;
   border-color: var(--sketchy-line, #888);
+  color: inherit;
   outline: none;
 }
