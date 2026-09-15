@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { BlockType, Element as SketchyElement } from "../../../shared";
 import ButtonOptions from "./ButtonOptions";
 import CheckboxOptions from "./CheckboxOptions";
+import InputOptions from "./InputOptions";
 import RadioOptions from "./RadioOptions";
 import SectionOptions from "./SectionOptions";
 import SelectOptions from "./SelectOptions";
@@ -16,6 +17,7 @@ export const BLOCK_OPTIONS: Partial<
 > = {
   text: TextOptions,
   button: ButtonOptions,
+  input: InputOptions,
   section: SectionOptions,
   tabs: TabsOptions,
   select: SelectOptions,

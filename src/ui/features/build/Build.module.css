@@ -120,6 +120,173 @@
   border: 1px dashed var(--figma-color-border-disabled, #bbb);
 }
 
+.block[data-block="checkbox"] .preview::after,
+.block[data-block="radio"] .preview::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid currentColor;
+}
+
+.block[data-block="checkbox"] .preview::after {
+  border-radius: 3px;
+}
+
+.block[data-block="radio"] .preview::after {
+  border-radius: 50%;
+}
+
+.block[data-block="switch"] .preview::after {
+  content: "";
+  width: 28px;
+  height: 15px;
+  border-radius: 8px;
+  background: currentColor;
+  box-shadow:
+    inset -11px 0 0 0 var(--figma-color-bg, #fafafa),
+    inset -11px 0 0 1.5px currentColor;
+}
+
+.block[data-block="select"] .preview::after {
+  content: "▾";
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  width: 70%;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  font-size: 10px;
+}
+
+.block[data-block="search"] .preview::after {
+  content: "";
+  width: 11px;
+  height: 11px;
+  border: 1.6px solid currentColor;
+  border-radius: 50%;
+  box-shadow: 5px 5px 0 -3px currentColor;
+}
+
+.swListItem,
+.swCard,
+.swTableRow,
+.swTabs,
+.swNavigation {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.swListItem {
+  align-items: center;
+  gap: 5px;
+}
+
+.swAvatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.swLines {
+  flex: 1;
+  display: grid;
+  gap: 3px;
+}
+
+.swLines i {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.swLines i:first-child {
+  width: 80%;
+}
+
+.swLines i:last-child {
+  width: 55%;
+  opacity: 0.5;
+}
+
+.swCard {
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  padding: 4px 6px;
+  display: grid;
+  gap: 4px;
+  align-content: center;
+}
+
+.swCard i {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.swCard i:first-child {
+  width: 70%;
+}
+
+.swCard i:last-child {
+  width: 45%;
+  opacity: 0.5;
+}
+
+.swTableRow {
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+}
+
+.swTableRow i {
+  flex: 1;
+  border-right: 1px solid currentColor;
+  opacity: 0.4;
+}
+
+.swTableRow i:last-child {
+  border-right: none;
+}
+
+.swTabs {
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.swTabs i {
+  flex: 1;
+}
+
+.swTabs i:first-child {
+  background: currentColor;
+}
+
+.swNavigation {
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.swNavigation i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.4;
+}
+
+.swNavigation i:nth-child(2) {
+  width: 9px;
+  height: 9px;
+  opacity: 1;
+}
+
 .sectionCanvas {
   margin: 0 -8px;
   padding-right: 8px;

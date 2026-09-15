@@ -79,6 +79,7 @@ export type SelectOptions = {
   options?: string[];
   displayState?: "collapsed" | "expanded";
 };
+export type Placeholder = { placeholder?: string };
 
 // BlockType별로 반복되는 "ElementBase & {type} & trait들" 조립을 한 곳에 모은다
 type ElementVariant<
@@ -89,7 +90,7 @@ type ElementVariant<
 export type Element =
   | ElementVariant<"text", TextSize>
   | ElementVariant<"button", ButtonVariant & ButtonLayout>
-  | ElementVariant<"input">
+  | ElementVariant<"input", Placeholder>
   | ElementVariant<"image">
   | ElementVariant<"divider">
   | ElementVariant<"section", SectionDirection>
@@ -295,6 +296,7 @@ export type PluginMessage =
       elementId: string;
       displayState: "collapsed" | "expanded";
     }
+  | { type: "SET_INPUT_PLACEHOLDER"; elementId: string; placeholder: string }
   | {
       type: "SAVE_FEATURE";
       sourceElementId: string;

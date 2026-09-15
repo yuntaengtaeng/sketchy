@@ -18,6 +18,7 @@ import {
   renderButtonVariant,
   renderChecked,
   renderElementName,
+  renderInputPlaceholder,
   renderSectionDirection,
   renderSelectDisplayState,
   renderSelectOptions,
@@ -295,6 +296,21 @@ export async function setSelectDisplayState(
     return project;
   element.displayState = displayState;
   renderSelectDisplayState(node, displayState, element.options ?? []);
+  saveProject(project);
+  return project;
+}
+
+export async function setInputPlaceholder(
+  elementId: string,
+  placeholder: string,
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "input" || node?.type !== "FRAME")
+    return project;
+  element.placeholder = placeholder;
+  renderInputPlaceholder(node, placeholder);
   saveProject(project);
   return project;
 }

@@ -15,3 +15,10 @@
   background: var(--sketchy-ink);
   color: var(--figma-color-bg, #fafafa);
 }
+
+/* 선택된 버튼만 배경이 채워져야 hover와 헷갈리지 않는다, hover는 선택되지
+   않은 버튼에서 테두리만 바뀌는 정도로 옅게 둔다 */
+.segmented button:not([aria-pressed="true"]):hover {
+  background: transparent;
+  border-color: var(--sketchy-ink);
+}

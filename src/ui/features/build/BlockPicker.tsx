@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { BLOCK_DEFINITIONS, type BlockType } from "../../../shared";
 import { post } from "../../plugin";
 import styles from "./Build.module.css";
@@ -25,6 +25,47 @@ const CATEGORIES: { key: string; label: string; blocks: BlockType[] }[] = [
     blocks: ["input", "select", "checkbox", "radio", "switch", "search"],
   },
 ];
+
+// 순수 CSS ::after만으로 표현하기 어려운(자식이 여러 개인) 스와치만 여기서
+// 마크업으로 채운다, 나머지(button/input/image/divider/section/checkbox/
+// radio/switch/select/search)는 Build.module.css의 data-block 규칙만으로 그린다
+const COMPOSITE_PREVIEWS: Partial<Record<BlockType, ReactNode>> = {
+  listItem: (
+    <span className={styles.swListItem}>
+      <i className={styles.swAvatar} />
+      <span className={styles.swLines}>
+        <i />
+        <i />
+      </span>
+    </span>
+  ),
+  card: (
+    <span className={styles.swCard}>
+      <i />
+      <i />
+    </span>
+  ),
+  tableRow: (
+    <span className={styles.swTableRow}>
+      <i />
+      <i />
+      <i />
+    </span>
+  ),
+  tabs: (
+    <span className={styles.swTabs}>
+      <i />
+      <i />
+    </span>
+  ),
+  navigation: (
+    <span className={styles.swNavigation}>
+      <i />
+      <i />
+      <i />
+    </span>
+  ),
+};
 
 export default function BlockPicker({
   screenId,
@@ -62,6 +103,7 @@ export default function BlockPicker({
     >
       <span className={styles.preview} aria-hidden="true">
         {block === "text" && "Aa"}
+        {COMPOSITE_PREVIEWS[block]}
       </span>
       <span>{BLOCK_DEFINITIONS[block].label}</span>
     </button>

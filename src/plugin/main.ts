@@ -13,6 +13,7 @@ import {
   setButtonLayout,
   setButtonVariant,
   setChecked,
+  setInputPlaceholder,
   setSectionDirection,
   setSelectDisplayState,
   setSelectOptions,
@@ -282,6 +283,10 @@ figma.ui.onmessage = async (message: PluginMessage) => {
     if (message.type === "SET_SELECT_DISPLAY_STATE")
       await sync(
         await setSelectDisplayState(message.elementId, message.displayState),
+      );
+    if (message.type === "SET_INPUT_PLACEHOLDER")
+      await sync(
+        await setInputPlaceholder(message.elementId, message.placeholder),
       );
     if (message.type === "DELETE_ELEMENT")
       await sync(await deleteElement(message.elementId), true);

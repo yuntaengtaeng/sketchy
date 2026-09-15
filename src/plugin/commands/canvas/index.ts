@@ -6,6 +6,7 @@ export {
   setButtonLayout,
   setButtonVariant,
   setChecked,
+  setInputPlaceholder,
   setSectionDirection,
   setSelectDisplayState,
   setSelectOptions,

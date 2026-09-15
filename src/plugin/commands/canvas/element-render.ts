@@ -24,12 +24,43 @@ function createLabel(text: string, fontSize: number, color: RGB) {
   return label;
 }
 
+// 새로 만든 auto-layout 컨테이너는 기본값(100x100)이 남지 않도록 항상 자기
+// 자식 크기에 맞춰 양쪽 축 모두 hug하게 시작한다, FILL이 필요한 쪽은 이후에
+// layoutSizingHorizontal 등으로 덮어쓴다
+function hugFrame(mode: "HORIZONTAL" | "VERTICAL") {
+  const frame = figma.createFrame();
+  frame.layoutMode = mode;
+  frame.primaryAxisSizingMode = "AUTO";
+  frame.counterAxisSizingMode = "AUTO";
+  return frame;
+}
+
+function buildTab(label: string) {
+  const tab = hugFrame("HORIZONTAL");
+  tab.primaryAxisAlignItems = "CENTER";
+  tab.counterAxisAlignItems = "CENTER";
+  tab.paddingLeft = tab.paddingRight = 12;
+  tab.paddingTop = tab.paddingBottom = 8;
+  tab.fills = [];
+  tab.appendChild(createLabel(label, 12, { r: 0.15, g: 0.15, b: 0.15 }));
+  return tab;
+}
+
+function buildOptionRow(label: string) {
+  const row = hugFrame("HORIZONTAL");
+  row.layoutSizingHorizontal = "FILL";
+  row.paddingLeft = row.paddingRight = 10;
+  row.paddingTop = row.paddingBottom = 8;
+  row.fills = [];
+  row.appendChild(createLabel(label, 12, { r: 0.25, g: 0.25, b: 0.25 }));
+  return row;
+}
+
 // Checkbox/Radio/Switch가 공유하는 "표시기 + 라벨" 한 줄 구조
 function createToggleRow(
   element: DomainElement & { type: "checkbox" | "radio" | "switch" },
 ) {
-  const row = figma.createFrame();
-  row.layoutMode = "HORIZONTAL";
+  const row = hugFrame("HORIZONTAL");
   row.counterAxisAlignItems = "CENTER";
   row.itemSpacing = 8;
   row.fills = [];
@@ -117,8 +148,7 @@ function rebuildStringList(
 }
 
 function createTabsNode(element: DomainElement & { type: "tabs" }) {
-  const row = figma.createFrame();
-  row.layoutMode = "HORIZONTAL";
+  const row = hugFrame("HORIZONTAL");
   row.strokes = [{ type: "SOLID", color: { r: 0.15, g: 0.15, b: 0.15 } }];
   row.strokeWeight = 1;
   row.cornerRadius = 4;
@@ -127,51 +157,30 @@ function createTabsNode(element: DomainElement & { type: "tabs" }) {
     row,
     element.tabItems ?? ["Tab 1", "Tab 2"],
     "tab-item",
-    (label) => {
-      const tab = figma.createFrame();
-      tab.layoutMode = "HORIZONTAL";
-      tab.primaryAxisAlignItems = "CENTER";
-      tab.counterAxisAlignItems = "CENTER";
-      tab.paddingLeft = tab.paddingRight = 12;
-      tab.paddingTop = tab.paddingBottom = 8;
-      tab.fills = [];
-      tab.appendChild(createLabel(label, 12, { r: 0.15, g: 0.15, b: 0.15 }));
-      return tab;
-    },
+    buildTab,
   );
   return row;
 }
 
 function createOptionsListNode(options: string[]) {
-  const list = figma.createFrame();
+  const list = hugFrame("VERTICAL");
   list.setPluginData(PART, "select-options");
-  list.layoutMode = "VERTICAL";
   list.strokes = [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.2 } }];
   list.strokeWeight = 1;
   list.cornerRadius = 4;
   list.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
   list.layoutSizingHorizontal = "FILL";
-  rebuildStringList(list, options, "select-option", (label) => {
-    const row = figma.createFrame();
-    row.layoutSizingHorizontal = "FILL";
-    row.paddingLeft = row.paddingRight = 10;
-    row.paddingTop = row.paddingBottom = 8;
-    row.fills = [];
-    row.appendChild(createLabel(label, 12, { r: 0.25, g: 0.25, b: 0.25 }));
-    return row;
-  });
+  rebuildStringList(list, options, "select-option", buildOptionRow);
   return list;
 }
 
 function createSelectNode(element: DomainElement & { type: "select" }) {
-  const wrap = figma.createFrame();
-  wrap.layoutMode = "VERTICAL";
+  const wrap = hugFrame("VERTICAL");
   wrap.fills = [];
   wrap.itemSpacing = 4;
 
-  const closedRow = figma.createFrame();
+  const closedRow = hugFrame("HORIZONTAL");
   closedRow.setPluginData(PART, "select-row");
-  closedRow.layoutMode = "HORIZONTAL";
   closedRow.primaryAxisAlignItems = "MIN";
   closedRow.counterAxisAlignItems = "CENTER";
   closedRow.layoutSizingHorizontal = "FILL";
@@ -215,8 +224,49 @@ export function createElementNode(element: DomainElement, parent: FrameNode) {
   return node;
 }
 
+// 돋보기 아이콘, auto-layout 없는 고정 14x14 프레임 안에 원+손잡이를 절대
+// 좌표로 배치해 하나의 auto-layout 자식처럼 다룬다
+function createSearchIcon() {
+  const icon = figma.createFrame();
+  icon.resize(14, 14);
+  icon.fills = [];
+  const circle = figma.createEllipse();
+  circle.resize(9, 9);
+  circle.x = 0;
+  circle.y = 0;
+  circle.strokes = [{ type: "SOLID", color: { r: 0.4, g: 0.4, b: 0.4 } }];
+  circle.strokeWeight = 1.6;
+  circle.fills = [];
+  const handle = figma.createRectangle();
+  handle.resize(1.6, 5);
+  handle.x = 9;
+  handle.y = 9;
+  handle.rotation = -45;
+  handle.fills = [{ type: "SOLID", color: { r: 0.4, g: 0.4, b: 0.4 } }];
+  icon.appendChild(circle);
+  icon.appendChild(handle);
+  return icon;
+}
+
+function createSearchNode() {
+  const row = hugFrame("HORIZONTAL");
+  row.counterAxisAlignItems = "CENTER";
+  row.itemSpacing = 6;
+  row.paddingLeft = row.paddingRight = 10;
+  row.paddingTop = row.paddingBottom = 8;
+  row.cornerRadius = 8;
+  row.strokes = [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.2 } }];
+  row.strokeWeight = 1;
+  row.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+  const label = createLabel("Search", 13, { r: 0.55, g: 0.55, b: 0.55 });
+  label.setPluginData(PART, "label");
+  row.appendChild(createSearchIcon());
+  row.appendChild(label);
+  return row;
+}
+
 // text를 제외한 나머지는 전부 FRAME, 타입별 전용 구조가 있으면 그걸 쓰고
-// 없으면 (input/image/divider/section/tableRow/navigation/search/listItem/card)
+// 없으면 (input/image/divider/section/tableRow/navigation/listItem/card)
 // 기존에 쓰던 공용 "테두리 있는 한 줄 + 라벨" 모양을 그대로 쓴다
 function createFrameFor(element: DomainElement) {
   if (
@@ -227,6 +277,7 @@ function createFrameFor(element: DomainElement) {
     return createToggleRow(element);
   if (element.type === "tabs") return createTabsNode(element);
   if (element.type === "select") return createSelectNode(element);
+  if (element.type === "search") return createSearchNode();
   return createGenericFrame(element);
 }
 
@@ -239,8 +290,7 @@ function createGenericFrame(element: DomainElement) {
     element.type === "listItem" ||
     element.type === "card" ||
     element.type === "tableRow" ||
-    element.type === "navigation" ||
-    element.type === "search";
+    element.type === "navigation";
   node.resize(272, isSection ? 64 : isImage ? 160 : isDivider ? 1 : 40);
   node.layoutMode = isSection
     ? sectionLayout(element.direction || "vertical").layoutMode
@@ -285,8 +335,14 @@ function createGenericFrame(element: DomainElement) {
     },
   ];
   if (!isDivider && !isSection) {
+    // Input은 이름이 아니라 Placeholder를 보여준다, 실제 input의 placeholder
+    // 텍스트처럼 옅은 회색으로
+    const text =
+      element.type === "input"
+        ? element.placeholder || "Type here..."
+        : element.name;
     const label = createLabel(
-      element.name,
+      text,
       14,
       filledButton ? { r: 1, g: 1, b: 1 } : { r: 0.35, g: 0.35, b: 0.35 },
     );
@@ -311,12 +367,20 @@ export function renderElementName(
 ) {
   node.name = name;
   if (node.type === "TEXT") node.characters = name;
-  if (node.type === "FRAME") {
+  // Input의 화면 상 텍스트는 Placeholder 소유, Name을 바꿔도 덮어쓰지 않는다
+  if (node.type === "FRAME" && element.type !== "input") {
     const label =
       node.children.find((child) => child.getPluginData(PART) === "label") ??
       node.children.find((child) => child.type === "TEXT");
     if (label?.type === "TEXT") label.characters = name;
   }
+}
+
+export function renderInputPlaceholder(node: FrameNode, placeholder: string) {
+  const label = node.children.find(
+    (child) => child.getPluginData(PART) === "label",
+  );
+  if (label?.type === "TEXT") label.characters = placeholder || "Type here...";
 }
 
 export function renderButtonVariant(
@@ -350,6 +414,10 @@ export function renderButtonLayout(
     node.layoutSizingHorizontal = "FILL";
     return;
   }
+  // HUG만으로는 생성 때 resize(272, …)로 고정된 너비가 그대로 남는다, 버튼
+  // 스스로 라벨 크기에 맞춰 폭을 다시 계산하도록 self-sizing도 AUTO로 바꿔야
+  // 실제로 줄어들고, 그래야 정렬(layoutAlign) 차이가 눈에 보인다
+  node.primaryAxisSizingMode = "AUTO";
   node.layoutSizingHorizontal = "HUG";
   node.layoutAlign =
     layout === "start" ? "MIN" : layout === "center" ? "CENTER" : "MAX";
@@ -397,17 +465,7 @@ export function renderChecked(
 }
 
 export function renderTabItems(node: FrameNode, items: string[]) {
-  rebuildStringList(node, items, "tab-item", (label) => {
-    const tab = figma.createFrame();
-    tab.layoutMode = "HORIZONTAL";
-    tab.primaryAxisAlignItems = "CENTER";
-    tab.counterAxisAlignItems = "CENTER";
-    tab.paddingLeft = tab.paddingRight = 12;
-    tab.paddingTop = tab.paddingBottom = 8;
-    tab.fills = [];
-    tab.appendChild(createLabel(label, 12, { r: 0.15, g: 0.15, b: 0.15 }));
-    return tab;
-  });
+  rebuildStringList(node, items, "tab-item", buildTab);
 }
 
 function selectRow(node: FrameNode) {
@@ -425,19 +483,8 @@ export function renderSelectOptions(node: FrameNode, options: string[]) {
   const list = node.children.find(
     (child) => child.getPluginData(PART) === "select-options",
   );
-  if (list?.type === "FRAME") rebuildOptionsList(list, options);
-}
-
-function rebuildOptionsList(list: FrameNode, options: string[]) {
-  rebuildStringList(list, options, "select-option", (label) => {
-    const row = figma.createFrame();
-    row.layoutSizingHorizontal = "FILL";
-    row.paddingLeft = row.paddingRight = 10;
-    row.paddingTop = row.paddingBottom = 8;
-    row.fills = [];
-    row.appendChild(createLabel(label, 12, { r: 0.25, g: 0.25, b: 0.25 }));
-    return row;
-  });
+  if (list?.type === "FRAME")
+    rebuildStringList(list, options, "select-option", buildOptionRow);
 }
 
 export function renderSelectDisplayState(
