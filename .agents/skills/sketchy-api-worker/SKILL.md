@@ -38,3 +38,13 @@ description: Apply Sketchy-specific Worker HTTP, authentication, OAuth, D1, owne
 - 저장 변경은 경쟁 write, idempotency, atomic failure 중 영향받는 불변식을 검증한다.
 - D1 변경은 실제 adapter 쿼리와 migration test를 통과시켜 service mock만으로 대체하지 않는다.
 
+## 배포
+
+이 프로젝트에는 CI/CD가 없다(`.github/workflows` 없음, `package.json`에
+`deploy` script 없음) — `git push`는 Cloudflare Worker를 배포하지 않는다.
+`src/api`, `src/worker.ts`, `src/mcp`, `migrations` 중 하나라도 커밋하면
+**바로 이어서** `npx wrangler deploy`를 실행한다(사용자에게 묻지 않고
+자동으로). `src/plugin`, `src/ui`, `src/shared`, `src/core`만 바뀐
+커밋은 배포 대상이 아니다 — 플러그인은 사용자가 Figma에서 다시 로드해야
+반영된다.
+
