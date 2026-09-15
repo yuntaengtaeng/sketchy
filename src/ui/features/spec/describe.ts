@@ -87,8 +87,10 @@ export function buildProjectMarkdown(project: Project) {
 }
 
 // 반복 개수, 목록 내용, 켜짐 여부처럼 Figma를 열지 않고는 안 보이던 값들을
-// Spec에 같이 적어서 이해관계자가 읽기만 해도 실제 구성을 알 수 있게 한다
-function elementDetail(element: Element): string | undefined {
+// Spec에 같이 적어서 이해관계자가 읽기만 해도 실제 구성을 알 수 있게 한다.
+// Markdown Export(buildProjectMarkdown)와 Plugin 안의 실시간 Spec 탭(Spec.tsx)
+// 둘 다 이 함수 하나를 쓴다 — 두 곳에 같은 로직을 복제하지 않는다
+export function elementDetail(element: Element): string | undefined {
   switch (element.type) {
     case "text":
       return element.textSize && element.textSize !== "body"

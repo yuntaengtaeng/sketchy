@@ -1,8 +1,8 @@
-import type { Project, Screen } from "../../../shared";
+import { BLOCK_DEFINITIONS, type Project, type Screen } from "../../../shared";
 import {
   describeFeature,
+  elementDetail,
   outlineElements,
-  title,
   type ElementOutline,
 } from "./describe";
 import styles from "./Spec.module.css";
@@ -57,17 +57,21 @@ export default function Spec({
 function ElementList({ items }: { items: ElementOutline[] }) {
   return (
     <ol className={styles.elements}>
-      {items.map(({ element, number, children }) => (
-        <li key={element.id}>
-          <span>
-            {number}. {element.name} ({title(element.type)})
-          </span>
-          {element.description && (
-            <p className="muted">{element.description}</p>
-          )}
-          {!!children.length && <ElementList items={children} />}
-        </li>
-      ))}
+      {items.map(({ element, number, children }) => {
+        const detail = elementDetail(element);
+        return (
+          <li key={element.id}>
+            <span>
+              {number}. {element.name} ({BLOCK_DEFINITIONS[element.type].label}
+              {detail ? `, ${detail}` : ""})
+            </span>
+            {element.description && (
+              <p className="muted">{element.description}</p>
+            )}
+            {!!children.length && <ElementList items={children} />}
+          </li>
+        );
+      })}
     </ol>
   );
 }

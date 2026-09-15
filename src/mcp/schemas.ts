@@ -26,8 +26,11 @@ const elementBase = {
   role: z.literal("popup").optional(),
   order: z.number().int().nonnegative().optional(),
 };
-const stringList = z.array(z.string().min(1).max(200)).max(20);
-const repeatCount = z.number().int().min(1).max(6).optional();
+const stringList = z.array(z.string().min(1).max(200)).max(100);
+// 1~6 범위는 CountField가 UI에서 이미 강제하는 표시 취향일 뿐이라 서버까지
+// 같은 상한을 걸면, 그 UI가 생기기 전에 저장된 값이나 클라이언트 버그로
+// 범위를 벗어난 기존 데이터가 이후의 모든 push를 영원히 400으로 막는다
+const repeatCount = z.number().int().positive().optional();
 // Element도 action처럼 BlockType별 discriminated union, 각 variant가 실제로
 // 갖는 필드만 허용해 서버가 도메인 타입과 같은 불가능한 조합을 거절한다
 const element = z.discriminatedUnion("type", [
