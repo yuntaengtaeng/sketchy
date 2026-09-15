@@ -1,0 +1,17 @@
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.segmented button {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 6px;
+  font-size: 11.5px;
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--sketchy-ink);
+  color: var(--figma-color-bg, #fafafa);
+}

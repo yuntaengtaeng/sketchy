@@ -1,0 +1,11 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--figma-color-text, #222);
+}
+
+.row input {
+  width: auto;
+}

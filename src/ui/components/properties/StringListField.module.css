@@ -1,0 +1,29 @@
+.field {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.label {
+  color: var(--figma-color-text-secondary, #666);
+}
+
+.rows {
+  display: grid;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+.row input {
+  flex: 1;
+}
+
+.row button {
+  flex-shrink: 0;
+  min-height: 0;
+  padding: 0 10px;
+}
