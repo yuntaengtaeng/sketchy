@@ -104,7 +104,8 @@ export function renderConnector(
     );
   const label = figma.createText();
   markGenerated(label);
-  sourceScreen.parent.insertChild(0, label);
+  // 선과 마찬가지로 화면 프레임 배경에 가려지지 않도록 맨 위에 배치
+  sourceScreen.parent.appendChild(label);
   label.characters = link.condition
     ? `${link.name} · ${link.condition}`
     : link.name;

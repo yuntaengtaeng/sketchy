@@ -12,7 +12,8 @@ export function drawLine(
 ) {
   const line = figma.createLine();
   markGenerated(line);
-  parent.insertChild(0, line);
+  // 화면 프레임 배경에 가려지지 않도록 항상 페이지 맨 위(z-order 최상단)에 배치
+  parent.appendChild(line);
   line.x = startX;
   line.y = startY;
   line.resize(Math.hypot(endX - startX, endY - startY), 0);
