@@ -234,22 +234,10 @@ export async function setTextSize(
   const project = readProject();
   const element = project.elements.find((item) => item.id === elementId);
   const node = element && (await figma.getNodeByIdAsync(element.nodeId));
-  console.log("[sketchy text size] setTextSize called", {
-    elementId,
-    requestedSize: size,
-    found: !!element,
-    elementType: element?.type,
-    nodeType: node?.type,
-  });
   if (!element || element.type !== "text" || node?.type !== "TEXT")
     return project;
   element.textSize = size;
   renderTextSize(node, size);
-  console.log("[sketchy text size] after set", {
-    elementId,
-    elementTextSizeNow: element.textSize,
-    nodeFontSizeNow: node.fontSize,
-  });
   saveProject(project);
   return project;
 }
