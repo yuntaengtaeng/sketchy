@@ -17,6 +17,7 @@ import {
   readProject as readProjectLocal,
   readProjectMetadata as readProjectMetadataLocal,
   readSyncState as readSyncStateLocal,
+  saveProjectSnapshot as saveProjectSnapshotLocal,
   writeSyncState as writeSyncStateLocal,
   type SyncState,
 } from "./storage/project.ts";
@@ -39,6 +40,7 @@ export type SyncLoopDeps = {
   readProjectMetadata?: () => ProjectMetadata;
   readSyncState?: () => SyncState;
   writeSyncState?: (state: SyncState) => void;
+  saveProjectSnapshot?: (project: Project, metadata: ProjectMetadata) => void;
   fileKey?: () => string;
   fetchRemoteRevision?: typeof fetchRemoteRevisionRemote;
   fetchRemoteDocument?: typeof fetchRemoteDocumentRemote;
@@ -58,6 +60,8 @@ export function createSyncLoop(deps: SyncLoopDeps) {
     deps.readProjectMetadata ?? readProjectMetadataLocal;
   const readSyncState = deps.readSyncState ?? readSyncStateLocal;
   const writeSyncState = deps.writeSyncState ?? writeSyncStateLocal;
+  const saveProjectSnapshot =
+    deps.saveProjectSnapshot ?? saveProjectSnapshotLocal;
   const applyProjectImport = deps.applyProjectImport;
   const fileKey = deps.fileKey ?? (() => figma.fileKey || "local-development");
   const fetchRemoteRevision =
@@ -87,7 +91,50 @@ export function createSyncLoop(deps: SyncLoopDeps) {
       if (!session) return;
       setStatus("syncing");
       const document = createProjectDocument(project, metadata, fileKey());
-      const result = await pushProject(session, document);
+      let result = await pushProject(session, document);
+      // 다른 Figma push가 그 사이 revision을 밀어 올렸을 뿐이면 캔버스 내용 그대로
+      // 최신 revision 위로 한 번만 재기준해 다시 push, conflict가 매 편집마다
+      // 재현되지 않고 스스로 회복되는 구조. 다만 그 사이 agent가 apply()로 실제
+      // 내용을 바꿨다면(appliedBatches 증가) 그 작업을 조용히 덮어쓰면 안 되므로
+      // 재기준을 포기하고 conflict로 남긴다
+      if (!result.ok && result.status === 409) {
+        const remote = await fetchRemoteDocument(session, metadata.id);
+        if (!remote.ok) {
+          // 재조회 자체가 인증 만료로 실패한 걸 원래 409 그대로 conflict로
+          // 잘못 보고하지 않도록 구분
+          if (remote.status === 401 || remote.status === 403) {
+            setStatus("auth-expired");
+            return;
+          }
+        } else {
+          const appliedByAgentSinceLastSync = Object.values(
+            remote.value.appliedBatches ?? {},
+          ).some((batch) => batch.revision > state.lastSyncedRevision);
+          if (
+            !appliedByAgentSinceLastSync &&
+            remote.value.revision >= state.lastSyncedRevision
+          ) {
+            const rebasedRevision = remote.value.revision + 1;
+            const rebasedUpdatedAt = new Date().toISOString();
+            const rebased: ProjectDocument = {
+              ...document,
+              revision: rebasedRevision,
+              updatedAt: rebasedUpdatedAt,
+              figmaProjection: document.figmaProjection && {
+                ...document.figmaProjection,
+                lastSyncedRevision: rebasedRevision,
+              },
+            };
+            result = await pushProject(session, rebased);
+            if (result.ok)
+              saveProjectSnapshot(project, {
+                id: metadata.id,
+                revision: rebasedRevision,
+                updatedAt: rebasedUpdatedAt,
+              });
+          }
+        }
+      }
       if (result.ok) {
         writeSyncState({ connected: true, lastSyncedRevision: result.value });
         setStatus("applied");

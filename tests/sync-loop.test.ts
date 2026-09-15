@@ -83,7 +83,18 @@ test("pushes and records the server-confirmed revision", async () => {
   assert.deepEqual(statuses, ["syncing", "applied"]);
 });
 
-test("leaves lastSyncedRevision untouched and flags a conflict on 409", async () => {
+const remoteSnapshot = (
+  revision: number,
+  appliedBatches?: ProjectDocument["appliedBatches"],
+): ProjectDocument => ({
+  id: "project",
+  revision,
+  updatedAt: "2026-09-14T00:00:00.000Z",
+  project: emptyProject as never,
+  appliedBatches,
+});
+
+test("leaves lastSyncedRevision untouched and flags a conflict when the rebased retry also loses", async () => {
   const state: SyncState = { connected: true, lastSyncedRevision: 0 };
   const statuses: SyncStatus[] = [];
   const loop = createSyncLoop({
@@ -95,11 +106,108 @@ test("leaves lastSyncedRevision untouched and flags a conflict on 409", async ()
     readSyncState: () => state,
     writeSyncState: (next) => Object.assign(state, next),
     fileKey: () => "figma-file",
+    fetchRemoteDocument: async () => ok(remoteSnapshot(0)),
     pushProject: async () => err(409),
   });
   await loop.pushLocalChanges(emptyProject);
   assert.equal(state.lastSyncedRevision, 0);
   assert.deepEqual(statuses, ["syncing", "conflict"]);
+});
+
+test("recovers from a conflict by rebasing the canvas snapshot onto the latest server revision", async () => {
+  const state: SyncState = { connected: true, lastSyncedRevision: 0 };
+  const statuses: SyncStatus[] = [];
+  const pushedDocuments: ProjectDocument[] = [];
+  let savedRevision: number | undefined;
+  const loop = createSyncLoop({
+    readSession: async () => session,
+    onProjectPulled: async () => {},
+    applyProjectImport: unusedApplyProjectImport,
+    onStatusChange: (status) => statuses.push(status),
+    readProjectMetadata: () => metadata(1),
+    readSyncState: () => state,
+    writeSyncState: (next) => Object.assign(state, next),
+    saveProjectSnapshot: (_project, meta) => {
+      savedRevision = meta.revision;
+    },
+    fileKey: () => "figma-file",
+    // 다른 Figma 인스턴스가 그 사이 revision 4까지 밀어올렸을 뿐, agent가 만든
+    // appliedBatches는 없는 상황
+    fetchRemoteDocument: async () => ok(remoteSnapshot(4)),
+    pushProject: async (_session, document) => {
+      pushedDocuments.push(document);
+      return document.revision === 1 ? err(409) : ok(document.revision);
+    },
+  });
+  await loop.pushLocalChanges(emptyProject);
+  // 최초 push는 revision 1로 실패, 서버의 최신 revision(4) 위로 재기준한
+  // revision 5로 캔버스 내용을 다시 push해 스스로 회복
+  assert.deepEqual(
+    pushedDocuments.map((document) => document.revision),
+    [1, 5],
+  );
+  // figmaProjection의 lastSyncedRevision도 재기준한 revision과 같이 움직여야
+  // 문서 내부가 서로 다른 revision을 가리키는 모순이 남지 않는다
+  assert.equal(pushedDocuments[1].figmaProjection?.lastSyncedRevision, 5);
+  assert.equal(state.lastSyncedRevision, 5);
+  assert.equal(savedRevision, 5);
+  assert.deepEqual(statuses, ["syncing", "applied"]);
+});
+
+test("refuses to overwrite work an agent applied since the last known sync, and stays in conflict", async () => {
+  const state: SyncState = { connected: true, lastSyncedRevision: 0 };
+  const statuses: SyncStatus[] = [];
+  const pushedDocuments: ProjectDocument[] = [];
+  const loop = createSyncLoop({
+    readSession: async () => session,
+    onProjectPulled: async () => {},
+    applyProjectImport: unusedApplyProjectImport,
+    onStatusChange: (status) => statuses.push(status),
+    readProjectMetadata: () => metadata(1),
+    readSyncState: () => state,
+    writeSyncState: (next) => Object.assign(state, next),
+    fileKey: () => "figma-file",
+    // agent가 apply()로 revision 4에 실제 변경을 넣었으므로(appliedBatches),
+    // 캔버스 내용으로 덮어써서는 안 되는 상황
+    fetchRemoteDocument: async () =>
+      ok(
+        remoteSnapshot(4, {
+          "agent-batch": { revision: 4, previewId: "preview-1" },
+        }),
+      ),
+    pushProject: async (_session, document) => {
+      pushedDocuments.push(document);
+      return err(409);
+    },
+  });
+  await loop.pushLocalChanges(emptyProject);
+  // 재기준 재시도 자체를 포기해야 하므로 push는 최초 시도 한 번만 일어난다
+  assert.deepEqual(
+    pushedDocuments.map((document) => document.revision),
+    [1],
+  );
+  assert.equal(state.lastSyncedRevision, 0);
+  assert.deepEqual(statuses, ["syncing", "conflict"]);
+});
+
+test("reports auth-expired instead of a stale conflict when the recovery document check finds the session expired", async () => {
+  const state: SyncState = { connected: true, lastSyncedRevision: 0 };
+  const statuses: SyncStatus[] = [];
+  const loop = createSyncLoop({
+    readSession: async () => session,
+    onProjectPulled: async () => {},
+    applyProjectImport: unusedApplyProjectImport,
+    onStatusChange: (status) => statuses.push(status),
+    readProjectMetadata: () => metadata(1),
+    readSyncState: () => state,
+    writeSyncState: (next) => Object.assign(state, next),
+    fileKey: () => "figma-file",
+    fetchRemoteDocument: async () => err(401),
+    pushProject: async () => err(409),
+  });
+  await loop.pushLocalChanges(emptyProject);
+  assert.equal(state.lastSyncedRevision, 0);
+  assert.deepEqual(statuses, ["syncing", "auth-expired"]);
 });
 
 test("signs the user out again when a push finds the session expired", async () => {
