@@ -4,8 +4,8 @@ import {
   elementSiblings,
   elementTreeIds,
   type BlockType,
-  type Element,
 } from "../../../shared";
+import type { DomainElement } from "../../../core/project-change.ts";
 import {
   normalizeElementOrder,
   readProject,
@@ -49,15 +49,24 @@ export async function insertBlock(
   )
     throw new Error("Sections can only be nested one level deep.");
   const elementId = id();
-  const element: Omit<Element, "nodeId"> = {
+  const base = {
     id: elementId,
     screenId,
     name: BLOCK_DEFINITIONS[block].label,
-    type: block,
     parentElementId: parentElement?.id,
-    buttonVariant: block === "button" ? buttonVariant : undefined,
-    direction: block === "section" ? "vertical" : undefined,
   };
+  // block별로 필요한 필드가 다른 discriminated union이라, 값을 한 번에 못 채우고
+  // block 값을 분기해 그 variant가 실제로 갖는 필드만 채운다
+  const element: DomainElement = ((): DomainElement => {
+    switch (block) {
+      case "button":
+        return { ...base, type: block, buttonVariant };
+      case "section":
+        return { ...base, type: block, direction: "vertical" };
+      default:
+        return { ...base, type: block };
+    }
+  })();
   const node = createElementNode(element, parentNode as FrameNode);
   project.elements.push({ ...element, nodeId: node.id });
   // 새 Element는 order가 비어있어 그대로 저장하면 뒤이은 sync의 cleanProject가

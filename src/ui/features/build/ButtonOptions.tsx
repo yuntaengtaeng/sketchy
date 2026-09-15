@@ -6,11 +6,12 @@ export default function ButtonOptions({
 }: {
   element: SketchyElement;
 }) {
+  const variant = element.type === "button" ? element.buttonVariant : "filled";
   return (
     <label>
       Style
       <select
-        value={element.buttonVariant || "filled"}
+        value={variant || "filled"}
         onChange={(event) =>
           post({
             type: "SET_BUTTON_VARIANT",

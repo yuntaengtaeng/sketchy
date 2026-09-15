@@ -1,17 +1,26 @@
 import type {
+  BlockType,
+  ButtonVariant,
   Element,
+  ElementBase,
   Feature,
   FeatureAction,
   Project,
   ProjectSettings,
   Screen,
+  SectionDirection,
 } from "../shared/index.ts";
 
 // Sketchy Canonical Project 모델과 변경 배치 타입 정의
 // Figma nodeId 없이 순수 도메인 데이터만 다루는 서버, MCP 공용 레이어
 
 export type DomainScreen = Omit<Screen, "nodeId">;
-export type DomainElement = Omit<Element, "nodeId">;
+// 평범한 Omit은 union의 key 교집합만 남겨 variant별 필드(buttonVariant 등)를
+// 지워버리므로, 각 variant에 개별로 Omit을 분배하는 조건부 타입을 쓴다
+type DistributiveOmit<T, K extends keyof never> = T extends unknown
+  ? Omit<T, K>
+  : never;
+export type DomainElement = DistributiveOmit<Element, "nodeId">;
 
 export type CanonicalProject = {
   settings: ProjectSettings;
@@ -75,10 +84,22 @@ export function createProjectDocument(
 
 type ScreenInput = DomainScreen;
 type ScreenPatch = Partial<Pick<DomainScreen, "name" | "purpose">>;
-type ElementInput = DomainElement;
-type ElementPatch = Partial<
-  Pick<DomainElement, "name" | "description" | "buttonVariant" | "direction">
->;
+// patch와 마찬가지로 검증 전 후보값이라 union이 아니라 알려진 필드 전부를
+// 낙관적으로 허용하는 평평한 모양, validate-project-changes의 guard를
+// 통과한 뒤에만 실제 DomainElement로 취급한다
+type ElementInput = Omit<ElementBase, "nodeId"> & {
+  type: BlockType;
+} & ButtonVariant &
+  SectionDirection;
+// patch는 특정 variant의 인스턴스가 아니라 "알려진 필드 중 일부"라 union에서
+// Pick할 수 없다, target의 실제 type과 맞는지는 validate-project-changes에서
+// 런타임으로 확인한다
+type ElementPatch = Partial<{
+  name: string;
+  description: string;
+  buttonVariant: "filled" | "outline";
+  direction: "vertical" | "horizontal";
+}>;
 
 export type FeatureCaseInput = {
   id: string;

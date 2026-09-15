@@ -39,19 +39,29 @@ export const SCREEN_PRESETS: Record<
 
 export type ProjectSettings = { screenPreset: ScreenPreset };
 
-export type Element = {
+export type ElementBase = {
   id: string;
   nodeId: string;
   screenId: string;
   name: string;
   description?: string;
-  type: BlockType;
   parentElementId?: string;
-  buttonVariant?: "filled" | "outline";
-  direction?: "vertical" | "horizontal";
   role?: "popup";
   order?: number;
 };
+
+// 각 trait는 그걸 가진 BlockType의 Element에만 교차시켜 붙인다, 불가능한 조합
+// (예: text에 buttonVariant)은 타입 단계에서 아예 만들 수 없게 한다
+export type ButtonVariant = { buttonVariant?: "filled" | "outline" };
+export type SectionDirection = { direction?: "vertical" | "horizontal" };
+
+export type Element =
+  | (ElementBase & { type: "text" })
+  | (ElementBase & { type: "button" } & ButtonVariant)
+  | (ElementBase & { type: "input" })
+  | (ElementBase & { type: "image" })
+  | (ElementBase & { type: "divider" })
+  | (ElementBase & { type: "section" } & SectionDirection);
 
 export function duplicateScreenElements(
   elements: Element[],

@@ -124,7 +124,8 @@ test("allows editable element fields but rejects element structure changes", () 
   const renamed = structuredClone(source);
   renamed.revision = 3;
   renamed.project.elements[0].name = "Buy now";
-  renamed.project.elements[0].buttonVariant = "outline";
+  const renamedButton = renamed.project.elements[0];
+  if (renamedButton.type === "button") renamedButton.buttonVariant = "outline";
 
   assert.equal(
     previewProjectImport(source, JSON.stringify(renamed)).valid,

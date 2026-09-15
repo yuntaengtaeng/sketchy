@@ -6,11 +6,12 @@ export default function SectionOptions({
 }: {
   element: SketchyElement;
 }) {
+  const direction = element.type === "section" ? element.direction : "vertical";
   return (
     <label>
       Direction
       <select
-        value={element.direction || "vertical"}
+        value={direction || "vertical"}
         onChange={(event) =>
           post({
             type: "SET_SECTION_DIRECTION",

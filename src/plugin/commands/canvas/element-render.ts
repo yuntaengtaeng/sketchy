@@ -3,11 +3,9 @@ import {
   sectionLayout,
   type Element,
 } from "../../../shared";
+import type { DomainElement } from "../../../core/project-change.ts";
 
-export function createElementNode(
-  element: Omit<Element, "nodeId">,
-  parent: FrameNode,
-) {
+export function createElementNode(element: DomainElement, parent: FrameNode) {
   const node =
     element.type === "text" ? figma.createText() : figma.createFrame();
   node.name = element.name;
