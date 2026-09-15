@@ -1,4 +1,5 @@
 import {
+  BLOCK_DEFINITIONS,
   SCREEN_PRESETS,
   type Element,
   type Feature,
@@ -34,7 +35,7 @@ export function migrateStoredProject(stored: StoredProject): Project {
   if (typeof storedPreset === "string" && storedPreset in SCREEN_PRESETS)
     screenPreset = storedPreset;
 
-  const elements = stored.elements || [];
+  const elements = migrateElements(stored.elements || []);
   let features: Feature[];
   if (stored.features) features = stored.features.map(migrateFeature);
   else
@@ -48,6 +49,23 @@ export function migrateStoredProject(stored: StoredProject): Project {
     elements,
     features,
   };
+}
+
+// 삭제된 블록 타입(예: navigation)이나 삭제된 속성(예: 예전 Button layout)이
+// Figma 파일에 그대로 남아있으면 서버 스키마가 매번 push를 거절하므로
+// 저장된 값을 읽을 때 미리 걸러낸다
+function migrateElements(elements: Element[]): Element[] {
+  return elements
+    .filter((element) => element.type in BLOCK_DEFINITIONS)
+    .map((element) => {
+      if ("layout" in element) {
+        const { layout: _layout, ...rest } = element as Element & {
+          layout?: unknown;
+        };
+        return rest as Element;
+      }
+      return element;
+    });
 }
 
 function migrateFeature(feature: LegacyFeature): Feature {

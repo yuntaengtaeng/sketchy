@@ -59,3 +59,41 @@ test("parses and migrates legacy project actions and interactions", () => {
     action: { type: "navigate", destinationScreenId: "next" },
   });
 });
+
+test("drops elements from deleted block types and strips deleted element fields", () => {
+  const project = migrateStoredProject(
+    parseStoredProject(
+      JSON.stringify({
+        settings: { screenPreset: "mobile" },
+        elements: [
+          {
+            id: "nav",
+            nodeId: "1:1",
+            screenId: "screen",
+            name: "Navigation",
+            type: "navigation",
+          },
+          {
+            id: "button",
+            nodeId: "1:2",
+            screenId: "screen",
+            name: "Continue",
+            type: "button",
+            buttonVariant: "filled",
+            layout: "center",
+          },
+        ],
+      }),
+    ),
+  );
+  assert.deepEqual(project.elements, [
+    {
+      id: "button",
+      nodeId: "1:2",
+      screenId: "screen",
+      name: "Continue",
+      type: "button",
+      buttonVariant: "filled",
+    },
+  ]);
+});

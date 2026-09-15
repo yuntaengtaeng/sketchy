@@ -98,3 +98,18 @@ Picker는 [기능 모델](../product/feature-model.md)의 Trigger 축(트리거
    먼저 확인하고, 안 맞으면 새로 만든다. `src/ui/features/build/`에 그
    블록 전용 `XOptions.tsx`를 만들고 `blockRegistry.ts`에 등록한다.
 7. `npm run check`, `npm run build`, 관련 좁은 테스트를 돌린다.
+
+## 블록/속성을 삭제할 때는 마이그레이션이 필요하다
+
+타입/스키마/렌더링 코드에서 블록 타입이나 속성을 지워도, 사용자가 이미 그
+Figma 파일에 저장해둔 예전 데이터에는 그 값이 그대로 남아있다. 그 상태로
+push하면 `src/mcp/schemas.ts`의 `.strict()` discriminated union이 알 수
+없는 타입/필드를 거절해서 **모든 push가 영원히 400으로 막힌다**(실제로
+Navigation 블록 삭제, Button `layout` 속성 삭제 후 겪은 문제).
+
+블록/속성을 삭제할 때는 `src/plugin/storage/project-migration.ts`의
+`migrateStoredProject`(정확히는 `migrateElements`)에도 그 값을 걸러내는
+로직을 같이 추가한다 — 더 이상 유효하지 않은 `type`의 Element는
+제거하고, 삭제된 필드는 벗겨낸다. 이렇게 하면 플러그인이 프로젝트를 읽는
+시점에 이미 정리된 데이터로 문서를 다시 만들어서 push하므로, 서버 스키마를
+계속 느슨하게 유지할 필요 없이 근본 원인을 클라이언트에서 해결한다.
