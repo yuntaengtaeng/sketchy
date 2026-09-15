@@ -34,6 +34,21 @@ export default function ElementDetails({
           }
         />
       </label>
+      <label>
+        Description
+        <textarea
+          defaultValue={element.description}
+          placeholder="What does this show or contain?"
+          onBlur={(event) =>
+            post({
+              type: "UPDATE_ELEMENT",
+              elementId: element.id,
+              name: element.name,
+              description: event.target.value,
+            })
+          }
+        />
+      </label>
       {Options && <Options element={element} />}
       {BLOCK_DEFINITIONS[element.type].triggers.length > 0 &&
         (!screen?.kind || insidePopup) && (
