@@ -14,9 +14,15 @@ import {
 import { focusNode, id, loadFont } from "./utils";
 import {
   createElementNode,
+  renderButtonLayout,
   renderButtonVariant,
+  renderChecked,
   renderElementName,
   renderSectionDirection,
+  renderSelectDisplayState,
+  renderSelectOptions,
+  renderTabItems,
+  renderTextSize,
 } from "./element-render";
 
 export async function insertBlock(
@@ -63,6 +69,15 @@ export async function insertBlock(
         return { ...base, type: block, buttonVariant };
       case "section":
         return { ...base, type: block, direction: "vertical" };
+      case "tabs":
+        return { ...base, type: block, tabItems: ["Tab 1", "Tab 2"] };
+      case "select":
+        return {
+          ...base,
+          type: block,
+          options: ["Option 1", "Option 2"],
+          displayState: "collapsed",
+        };
       default:
         return { ...base, type: block };
     }
@@ -193,6 +208,93 @@ export async function setSectionDirection(
       node: childNode,
     })),
   );
+  saveProject(project);
+  return project;
+}
+
+export async function setButtonLayout(
+  elementId: string,
+  layout: "stretch" | "start" | "center" | "end",
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "button" || node?.type !== "FRAME")
+    return project;
+  element.layout = layout;
+  renderButtonLayout(node, layout);
+  saveProject(project);
+  return project;
+}
+
+export async function setTextSize(
+  elementId: string,
+  size: "display" | "title" | "subtitle" | "body" | "caption",
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "text" || node?.type !== "TEXT")
+    return project;
+  element.textSize = size;
+  renderTextSize(node, size);
+  saveProject(project);
+  return project;
+}
+
+export async function setChecked(elementId: string, checked: boolean) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (
+    !element ||
+    (element.type !== "checkbox" &&
+      element.type !== "radio" &&
+      element.type !== "switch") ||
+    node?.type !== "FRAME"
+  )
+    return project;
+  element.checked = checked;
+  renderChecked(node, element.type, checked);
+  saveProject(project);
+  return project;
+}
+
+export async function setTabItems(elementId: string, items: string[]) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "tabs" || node?.type !== "FRAME")
+    return project;
+  element.tabItems = items;
+  renderTabItems(node, items);
+  saveProject(project);
+  return project;
+}
+
+export async function setSelectOptions(elementId: string, options: string[]) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "select" || node?.type !== "FRAME")
+    return project;
+  element.options = options;
+  renderSelectOptions(node, options);
+  saveProject(project);
+  return project;
+}
+
+export async function setSelectDisplayState(
+  elementId: string,
+  displayState: "collapsed" | "expanded",
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "select" || node?.type !== "FRAME")
+    return project;
+  element.displayState = displayState;
+  renderSelectDisplayState(node, displayState, element.options ?? []);
   saveProject(project);
   return project;
 }

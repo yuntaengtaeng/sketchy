@@ -3,8 +3,14 @@ export {
   insertBlock,
   moveElement,
   selectElement,
+  setButtonLayout,
   setButtonVariant,
+  setChecked,
   setSectionDirection,
+  setSelectDisplayState,
+  setSelectOptions,
+  setTabItems,
+  setTextSize,
   updateElement,
 } from "./element";
 export { deleteFeature, saveFeature } from "./feature";

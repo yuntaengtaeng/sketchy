@@ -10,8 +10,14 @@ import {
   duplicateScreen,
   insertBlock,
   moveElement,
+  setButtonLayout,
   setButtonVariant,
+  setChecked,
   setSectionDirection,
+  setSelectDisplayState,
+  setSelectOptions,
+  setTabItems,
+  setTextSize,
   selectElement,
   selectScreen,
   saveFeature,
@@ -262,6 +268,20 @@ figma.ui.onmessage = async (message: PluginMessage) => {
     if (message.type === "SET_SECTION_DIRECTION")
       await sync(
         await setSectionDirection(message.elementId, message.direction),
+      );
+    if (message.type === "SET_BUTTON_LAYOUT")
+      await sync(await setButtonLayout(message.elementId, message.layout));
+    if (message.type === "SET_TEXT_SIZE")
+      await sync(await setTextSize(message.elementId, message.size));
+    if (message.type === "SET_CHECKED")
+      await sync(await setChecked(message.elementId, message.checked));
+    if (message.type === "SET_TAB_ITEMS")
+      await sync(await setTabItems(message.elementId, message.items));
+    if (message.type === "SET_SELECT_OPTIONS")
+      await sync(await setSelectOptions(message.elementId, message.options));
+    if (message.type === "SET_SELECT_DISPLAY_STATE")
+      await sync(
+        await setSelectDisplayState(message.elementId, message.displayState),
       );
     if (message.type === "DELETE_ELEMENT")
       await sync(await deleteElement(message.elementId), true);
