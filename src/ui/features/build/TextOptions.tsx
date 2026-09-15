@@ -14,6 +14,11 @@ const SIZES: { value: TextSize; label: string }[] = [
 
 export default function TextOptions({ element }: { element: SketchyElement }) {
   const size = element.type === "text" ? (element.textSize ?? "body") : "body";
+  console.log("[sketchy text size] render", {
+    elementId: element.id,
+    rawTextSize: element.type === "text" ? element.textSize : "(not text)",
+    computedSize: size,
+  });
   return (
     <SegmentedField
       label="Size"

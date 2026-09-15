@@ -44,14 +44,18 @@ manifest에서는 페이지가 미리 로드되어 있지 않을 수 있어 동�
 `canvas/screen.ts`의 `createScreenNode`가 Screen용 Frame을 만든다.
 `flow/connector.ts`가 연결선 라벨용 Text를 만든다.
 
-### `figma.createLine()` / `figma.createRectangle()`
+### `figma.createLine()` / `figma.createRectangle()` / `figma.createEllipse()`
 
-역할: 직선/사각형 Node를 만든다.
+역할: 직선/사각형/타원 Node를 만든다.
 
 사용처: `flow/generated.ts`가 Flow 탭의 화면 간 연결선(`createLine`)을 그릴
 때 쓴다. 이 Line Node들은 `sketchy:flow-generated` Plugin Data로 표시해
 다음 렌더링 때 구분해서 지운다. `canvas/screen.ts`는 Popup Screen을 만들 때
 뒤에 깔리는 반투명 Dim 배경(`createRectangle`)을 만드는 데 쓴다.
+`element-render.ts`의 Search 블록은 돋보기 아이콘을 `createEllipse`(원)와
+`createRectangle`(손잡이, 회전)을 auto-layout이 없는 고정 크기 Frame 안에
+절대 좌표로 배치해 만든다 — 여러 도형을 조합한 작은 아이콘을 auto-layout
+자식 하나처럼 다루고 싶을 때 쓰는 패턴이다.
 
 ## Node 조작
 
@@ -100,6 +104,27 @@ manifest에서는 페이지가 미리 로드되어 있지 않을 수 있어 동�
 Element를 추가·삭제·순서 변경해도 자동으로 다시 배치된다(`element-render.ts`,
 `screen.ts`, `screen-clone.ts`). 이 덕분에 `moveElement`가 Node 순서만
 바꾸면 화면 위치는 Figma가 알아서 다시 계산해준다.
+
+겪은 함정 세 가지 (List Item/Card/Table/Tabs/Select/Checkbox/Radio/Switch
+블록 추가 중 실측):
+
+- **`layoutSizingHorizontal`/`layoutSizingVertical`/`layoutAlign`은 그
+  Node가 이미 auto-layout 부모에 `appendChild`된 뒤에만 설정할 수 있다.**
+  아직 아무 부모도 없는 새 Frame에 먼저 설정하면 예외가 발생해 삽입
+  자체가 실패한다(Select 블록 추가가 완전히 안 되던 원인). 항상
+  `parent.appendChild(node)` 다음에 `node.layoutSizingHorizontal = ...`
+  순서를 지킨다.
+- **새로 만든 Frame은 `layoutMode`를 켜도 기본 100×100 크기가 남는다.**
+  `primaryAxisSizingMode`/`counterAxisSizingMode`를 `"AUTO"`로 명시해야
+  자기 자식 크기에 맞춰 hug한다(`element-render.ts`의 `hugFrame` 헬퍼).
+  안 하면 Tabs/Checkbox/Radio 컨테이너 높이가 100으로 고정되어 나온다.
+- **`layoutAlign`의 `"MIN"`/`"CENTER"`/`"MAX"`는 deprecated됐다.** 이제
+  교차축 정렬은 오토레이아웃 프레임 자체의 `counterAxisAlignItems`
+  하나로만 정해지고, 그 프레임의 모든 자식이 같은 값을 공유한다 — 같은
+  부모 안에서 형제끼리 서로 다른 정렬을 가질 수 없다. 자식 하나만 다르게
+  정렬하려면 그 자식을 별도의 1자식 auto-layout wrapper Frame으로 감싸고
+  그 wrapper의 `counterAxisAlignItems`로 정렬해야 한다(Button 개별 정렬
+  기능은 이 비용 때문에 보류했다).
 
 ## Plugin Data
 
