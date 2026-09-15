@@ -94,9 +94,12 @@ export function createSyncLoop(deps: SyncLoopDeps) {
       let result = await pushProject(session, document);
       // 다른 Figma push가 그 사이 revision을 밀어 올렸을 뿐이면 캔버스 내용 그대로
       // 최신 revision 위로 한 번만 재기준해 다시 push, conflict가 매 편집마다
-      // 재현되지 않고 스스로 회복되는 구조. 다만 그 사이 agent가 apply()로 실제
-      // 내용을 바꿨다면(appliedBatches 증가) 그 작업을 조용히 덮어쓰면 안 되므로
-      // 재기준을 포기하고 conflict로 남긴다
+      // 재현되지 않고 스스로 회복되는 구조. 다만 서버의 "가장 최근" revision 자체가
+      // agent apply()로 만들어진 것이면(appliedBatches가 그 revision을 기록) 그
+      // 작업을 조용히 덮어쓰면 안 되므로 재기준을 포기하고 conflict로 남긴다.
+      // appliedBatches는 한번 기록되면 지워지지 않으므로 "기록이 있다"가 아니라
+      // "그게 지금 서버의 최신 revision이냐"로 판단해야, 그 뒤에 Figma push가 한 번
+      // 이라도 더 있었던 옛 기록 때문에 영원히 막히지 않는다
       if (!result.ok && result.status === 409) {
         const remote = await fetchRemoteDocument(session, metadata.id);
         if (!remote.ok) {
@@ -107,11 +110,11 @@ export function createSyncLoop(deps: SyncLoopDeps) {
             return;
           }
         } else {
-          const appliedByAgentSinceLastSync = Object.values(
+          const latestWriteWasAgentApplied = Object.values(
             remote.value.appliedBatches ?? {},
-          ).some((batch) => batch.revision > state.lastSyncedRevision);
+          ).some((batch) => batch.revision === remote.value.revision);
           if (
-            !appliedByAgentSinceLastSync &&
+            !latestWriteWasAgentApplied &&
             remote.value.revision >= state.lastSyncedRevision
           ) {
             const rebasedRevision = remote.value.revision + 1;

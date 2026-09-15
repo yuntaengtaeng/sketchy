@@ -190,6 +190,46 @@ test("refuses to overwrite work an agent applied since the last known sync, and 
   assert.deepEqual(statuses, ["syncing", "conflict"]);
 });
 
+test("still recovers when an old, superseded agent batch is far behind the current server revision", async () => {
+  // appliedBatches는 지워지지 않으므로, 예전에 agent를 한 번 썼던 기록이 남아있고
+  // lastSyncedRevision이 그보다 계속 뒤처져 있으면(이 프로젝트가 실제로 겪은 상황)
+  // "기록이 있다"만 보는 판정은 agent가 더 이상 활동하지 않는데도 영원히 conflict를
+  // 재현시킨다. 서버의 "현재" revision 자체가 agent 작성이 아니면 회복해야 한다
+  const state: SyncState = { connected: true, lastSyncedRevision: 0 };
+  const statuses: SyncStatus[] = [];
+  const pushedDocuments: ProjectDocument[] = [];
+  const loop = createSyncLoop({
+    readSession: async () => session,
+    onProjectPulled: async () => {},
+    applyProjectImport: unusedApplyProjectImport,
+    onStatusChange: (status) => statuses.push(status),
+    readProjectMetadata: () => metadata(1),
+    readSyncState: () => state,
+    writeSyncState: (next) => Object.assign(state, next),
+    saveProjectSnapshot: () => {},
+    fileKey: () => "figma-file",
+    // agent가 예전에 revision 3에 뭔가 적용했지만, 그 뒤로 다른 Figma push가
+    // 여러 번 더 있어서 서버는 지금 revision 10, 최신 변경은 agent가 아니다
+    fetchRemoteDocument: async () =>
+      ok(
+        remoteSnapshot(10, {
+          "old-agent-batch": { revision: 3, previewId: "preview-1" },
+        }),
+      ),
+    pushProject: async (_session, document) => {
+      pushedDocuments.push(document);
+      return document.revision === 1 ? err(409) : ok(document.revision);
+    },
+  });
+  await loop.pushLocalChanges(emptyProject);
+  assert.deepEqual(
+    pushedDocuments.map((document) => document.revision),
+    [1, 11],
+  );
+  assert.equal(state.lastSyncedRevision, 11);
+  assert.deepEqual(statuses, ["syncing", "applied"]);
+});
+
 test("reports auth-expired instead of a stale conflict when the recovery document check finds the session expired", async () => {
   const state: SyncState = { connected: true, lastSyncedRevision: 0 };
   const statuses: SyncStatus[] = [];
