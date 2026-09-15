@@ -17,7 +17,7 @@ const CATEGORIES: { key: string; label: string; blocks: BlockType[] }[] = [
   {
     key: "interactive",
     label: "Interactive",
-    blocks: ["button", "listItem", "card", "tableRow", "tabs", "navigation"],
+    blocks: ["button", "listItem", "card", "table", "tabs"],
   },
   {
     key: "form",
@@ -45,7 +45,7 @@ const COMPOSITE_PREVIEWS: Partial<Record<BlockType, ReactNode>> = {
       <i />
     </span>
   ),
-  tableRow: (
+  table: (
     <span className={styles.swTableRow}>
       <i />
       <i />
@@ -54,13 +54,6 @@ const COMPOSITE_PREVIEWS: Partial<Record<BlockType, ReactNode>> = {
   ),
   tabs: (
     <span className={styles.swTabs}>
-      <i />
-      <i />
-    </span>
-  ),
-  navigation: (
-    <span className={styles.swNavigation}>
-      <i />
       <i />
       <i />
     </span>

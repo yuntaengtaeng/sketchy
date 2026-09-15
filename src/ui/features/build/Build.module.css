@@ -172,8 +172,7 @@
 .swListItem,
 .swCard,
 .swTableRow,
-.swTabs,
-.swNavigation {
+.swTabs {
   display: flex;
   width: 100%;
   height: 100%;
@@ -266,25 +265,6 @@
 
 .swTabs i:first-child {
   background: currentColor;
-}
-
-.swNavigation {
-  align-items: center;
-  justify-content: space-evenly;
-}
-
-.swNavigation i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.4;
-}
-
-.swNavigation i:nth-child(2) {
-  width: 9px;
-  height: 9px;
-  opacity: 1;
 }
 
 .sectionCanvas {

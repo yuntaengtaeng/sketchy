@@ -17,9 +17,8 @@ export const BLOCK_DEFINITIONS = {
   // 순수 시각 요소로만 추가하고 트리거는 블록별로 나중에 확장한다
   listItem: { label: "List Item", canAddToSection: true, triggers: ["click"] },
   card: { label: "Card", canAddToSection: true, triggers: ["click"] },
-  tableRow: { label: "Table Row", canAddToSection: true, triggers: [] },
+  table: { label: "Table", canAddToSection: true, triggers: [] },
   tabs: { label: "Tabs", canAddToSection: true, triggers: [] },
-  navigation: { label: "Navigation", canAddToSection: true, triggers: [] },
   select: { label: "Select", canAddToSection: true, triggers: [] },
   checkbox: { label: "Checkbox", canAddToSection: true, triggers: [] },
   radio: { label: "Radio", canAddToSection: true, triggers: [] },
@@ -80,6 +79,13 @@ export type SelectOptions = {
   displayState?: "collapsed" | "expanded";
 };
 export type Placeholder = { placeholder?: string };
+// List Item, Card, Table이 공유하는 "반복 개수", 실제로 N개를 따로 추가하는
+// 대신 하나의 Element가 내부에 N개를 반복해 목록/표처럼 보여준다
+export type RepeatCount = { count?: number };
+// leading은 아이콘이 아니라 작은 이미지(Image 블록과 같은 회색 자리)를 쓴다
+export type ListItemType = { itemType?: "basic" | "leading" | "trailing" };
+export type CardType = { cardType?: "basic" | "media" | "stat" };
+export type TableColumns = { columns?: string[] };
 
 // BlockType별로 반복되는 "ElementBase & {type} & trait들" 조립을 한 곳에 모은다
 type ElementVariant<
@@ -94,11 +100,10 @@ export type Element =
   | ElementVariant<"image">
   | ElementVariant<"divider">
   | ElementVariant<"section", SectionDirection>
-  | ElementVariant<"listItem">
-  | ElementVariant<"card">
-  | ElementVariant<"tableRow">
+  | ElementVariant<"listItem", ListItemType & RepeatCount>
+  | ElementVariant<"card", CardType & RepeatCount>
+  | ElementVariant<"table", TableColumns & RepeatCount>
   | ElementVariant<"tabs", TabItems>
-  | ElementVariant<"navigation">
   | ElementVariant<"select", SelectOptions>
   | ElementVariant<"checkbox", Checked>
   | ElementVariant<"radio", Checked>
@@ -297,6 +302,18 @@ export type PluginMessage =
       displayState: "collapsed" | "expanded";
     }
   | { type: "SET_INPUT_PLACEHOLDER"; elementId: string; placeholder: string }
+  | {
+      type: "SET_LIST_ITEM_TYPE";
+      elementId: string;
+      itemType: "basic" | "leading" | "trailing";
+    }
+  | {
+      type: "SET_CARD_TYPE";
+      elementId: string;
+      cardType: "basic" | "media" | "stat";
+    }
+  | { type: "SET_TABLE_COLUMNS"; elementId: string; columns: string[] }
+  | { type: "SET_COUNT"; elementId: string; count: number }
   | {
       type: "SAVE_FEATURE";
       sourceElementId: string;

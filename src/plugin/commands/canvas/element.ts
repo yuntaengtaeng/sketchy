@@ -16,12 +16,16 @@ import {
   createElementNode,
   renderButtonLayout,
   renderButtonVariant,
+  renderCardType,
   renderChecked,
+  renderCount,
   renderElementName,
   renderInputPlaceholder,
+  renderListItemType,
   renderSectionDirection,
   renderSelectDisplayState,
   renderSelectOptions,
+  renderTableColumns,
   renderTabItems,
   renderTextSize,
 } from "./element-render";
@@ -78,6 +82,17 @@ export async function insertBlock(
           type: block,
           options: ["Option 1", "Option 2"],
           displayState: "collapsed",
+        };
+      case "listItem":
+        return { ...base, type: block, itemType: "basic", count: 3 };
+      case "card":
+        return { ...base, type: block, cardType: "basic", count: 3 };
+      case "table":
+        return {
+          ...base,
+          type: block,
+          columns: ["Column 1", "Column 2", "Column 3"],
+          count: 3,
         };
       default:
         return { ...base, type: block };
@@ -311,6 +326,68 @@ export async function setInputPlaceholder(
     return project;
   element.placeholder = placeholder;
   renderInputPlaceholder(node, placeholder);
+  saveProject(project);
+  return project;
+}
+
+export async function setListItemType(
+  elementId: string,
+  itemType: "basic" | "leading" | "trailing",
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "listItem" || node?.type !== "FRAME")
+    return project;
+  element.itemType = itemType;
+  renderListItemType(node, itemType, element.count);
+  saveProject(project);
+  return project;
+}
+
+export async function setCardType(
+  elementId: string,
+  cardType: "basic" | "media" | "stat",
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "card" || node?.type !== "FRAME")
+    return project;
+  element.cardType = cardType;
+  renderCardType(node, cardType, element.count);
+  saveProject(project);
+  return project;
+}
+
+export async function setTableColumns(elementId: string, columns: string[]) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "table" || node?.type !== "FRAME")
+    return project;
+  element.columns = columns;
+  renderTableColumns(node, columns, element.count);
+  saveProject(project);
+  return project;
+}
+
+// List Item, Card, Table이 공유하는 반복 개수, 실제 재구성은 각자 다른 필드
+// (itemType/cardType/columns)를 들고 render-render.ts의 renderCount가 나눠맡는다
+export async function setCount(elementId: string, count: number) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (
+    !element ||
+    (element.type !== "listItem" &&
+      element.type !== "card" &&
+      element.type !== "table") ||
+    node?.type !== "FRAME"
+  )
+    return project;
+  element.count = count;
+  renderCount(node, element);
   saveProject(project);
   return project;
 }
