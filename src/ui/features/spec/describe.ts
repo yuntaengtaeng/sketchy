@@ -1,4 +1,9 @@
-import type { Element, Feature, Project } from "../../../shared";
+import {
+  BLOCK_DEFINITIONS,
+  type Element,
+  type Feature,
+  type Project,
+} from "../../../shared/index.ts";
 
 export const title = (value: string) => value[0].toUpperCase() + value.slice(1);
 
@@ -81,13 +86,51 @@ export function buildProjectMarkdown(project: Project) {
   return lines.join("\n");
 }
 
+// 반복 개수, 목록 내용, 켜짐 여부처럼 Figma를 열지 않고는 안 보이던 값들을
+// Spec에 같이 적어서 이해관계자가 읽기만 해도 실제 구성을 알 수 있게 한다
+function elementDetail(element: Element): string | undefined {
+  switch (element.type) {
+    case "text":
+      return element.textSize && element.textSize !== "body"
+        ? title(element.textSize)
+        : undefined;
+    case "input":
+      return element.placeholder
+        ? `placeholder "${element.placeholder}"`
+        : undefined;
+    case "listItem":
+      return `${title(element.itemType ?? "basic")}, ${element.count ?? 3} rows`;
+    case "card":
+      return `${title(element.cardType ?? "basic")}, ${element.count ?? 3} cards`;
+    case "table":
+      return `columns: ${(element.columns ?? ["Column 1", "Column 2", "Column 3"]).join(", ")}; ${element.count ?? 3} rows`;
+    case "tabs":
+      return (element.tabItems ?? ["Tab 1", "Tab 2"]).join(", ");
+    case "select":
+      return `${(element.options ?? ["Option 1", "Option 2"]).length} options${
+        element.displayState === "expanded" ? ", expanded" : ""
+      }`;
+    case "checkbox":
+    case "radio":
+      return element.checked ? "checked" : "unchecked";
+    case "switch":
+      return element.checked ? "on" : "off";
+    default:
+      return undefined;
+  }
+}
+
 function outlineToMarkdown(items: ElementOutline[], depth = 0): string[] {
-  return items.flatMap(({ element, number, children }) => [
-    `${"  ".repeat(depth)}- ${number}. ${element.name} (${title(element.type)})${
-      element.description ? `: ${element.description}` : ""
-    }`,
-    ...outlineToMarkdown(children, depth + 1),
-  ]);
+  return items.flatMap(({ element, number, children }) => {
+    const detail = elementDetail(element);
+    const type = BLOCK_DEFINITIONS[element.type].label;
+    return [
+      `${"  ".repeat(depth)}- ${number}. ${element.name} (${type}${detail ? `, ${detail}` : ""})${
+        element.description ? `: ${element.description}` : ""
+      }`,
+      ...outlineToMarkdown(children, depth + 1),
+    ];
+  });
 }
 
 export function describeFeature(project: Project, feature: Feature) {
