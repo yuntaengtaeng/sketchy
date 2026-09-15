@@ -73,15 +73,25 @@ State는 별도 상태 엔진이 아니라 원본 Screen을 복제한 파생 Scr
 
 ## Feature를 발생시킬 수 있는 요소
 
-지금(v0)은 Button(`click`)뿐이지만, Block이 확장되면 다음 순서로 늘어날 것:
+**Button, List Item, Card** — `click` (구현됨). List Item/Card는 Button과
+같은 방식으로 Feature가 생성되며 `BLOCK_DEFINITIONS[type].triggers`에
+`"click"`이 있는지로 판정한다(`validateFeatureAction`,
+`CLEAR_ELEMENT_ACTION` 모두 이 방식, 특정 타입을 하드코딩하지 않는다).
 
-1. **Button** — `click` (구현됨)
-2. **List Item / Card / Table Row** — `click` (목록 → 상세 이동 패턴, 실무에서 매우 흔함)
-3. **Tabs / Navigation** — `click`
-4. **Select / Checkbox / Radio / Switch** — `change`
-5. **Input(폼 전체) / Search** — `submit`
+다음은 시각 요소로는 구현됐지만 아직 트리거는 없다(`BLOCK_DEFINITIONS`의
+`triggers: []`) — Table, Tabs, Select, Checkbox, Radio, Switch, Search,
+Input, Text. 각 블록의 속성 모델은
+[블록과 속성 모델](../development/block-types.md)을 따른다.
+
+트리거를 넓힐 때는 다음 순서를 참고한다:
+
+1. **Tabs** — `click`
+2. **Select / Checkbox / Radio / Switch** — `change`
+3. **Input(폼 전체) / Search** — `submit`
 
 블록이 없는 트리거를 먼저 설계할 필요는 없다 — Block이 추가될 때 같이 확장한다.
+(Navigation 블록은 용도가 불분명해 제거했다 — 재도입한다면 하단 내비게이션
+바처럼 구체적인 형태부터 정하고 시작한다.)
 
 ## UI 표현 — Feature라는 단어를 사용자에게 노출하지 않는다
 

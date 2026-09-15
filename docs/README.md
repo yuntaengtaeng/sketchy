@@ -18,11 +18,12 @@
 ## 개발자
 
 1. [기능 모델](./product/feature-model.md) — 현재 도메인 규칙과 UI 제약
-2. [기술 설계](./development/architecture.md) — 런타임 구조, 도메인 타입, 메타데이터
-3. [Sketchy MCP v1 설계](./development/mcp-v1.md) — Agent 호환, Batch 변경과 Figma Projection 계약
-4. [Remote MCP와 Sketchy API](./development/remote-mcp.md) — 무료 호스팅, HTTP 계약, 인증과 Plan 경계
-5. [Figma Plugin API 사용 현황](./development/figma-api.md) — 실제로 쓰는 Figma API와 역할, 참고할 만한 다른 API
-6. [범위와 로드맵](./product/roadmap.md) — 구현 범위와 완료 조건
+2. [블록과 속성 모델](./development/block-types.md) — BlockType별 속성 타입, 새 블록 추가 절차
+3. [기술 설계](./development/architecture.md) — 런타임 구조, 도메인 타입, 메타데이터
+4. [Sketchy MCP v1 설계](./development/mcp-v1.md) — Agent 호환, Batch 변경과 Figma Projection 계약
+5. [Remote MCP와 Sketchy API](./development/remote-mcp.md) — 무료 호스팅, HTTP 계약, 인증과 Plan 경계
+6. [Figma Plugin API 사용 현황](./development/figma-api.md) — 실제로 쓰는 Figma API와 역할, 참고할 만한 다른 API
+7. [범위와 로드맵](./product/roadmap.md) — 구현 범위와 완료 조건
 
 ## Claude · AI 에이전트
 
