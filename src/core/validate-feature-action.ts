@@ -1,5 +1,5 @@
 import { elementAncestors } from "../shared/element-tree.ts";
-import type { FeatureAction } from "../shared/index.ts";
+import { BLOCK_DEFINITIONS, type FeatureAction } from "../shared/index.ts";
 import type { CanonicalProject, DomainElement } from "./project-change.ts";
 
 export type FeatureActionIssue = {
@@ -19,10 +19,12 @@ export function validateFeatureAction(
   action: FeatureAction,
   allowNewOverlay = false,
 ): FeatureActionIssue | undefined {
-  if (element.type !== "button")
+  // button 하드코딩 대신 BLOCK_DEFINITIONS의 triggers를 본다, click 트리거를
+  // 가진 블록(List Item, Card 등)이 늘어나도 여기 손댈 필요가 없다
+  if (!BLOCK_DEFINITIONS[element.type].triggers.some((t) => t === "click"))
     return {
       code: "TRIGGER_NOT_SUPPORTED",
-      message: "Only buttons support actions in v1.",
+      message: "This element doesn't support actions.",
     };
 
   if (

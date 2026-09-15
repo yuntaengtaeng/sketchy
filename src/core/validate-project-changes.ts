@@ -1,4 +1,5 @@
 import { canNestSection, elementTreeIds } from "../shared/element-tree.ts";
+import { BLOCK_DEFINITIONS } from "../shared/index.ts";
 import type { Feature, FeatureAction } from "../shared/index.ts";
 import type {
   CanonicalProject,
@@ -230,10 +231,10 @@ export function previewProjectChanges(
     if (change.type === "CLEAR_ELEMENT_ACTION") {
       const target = element(change.elementId);
       if (!target) return fail("ELEMENT_NOT_FOUND", "Element does not exist.");
-      if (target.type !== "button")
+      if (!BLOCK_DEFINITIONS[target.type].triggers.some((t) => t === "click"))
         return fail(
           "TRIGGER_NOT_SUPPORTED",
-          "Only buttons support actions in v1.",
+          "This element doesn't support actions.",
         );
       const primary = project.features.filter(
         (item) =>

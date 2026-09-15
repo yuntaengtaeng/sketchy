@@ -7,10 +7,13 @@ export default function StringListField({
   label,
   items,
   onChange,
+  itemLabel = "Item",
 }: {
   label: string;
   items: string[];
   onChange: (items: string[]) => void;
+  /** 새로 추가한 행의 기본 텍스트 접두어 (Tabs는 "Tab", Table은 "Column") */
+  itemLabel?: string;
 }) {
   return (
     <div className={styles.field}>
@@ -37,7 +40,7 @@ export default function StringListField({
       </div>
       <button
         type="button"
-        onClick={() => onChange([...items, `Item ${items.length + 1}`])}
+        onClick={() => onChange([...items, `${itemLabel} ${items.length + 1}`])}
       >
         + Add
       </button>

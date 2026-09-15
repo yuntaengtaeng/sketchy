@@ -17,6 +17,7 @@ export default function SelectOptions({
     <>
       <StringListField
         label="Options"
+        itemLabel="Option"
         items={options}
         onChange={(next) =>
           post({

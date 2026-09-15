@@ -7,6 +7,7 @@ export default function TabsOptions({ element }: { element: SketchyElement }) {
   return (
     <StringListField
       label="Tabs"
+      itemLabel="Tab"
       items={items}
       onChange={(next) =>
         post({ type: "SET_TAB_ITEMS", elementId: element.id, items: next })

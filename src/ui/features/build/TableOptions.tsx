@@ -13,6 +13,7 @@ export default function TableOptions({ element }: { element: SketchyElement }) {
     <>
       <StringListField
         label="Columns"
+        itemLabel="Column"
         items={columns}
         onChange={(next) =>
           post({

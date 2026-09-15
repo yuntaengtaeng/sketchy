@@ -3,7 +3,6 @@ export {
   insertBlock,
   moveElement,
   selectElement,
-  setButtonLayout,
   setButtonVariant,
   setCardType,
   setChecked,

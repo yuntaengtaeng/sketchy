@@ -589,40 +589,6 @@ export function renderButtonVariant(
     ];
 }
 
-// stretch는 부모 폭을 채우고, 나머지는 내용 크기로 줄어든 뒤 교차축(세로 부모
-// 기준 가로 위치)만 개별 정렬한다, 가로 Section 안에서는 주축이라 적용되지 않음
-export function renderButtonLayout(
-  node: FrameNode,
-  layout: "stretch" | "start" | "center" | "end",
-) {
-  if (layout === "stretch") {
-    node.layoutSizingHorizontal = "FILL";
-    return;
-  }
-  // HUG만으로는 생성 때 resize(272, …)로 고정된 너비가 그대로 남는다, 버튼
-  // 스스로 라벨 크기에 맞춰 폭을 다시 계산하도록 self-sizing도 AUTO로 바꿔야
-  // 실제로 줄어들고, 그래야 정렬(layoutAlign) 차이가 눈에 보인다
-  node.primaryAxisSizingMode = "AUTO";
-  node.layoutSizingHorizontal = "HUG";
-  node.layoutAlign =
-    layout === "start" ? "MIN" : layout === "center" ? "CENTER" : "MAX";
-  const parent = node.parent;
-  console.log("[sketchy button layout]", {
-    layout,
-    widthAfter: node.width,
-    layoutSizingHorizontalAfter: node.layoutSizingHorizontal,
-    layoutAlignAfter: node.layoutAlign,
-    primaryAxisSizingModeAfter: node.primaryAxisSizingMode,
-    parentType: parent?.type,
-    parentLayoutMode:
-      parent && "layoutMode" in parent ? parent.layoutMode : undefined,
-    parentCounterAxisAlignItems:
-      parent && "counterAxisAlignItems" in parent
-        ? parent.counterAxisAlignItems
-        : undefined,
-  });
-}
-
 export function renderTextSize(
   node: TextNode,
   size: "display" | "title" | "subtitle" | "body" | "caption",
@@ -755,13 +721,7 @@ export function renderSectionDirection(
   node.counterAxisSizingMode = layout.counterAxisSizingMode;
   for (const child of children)
     if (child.node?.type === "FRAME") {
-      // Button이 stretch가 아닌 layout을 골랐으면 그 정렬을 존중하고, 그 외엔
-      // 기존처럼 항상 FILL
-      const keepsOwnLayout =
-        child.element.type === "button" &&
-        !!child.element.layout &&
-        child.element.layout !== "stretch";
-      if (!keepsOwnLayout) child.node.layoutSizingHorizontal = "FILL";
+      child.node.layoutSizingHorizontal = "FILL";
       child.node.layoutSizingVertical = "FIXED";
       if (child.element.type === "button" || child.element.type === "input")
         child.node.minHeight = 40;

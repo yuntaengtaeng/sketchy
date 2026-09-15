@@ -14,7 +14,6 @@ import {
 import { focusNode, id, loadFont } from "./utils";
 import {
   createElementNode,
-  renderButtonLayout,
   renderButtonVariant,
   renderCardType,
   renderChecked,
@@ -224,21 +223,6 @@ export async function setSectionDirection(
       node: childNode,
     })),
   );
-  saveProject(project);
-  return project;
-}
-
-export async function setButtonLayout(
-  elementId: string,
-  layout: "stretch" | "start" | "center" | "end",
-) {
-  const project = readProject();
-  const element = project.elements.find((item) => item.id === elementId);
-  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
-  if (!element || element.type !== "button" || node?.type !== "FRAME")
-    return project;
-  element.layout = layout;
-  renderButtonLayout(node, layout);
   saveProject(project);
   return project;
 }

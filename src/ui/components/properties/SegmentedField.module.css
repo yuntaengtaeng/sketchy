@@ -16,9 +16,11 @@
   color: var(--figma-color-bg, #fafafa);
 }
 
-/* 선택된 버튼만 배경이 채워져야 hover와 헷갈리지 않는다, hover는 선택되지
-   않은 버튼에서 테두리만 바뀌는 정도로 옅게 둔다 */
-.segmented button:not([aria-pressed="true"]):hover {
+/* 선택 표시(배경 채움)만 유일한 시각 신호로 남긴다. hover나 클릭 후 남는
+   포커스 링에 별도 테두리를 얹으면 "여러 개가 강조됐다"는 착시가 생긴다 */
+.segmented button:not([aria-pressed="true"]):hover,
+.segmented button:not([aria-pressed="true"]):focus-visible {
   background: transparent;
-  border-color: var(--sketchy-ink);
+  border-color: var(--sketchy-line, #888);
+  outline: none;
 }

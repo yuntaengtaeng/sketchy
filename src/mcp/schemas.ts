@@ -17,20 +17,114 @@ const screen = z
     baseScreenId: id.optional(),
   })
   .strict();
-const element = z
-  .object({
-    id,
-    screenId: id,
-    name: z.string().min(1).max(200),
-    description: description.optional(),
-    type: z.enum(["text", "button", "input", "image", "divider", "section"]),
-    parentElementId: id.optional(),
-    buttonVariant: z.enum(["filled", "outline"]).optional(),
-    direction: z.enum(["vertical", "horizontal"]).optional(),
-    role: z.literal("popup").optional(),
-    order: z.number().int().nonnegative().optional(),
-  })
-  .strict();
+const elementBase = {
+  id,
+  screenId: id,
+  name: z.string().min(1).max(200),
+  description: description.optional(),
+  parentElementId: id.optional(),
+  role: z.literal("popup").optional(),
+  order: z.number().int().nonnegative().optional(),
+};
+const stringList = z.array(z.string().min(1).max(200)).max(20);
+const repeatCount = z.number().int().min(1).max(6).optional();
+// Element도 action처럼 BlockType별 discriminated union, 각 variant가 실제로
+// 갖는 필드만 허용해 서버가 도메인 타입과 같은 불가능한 조합을 거절한다
+const element = z.discriminatedUnion("type", [
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("text"),
+      textSize: z
+        .enum(["display", "title", "subtitle", "body", "caption"])
+        .optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("button"),
+      buttonVariant: z.enum(["filled", "outline"]).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("input"),
+      placeholder: z.string().max(200).optional(),
+    })
+    .strict(),
+  z.object({ ...elementBase, type: z.literal("image") }).strict(),
+  z.object({ ...elementBase, type: z.literal("divider") }).strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("section"),
+      direction: z.enum(["vertical", "horizontal"]).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("listItem"),
+      itemType: z.enum(["basic", "leading", "trailing"]).optional(),
+      count: repeatCount,
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("card"),
+      cardType: z.enum(["basic", "media", "stat"]).optional(),
+      count: repeatCount,
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("table"),
+      columns: stringList.optional(),
+      count: repeatCount,
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("tabs"),
+      tabItems: stringList.optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("select"),
+      options: stringList.optional(),
+      displayState: z.enum(["collapsed", "expanded"]).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("checkbox"),
+      checked: z.boolean().optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("radio"),
+      checked: z.boolean().optional(),
+    })
+    .strict(),
+  z
+    .object({
+      ...elementBase,
+      type: z.literal("switch"),
+      checked: z.boolean().optional(),
+    })
+    .strict(),
+  z.object({ ...elementBase, type: z.literal("search") }).strict(),
+]);
 const nonEmptyPatch = <T extends z.ZodRawShape>(shape: T) =>
   z
     .object(shape)

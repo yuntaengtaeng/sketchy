@@ -10,7 +10,6 @@ import {
   duplicateScreen,
   insertBlock,
   moveElement,
-  setButtonLayout,
   setButtonVariant,
   setCardType,
   setChecked,
@@ -274,8 +273,6 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       await sync(
         await setSectionDirection(message.elementId, message.direction),
       );
-    if (message.type === "SET_BUTTON_LAYOUT")
-      await sync(await setButtonLayout(message.elementId, message.layout));
     if (message.type === "SET_TEXT_SIZE")
       await sync(await setTextSize(message.elementId, message.size));
     if (message.type === "SET_CHECKED")

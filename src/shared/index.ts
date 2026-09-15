@@ -65,8 +65,6 @@ export type ElementBase = {
 // (예: text에 buttonVariant)은 타입 단계에서 아예 만들 수 없게 한다
 export type ButtonVariant = { buttonVariant?: "filled" | "outline" };
 export type SectionDirection = { direction?: "vertical" | "horizontal" };
-// Hug/Fill 같은 Figma 용어 대신 결과로 이름 붙인다, stretch가 기존 기본 동작
-export type ButtonLayout = { layout?: "stretch" | "start" | "center" | "end" };
 // Weight은 Regular로 고정, low-fi 목적상 크기만으로 5단계를 구분한다
 export type TextSize = {
   textSize?: "display" | "title" | "subtitle" | "body" | "caption";
@@ -95,7 +93,7 @@ type ElementVariant<
 
 export type Element =
   | ElementVariant<"text", TextSize>
-  | ElementVariant<"button", ButtonVariant & ButtonLayout>
+  | ElementVariant<"button", ButtonVariant>
   | ElementVariant<"input", Placeholder>
   | ElementVariant<"image">
   | ElementVariant<"divider">
@@ -282,11 +280,6 @@ export type PluginMessage =
       type: "SET_SECTION_DIRECTION";
       elementId: string;
       direction: "vertical" | "horizontal";
-    }
-  | {
-      type: "SET_BUTTON_LAYOUT";
-      elementId: string;
-      layout: "stretch" | "start" | "center" | "end";
     }
   | {
       type: "SET_TEXT_SIZE";
