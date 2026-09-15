@@ -101,15 +101,8 @@ export function createSyncLoop(deps: SyncLoopDeps) {
       // "그게 지금 서버의 최신 revision이냐"로 판단해야, 그 뒤에 Figma push가 한 번
       // 이라도 더 있었던 옛 기록 때문에 영원히 막히지 않는다
       if (!result.ok && result.status === 409) {
-        console.warn("[sketchy sync] 409 on push, attempting recovery", {
-          localRevision: document.revision,
-          lastSyncedRevision: state.lastSyncedRevision,
-        });
         const remote = await fetchRemoteDocument(session, metadata.id);
         if (!remote.ok) {
-          console.warn("[sketchy sync] recovery fetch failed", {
-            status: remote.status,
-          });
           // 재조회 자체가 인증 만료로 실패한 걸 원래 409 그대로 conflict로
           // 잘못 보고하지 않도록 구분
           if (remote.status === 401 || remote.status === 403) {
@@ -120,11 +113,6 @@ export function createSyncLoop(deps: SyncLoopDeps) {
           const latestWriteWasAgentApplied = Object.values(
             remote.value.appliedBatches ?? {},
           ).some((batch) => batch.revision === remote.value.revision);
-          console.warn("[sketchy sync] recovery check", {
-            remoteRevision: remote.value.revision,
-            appliedBatches: remote.value.appliedBatches,
-            latestWriteWasAgentApplied,
-          });
           if (
             !latestWriteWasAgentApplied &&
             remote.value.revision >= state.lastSyncedRevision
@@ -141,23 +129,12 @@ export function createSyncLoop(deps: SyncLoopDeps) {
               },
             };
             result = await pushProject(session, rebased);
-            console.warn("[sketchy sync] rebase retry result", {
-              rebasedRevision,
-              ok: result.ok,
-              status: result.ok ? undefined : result.status,
-            });
             if (result.ok)
               saveProjectSnapshot(project, {
                 id: metadata.id,
                 revision: rebasedRevision,
                 updatedAt: rebasedUpdatedAt,
               });
-          } else {
-            console.warn("[sketchy sync] recovery skipped, staying conflict", {
-              latestWriteWasAgentApplied,
-              remoteRevision: remote.value.revision,
-              lastSyncedRevision: state.lastSyncedRevision,
-            });
           }
         }
       }

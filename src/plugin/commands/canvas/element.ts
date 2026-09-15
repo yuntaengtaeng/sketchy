@@ -6,7 +6,11 @@ import {
   type BlockType,
   type Element,
 } from "../../../shared";
-import { readProject, saveProject } from "../../storage/project";
+import {
+  normalizeElementOrder,
+  readProject,
+  saveProject,
+} from "../../storage/project";
 import { focusNode, id, loadFont } from "./utils";
 import {
   createElementNode,
@@ -56,6 +60,10 @@ export async function insertBlock(
   };
   const node = createElementNode(element, parentNode as FrameNode);
   project.elements.push({ ...element, nodeId: node.id });
+  // 새 Element는 order가 비어있어 그대로 저장하면 뒤이은 sync의 cleanProject가
+  // order 정규화만으로 또 revision을 올려, 추가 한 번이 push 두 번(선행 409 포함)을
+  // 만든다. 저장 전에 미리 정규화해 이 revision을 하나로 합친다
+  await normalizeElementOrder(project);
   saveProject(project);
   figma.currentPage.selection = [parentNode as FrameNode];
   return project;
