@@ -21,6 +21,7 @@ import {
   setSelectOptions,
   setTableColumns,
   setTabItems,
+  setTabSelection,
   setTextSize,
   selectElement,
   selectScreen,
@@ -279,6 +280,8 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       await sync(await setChecked(message.elementId, message.checked));
     if (message.type === "SET_TAB_ITEMS")
       await sync(await setTabItems(message.elementId, message.items));
+    if (message.type === "SET_TAB_SELECTION")
+      await sync(await setTabSelection(message.elementId, message.selectedTab));
     if (message.type === "SET_SELECT_OPTIONS")
       await sync(await setSelectOptions(message.elementId, message.options));
     if (message.type === "SET_SELECT_DISPLAY_STATE")

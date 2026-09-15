@@ -45,7 +45,7 @@ UI 쪽에서 블록별로 다르게 붙인다.
 | List Item               | `itemType` (basic/leading/trailing), `count` | click   |
 | Card                    | `cardType` (basic/media/stat), `count`       | click   |
 | Table                   | `columns: string[]`, `count`                 | –       |
-| Tabs                    | `tabItems: string[]`                         | –       |
+| Tabs                    | `tabItems: string[]`, `selectedTab`          | –       |
 | Select                  | `options: string[]`, `displayState`          | –       |
 | Checkbox, Radio, Switch | `checked: boolean` (공유 필드)               | –       |
 | Search                  | (고정 UI, 속성 없음)                         | –       |
@@ -53,6 +53,12 @@ UI 쪽에서 블록별로 다르게 붙인다.
 List Item/Card의 `itemType: "leading"`은 아이콘이 아니라 작은 회색
 이미지 자리(Image 블록과 같은 표현)를 쓴다 — 아이콘 자체를 표현하는
 블록이 아직 없어서다.
+
+Tabs의 `selectedTab`은 이 Tabs 인스턴스가 지금 어떤 탭이 선택된
+상태로 보이는지를 나타낸다(캔버스에서 해당 탭만 채워진 배경으로
+표시). 같은 Tabs를 화면마다 복제해 `selectedTab`만 다르게 두면
+"탭1 선택 시 화면", "탭2 선택 시 화면"처럼 탭별로 서로 다른 화면을
+스크린 단위로 나눠 그릴 수 있다.
 
 ## 반복 콘텐츠 — List Item / Card / Table
 

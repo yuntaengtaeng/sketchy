@@ -74,7 +74,12 @@ export async function insertBlock(
       case "section":
         return { ...base, type: block, direction: "vertical" };
       case "tabs":
-        return { ...base, type: block, tabItems: ["Tab 1", "Tab 2"] };
+        return {
+          ...base,
+          type: block,
+          tabItems: ["Tab 1", "Tab 2"],
+          selectedTab: "Tab 1",
+        };
       case "select":
         return {
           ...base,
@@ -267,7 +272,21 @@ export async function setTabItems(elementId: string, items: string[]) {
   if (!element || element.type !== "tabs" || node?.type !== "FRAME")
     return project;
   element.tabItems = items;
-  renderTabItems(node, items);
+  if (element.selectedTab && !items.includes(element.selectedTab))
+    element.selectedTab = items[0];
+  renderTabItems(node, items, element.selectedTab);
+  saveProject(project);
+  return project;
+}
+
+export async function setTabSelection(elementId: string, selectedTab: string) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "tabs" || node?.type !== "FRAME")
+    return project;
+  element.selectedTab = selectedTab;
+  renderTabItems(node, element.tabItems ?? ["Tab 1", "Tab 2"], selectedTab);
   saveProject(project);
   return project;
 }

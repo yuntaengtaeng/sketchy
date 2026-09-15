@@ -14,6 +14,7 @@ export {
   setSelectOptions,
   setTableColumns,
   setTabItems,
+  setTabSelection,
   setTextSize,
   updateElement,
 } from "./element";

@@ -95,6 +95,7 @@ const element = z.discriminatedUnion("type", [
       ...elementBase,
       type: z.literal("tabs"),
       tabItems: stringList.optional(),
+      selectedTab: z.string().max(200).optional(),
     })
     .strict(),
   z

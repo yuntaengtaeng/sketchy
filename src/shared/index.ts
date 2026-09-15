@@ -71,7 +71,10 @@ export type TextSize = {
 };
 // Checkbox/Radio/Switch가 공유하는 하나의 boolean, 세 필드로 안 쪼갠다
 export type Checked = { checked?: boolean };
-export type TabItems = { tabItems?: string[] };
+// selectedTab은 이 Tabs 인스턴스에서 지금 선택된 것으로 보여줄 탭 이름이다.
+// 같은 Tabs를 화면마다 다른 탭이 선택된 상태로 배치해 "탭1 선택 시 화면",
+// "탭2 선택 시 화면"을 스크린 단위로 나눠 만들 때 쓴다
+export type TabItems = { tabItems?: string[]; selectedTab?: string };
 export type SelectOptions = {
   options?: string[];
   displayState?: "collapsed" | "expanded";
@@ -288,6 +291,7 @@ export type PluginMessage =
     }
   | { type: "SET_CHECKED"; elementId: string; checked: boolean }
   | { type: "SET_TAB_ITEMS"; elementId: string; items: string[] }
+  | { type: "SET_TAB_SELECTION"; elementId: string; selectedTab: string }
   | { type: "SET_SELECT_OPTIONS"; elementId: string; options: string[] }
   | {
       type: "SET_SELECT_DISPLAY_STATE";

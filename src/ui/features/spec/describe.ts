@@ -106,8 +106,11 @@ export function elementDetail(element: Element): string | undefined {
       return `${title(element.cardType ?? "basic")}, ${element.count ?? 3} cards`;
     case "table":
       return `columns: ${(element.columns ?? ["Column 1", "Column 2", "Column 3"]).join(", ")}; ${element.count ?? 3} rows`;
-    case "tabs":
-      return (element.tabItems ?? ["Tab 1", "Tab 2"]).join(", ");
+    case "tabs": {
+      const items = element.tabItems ?? ["Tab 1", "Tab 2"];
+      const selected = element.selectedTab ?? items[0];
+      return `${items.join(", ")}; "${selected}" selected`;
+    }
     case "select":
       return `${(element.options ?? ["Option 1", "Option 2"]).length} options${
         element.displayState === "expanded" ? ", expanded" : ""
