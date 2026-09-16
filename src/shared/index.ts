@@ -129,7 +129,12 @@ export const SCREEN_PRESETS: Record<
   desktop: { label: "Desktop", width: 1440, height: 1024 },
 };
 
-export type ProjectSettings = { screenPreset: ScreenPreset };
+export type ProjectSettings = {
+  screenPreset: ScreenPreset;
+  // Flow 화면 이동 화살표를 Canvas에 그릴지, 끄면 Figma Prototype 연결
+  // (reactions)은 그대로 유지되고 그려지는 안내선만 사라진다
+  showFlowArrows: boolean;
+};
 
 export type ElementBase = {
   id: string;
@@ -319,7 +324,7 @@ export function projectWithoutScreen(project: Project, screenId: string) {
 }
 
 export const createEmptyProject = (): Project => ({
-  settings: { screenPreset: "mobile" },
+  settings: { screenPreset: "mobile", showFlowArrows: true },
   screens: [],
   elements: [],
   features: [],

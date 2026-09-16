@@ -31,9 +31,10 @@ test("parses and migrates legacy project actions and interactions", () => {
     action: { type: "describe" },
   });
   assert.equal(featureProject.settings.screenPreset, "desktop");
+  assert.equal(featureProject.settings.showFlowArrows, true);
 
   const interactionProject = migrateStoredProject({
-    settings: { screenPreset: "mobile" },
+    settings: { screenPreset: "mobile", showFlowArrows: true },
     elements: [
       {
         id: "button",

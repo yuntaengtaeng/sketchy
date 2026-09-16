@@ -36,6 +36,9 @@ export async function renderFlow(project: Project) {
         child.remove();
     renderPurpose(project, screen, node);
   }
+  // 꺼져 있으면 위에서 이미 지운 기존 화살표만 지운 채로 끝낸다, Figma
+  // Prototype 연결(reactions)은 별도 경로(sync-prototype.ts)라 그대로 남는다
+  if (!project.settings.showFlowArrows) return;
   const links = project.features.filter(
     (feature) =>
       "destinationScreenId" in feature.action &&

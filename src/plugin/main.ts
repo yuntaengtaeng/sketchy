@@ -252,7 +252,7 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       pendingImport = undefined;
     }
     if (message.type === "UPDATE_PROJECT_SETTINGS")
-      await sync(updateProjectSettings(message.settings));
+      await sync(updateProjectSettings(message.settings), true);
     if (message.type === "CREATE_SCREEN")
       await sync(await createScreen(message.name), true);
     if (message.type === "DUPLICATE_SCREEN")

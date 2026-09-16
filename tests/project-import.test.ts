@@ -9,7 +9,7 @@ const current: ProjectDocument = {
   revision: 2,
   updatedAt: "2026-09-12T00:00:00Z",
   project: {
-    settings: { screenPreset: "mobile" },
+    settings: { screenPreset: "mobile", showFlowArrows: true },
     screens: [{ id: "home", name: "Home", purpose: "Start" }],
     elements: [],
     features: [],

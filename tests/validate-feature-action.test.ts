@@ -5,7 +5,7 @@ import type { CanonicalProject } from "../src/core/project-change.ts";
 import { validateFeatureAction } from "../src/core/validate-feature-action.ts";
 
 const project: CanonicalProject = {
-  settings: { screenPreset: "mobile" },
+  settings: { screenPreset: "mobile", showFlowArrows: true },
   screens: [
     { id: "screen", name: "Screen", purpose: "" },
     {

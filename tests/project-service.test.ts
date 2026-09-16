@@ -18,7 +18,7 @@ const document: ProjectDocument = {
   revision: 0,
   updatedAt: "2026-09-13T00:00:00.000Z",
   project: {
-    settings: { screenPreset: "mobile" },
+    settings: { screenPreset: "mobile", showFlowArrows: true },
     screens: [{ id: "home", name: "Home", purpose: "Start" }],
     elements: [],
     features: [],

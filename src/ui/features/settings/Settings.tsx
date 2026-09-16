@@ -8,6 +8,7 @@ import {
   type SketchyAccount,
   type SyncStatus,
 } from "../../../shared";
+import CheckedField from "../../components/properties/CheckedField";
 import { copyText, post } from "../../plugin";
 import styles from "./Settings.module.css";
 
@@ -112,6 +113,22 @@ export default function Settings({
           })}
         </div>
         <p className={styles.note}>Existing screens keep their current size.</p>
+      </section>
+      <section>
+        <h2>Flow</h2>
+        <CheckedField
+          label="Show flow arrows on canvas"
+          checked={settings.showFlowArrows}
+          onChange={(showFlowArrows) =>
+            post({
+              type: "UPDATE_PROJECT_SETTINGS",
+              settings: { ...settings, showFlowArrows },
+            })
+          }
+        />
+        <p className={styles.note}>
+          Figma prototype links stay connected either way.
+        </p>
       </section>
       <section>
         <h2>AI agents</h2>

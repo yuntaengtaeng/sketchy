@@ -60,7 +60,7 @@ test("wires the real HTTP contract through the sync loop, both directions", asyn
     revision: 0,
     updatedAt: "2026-09-14T00:00:00.000Z",
     project: {
-      settings: { screenPreset: "mobile" },
+      settings: { screenPreset: "mobile", showFlowArrows: true },
       screens: [{ id: "welcome", name: "Welcome", purpose: "Greet" }],
       elements: [],
       features: [],

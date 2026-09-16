@@ -18,7 +18,7 @@ const record: ProjectRecord = {
     revision: 3,
     updatedAt: "2026-09-13T00:00:00.000Z",
     project: {
-      settings: { screenPreset: "mobile" },
+      settings: { screenPreset: "mobile", showFlowArrows: true },
       screens: [{ id: "home", name: "Home", purpose: "Start" }],
       elements: [],
       features: [],
@@ -67,7 +67,7 @@ test("serves the Project API through development Bearer authentication", async (
     id: "project",
     revision: 3,
     updatedAt: "2026-09-13T00:00:00.000Z",
-    settings: { screenPreset: "mobile" },
+    settings: { screenPreset: "mobile", showFlowArrows: true },
     screens: [{ id: "home", name: "Home", purpose: "Start" }],
   });
 
@@ -111,7 +111,7 @@ test("serves the Project API through development Bearer authentication", async (
     id: "project",
     revision: 4,
     updatedAt: "2026-09-13T00:00:00.000Z",
-    settings: { screenPreset: "mobile" },
+    settings: { screenPreset: "mobile", showFlowArrows: true },
     screens: [{ id: "home", name: "Main", purpose: "Start" }],
   });
 

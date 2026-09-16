@@ -21,7 +21,7 @@ const document: ProjectDocument = {
   revision: 4,
   updatedAt: "2026-09-12T00:00:00.000Z",
   project: {
-    settings: { screenPreset: "mobile" },
+    settings: { screenPreset: "mobile", showFlowArrows: true },
     screens: [{ id: "checkout", name: "Checkout", purpose: "Pay" }],
     elements: [
       {

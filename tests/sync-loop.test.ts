@@ -10,7 +10,7 @@ import type { Project, SyncStatus } from "../src/shared/index.ts";
 
 const session = { token: "tok", user: { id: "u", email: "u@test.dev" } };
 const emptyProject: Project = {
-  settings: { screenPreset: "mobile" },
+  settings: { screenPreset: "mobile", showFlowArrows: true },
   screens: [],
   elements: [],
   features: [],

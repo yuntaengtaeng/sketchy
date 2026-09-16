@@ -258,6 +258,7 @@ export const projectDocumentSchema = z.object({
   project: z.object({
     settings: z.object({
       screenPreset: z.enum(["mobile", "tablet", "desktop"]),
+      showFlowArrows: z.boolean(),
     }),
     screens: z.array(screen),
     elements: z.array(element),

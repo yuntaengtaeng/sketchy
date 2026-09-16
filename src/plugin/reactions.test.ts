@@ -64,7 +64,7 @@ if (withoutMissingDestinations(stale, new Set()).length)
   throw new Error("Interactions pointing to deleted nodes must be discarded.");
 
 const project = {
-  settings: { screenPreset: "mobile" },
+  settings: { screenPreset: "mobile", showFlowArrows: true },
   screens: [{ id: "home", nodeId: "1", name: "Home", purpose: "" }],
   elements: [
     {

@@ -34,6 +34,9 @@ export function migrateStoredProject(stored: StoredProject): Project {
   const storedPreset = stored.settings?.screenPreset;
   if (typeof storedPreset === "string" && storedPreset in SCREEN_PRESETS)
     screenPreset = storedPreset;
+  const storedShowFlowArrows = stored.settings?.showFlowArrows;
+  const showFlowArrows =
+    typeof storedShowFlowArrows === "boolean" ? storedShowFlowArrows : true;
 
   const elements = migrateElements(stored.elements || []);
   let features: Feature[];
@@ -44,7 +47,7 @@ export function migrateStoredProject(stored: StoredProject): Project {
     );
 
   return {
-    settings: { screenPreset },
+    settings: { screenPreset, showFlowArrows },
     screens: stored.screens || [],
     elements,
     features,

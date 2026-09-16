@@ -5,7 +5,7 @@ import type { Project } from "../src/shared/index.ts";
 
 test("separates Sketchy entities from Figma node mappings", () => {
   const project: Project = {
-    settings: { screenPreset: "mobile" },
+    settings: { screenPreset: "mobile", showFlowArrows: true },
     screens: [
       {
         id: "checkout",

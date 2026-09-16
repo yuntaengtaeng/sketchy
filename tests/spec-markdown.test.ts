@@ -7,7 +7,7 @@ import {
 import type { Project } from "../src/shared/index.ts";
 
 const project: Project = {
-  settings: { screenPreset: "mobile" },
+  settings: { screenPreset: "mobile", showFlowArrows: true },
   screens: [
     {
       id: "detail",
@@ -98,7 +98,7 @@ test("renders each screen with purpose, nested elements and behavior", () => {
 
 test("falls back to placeholder text for empty screens", () => {
   const empty: Project = {
-    settings: { screenPreset: "mobile" },
+    settings: { screenPreset: "mobile", showFlowArrows: true },
     screens: [{ id: "blank", name: "Blank", purpose: "", nodeId: "1:1" }],
     elements: [],
     features: [],

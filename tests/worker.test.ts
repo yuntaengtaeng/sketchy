@@ -27,7 +27,7 @@ test("serves the Project API with a Worker D1 binding", async () => {
       revision: 0,
       updatedAt: "2026-09-13T00:00:00.000Z",
       project: {
-        settings: { screenPreset: "mobile" as const },
+        settings: { screenPreset: "mobile" as const, showFlowArrows: true },
         screens: [],
         elements: [],
         features: [],
