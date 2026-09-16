@@ -176,7 +176,7 @@ export async function applyProjectImport(document: ProjectDocument) {
   }
 
   for (const { element, stored, node } of elementTargets) {
-    renderElementName(node, stored, element.name);
+    renderElementName(node, stored.type, element.name);
     if (element.type === "button" && node.type === "FRAME")
       renderButtonVariant(node, element.buttonVariant || "filled");
     if (element.type === "section" && node.type === "FRAME")

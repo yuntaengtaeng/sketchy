@@ -1,9 +1,6 @@
-import { sectionLayout, type Element } from "../../../shared";
+import { sectionLayout, type BlockType, type Element } from "../../../shared";
 import type { DomainElement } from "../../../core/project-change.ts";
-
-// element 내부 구성 요소(체크 표시, 탭 아이템, select 옵션 행 등)를 다시 찾을 때
-// 쓰는 키, screen 직계 자식에 쓰는 sketchy:role과 다른 이름공간을 쓴다
-const PART = "sketchy:part";
+import { elementLabelNode, PART } from "../../canvas-name.ts";
 
 const TEXT_SIZES: Record<
   NonNullable<Extract<Element, { type: "text" }>["textSize"]>,
@@ -228,11 +225,9 @@ function createSelectNode(element: DomainElement & { type: "select" }) {
 export function createElementNode(element: DomainElement, parent: FrameNode) {
   const node =
     element.type === "text" ? figma.createText() : createFrameFor(element);
-  node.name = element.name;
-  if (element.type === "text" && node.type === "TEXT") {
-    node.characters = element.name;
+  renderElementName(node, element.type, element.name);
+  if (element.type === "text" && node.type === "TEXT")
     node.fontSize = TEXT_SIZES[element.textSize ?? "body"];
-  }
   node.setPluginData("sketchy:type", "element");
   node.setPluginData("sketchy:screen-id", element.screenId);
   node.setPluginData("sketchy:element-id", element.id);
@@ -553,18 +548,12 @@ function createGenericFrame(element: DomainElement) {
 
 export function renderElementName(
   node: SceneNode,
-  element: Element,
+  type: BlockType,
   name: string,
 ) {
   node.name = name;
-  if (node.type === "TEXT") node.characters = name;
-  // Input의 화면 상 텍스트는 Placeholder 소유, Name을 바꿔도 덮어쓰지 않는다
-  if (node.type === "FRAME" && element.type !== "input") {
-    const label =
-      node.children.find((child) => child.getPluginData(PART) === "label") ??
-      node.children.find((child) => child.type === "TEXT");
-    if (label?.type === "TEXT") label.characters = name;
-  }
+  const label = elementLabelNode(node, type);
+  if (label?.type === "TEXT") label.characters = name;
 }
 
 export function renderInputPlaceholder(node: FrameNode, placeholder: string) {

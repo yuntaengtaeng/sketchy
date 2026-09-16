@@ -165,7 +165,7 @@ export async function updateElement(
   }
   node.name = name;
   await loadFont();
-  renderElementName(node as SceneNode, element, name);
+  renderElementName(node as SceneNode, element.type, name);
   saveProject(project);
   return project;
 }

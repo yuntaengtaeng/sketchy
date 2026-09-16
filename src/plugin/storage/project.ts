@@ -1,11 +1,10 @@
 import {
   createEmptyProject,
-  type BlockType,
   type Project,
   type ProjectSettings,
 } from "../../shared/index.ts";
 import { readingOrder } from "../reading-order.ts";
-import { adoptCanvasName } from "../canvas-name.ts";
+import { adoptCanvasName, elementLabelText } from "../canvas-name.ts";
 import type { ProjectMetadata } from "../../core/project-change.ts";
 import {
   migrateStoredProject,
@@ -96,15 +95,6 @@ export function updateProjectSettings(settings: ProjectSettings) {
   saveProject(project);
   return project;
 }
-// Element가 화면에서 실제로 보여주는 글자, Text는 내용, Button/Input은
-// 안에 넣은 Label Text, Section/Divider는 표시할 글자가 없어 undefined
-function elementLabel(node: BaseNode | null, type: BlockType) {
-  if (node?.type === "TEXT") return node.characters;
-  if (node?.type !== "FRAME" || type === "section" || type === "divider")
-    return undefined;
-  return node.children.find((child) => child.type === "TEXT")?.characters;
-}
-
 export async function cleanProject(project: Project) {
   // Screen, Element 각각 존재 확인과 이름 동기화에 같은 nodeId를 두 번
   // 순차 조회하던 것을 한 번의 병렬 조회로 합친다
@@ -134,11 +124,10 @@ export async function cleanProject(project: Project) {
         node && screens.some((screen) => screen.id === element.screenId),
     )
     .map(({ element, node }) => {
-      if (
-        adoptCanvasName(element, elementLabel(node, element.type)) ||
-        adoptCanvasName(element, node?.name)
-      )
-        nameChanged = true;
+      // 이름을 보여주는 자리가 있으면 그 텍스트만 본다, 레이어 이름과 함께
+      // 순차 시도하면 둘이 다를 때마다 서로 되돌리는 진동이 생긴다
+      const canvasName = elementLabelText(node, element.type) ?? node?.name;
+      if (adoptCanvasName(element, canvasName)) nameChanged = true;
       if (node?.type === "FRAME")
         node.children
           .find(

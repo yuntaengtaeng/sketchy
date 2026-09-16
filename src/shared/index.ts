@@ -2,28 +2,109 @@ type BlockDefinition = {
   label: string;
   canAddToSection: boolean;
   triggers: FeatureTrigger["type"][];
+  // Canvas에서 이 BlockType의 이름을 어디로 렌더링/읽는지: self는 Text 노드
+  // 자신, label은 "label" part 자식(없으면 첫 TEXT 자식), none은 이름을 보여주는
+  // 전용 텍스트가 없어 레이어 이름만 이름을 담는다. 새 BlockType을 추가하면
+  // satisfies가 이 필드를 빠뜨릴 수 없게 강제한다
+  nameSlot: "self" | "label" | "none";
 };
 
 export * from "./element-tree.ts";
 
 export const BLOCK_DEFINITIONS = {
-  text: { label: "Text", canAddToSection: true, triggers: [] },
-  button: { label: "Button", canAddToSection: true, triggers: ["click"] },
-  input: { label: "Input", canAddToSection: true, triggers: [] },
-  image: { label: "Image", canAddToSection: true, triggers: [] },
-  divider: { label: "Divider", canAddToSection: true, triggers: [] },
-  section: { label: "Section", canAddToSection: true, triggers: [] },
+  text: {
+    label: "Text",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "self",
+  },
+  button: {
+    label: "Button",
+    canAddToSection: true,
+    triggers: ["click"],
+    nameSlot: "label",
+  },
+  // Input의 화면 상 텍스트는 Placeholder 소유, 이름을 보여주는 자리가 아니다
+  input: {
+    label: "Input",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "none",
+  },
+  image: {
+    label: "Image",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "label",
+  },
+  divider: {
+    label: "Divider",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "none",
+  },
+  section: {
+    label: "Section",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "none",
+  },
   // List Item, Card만 Button처럼 click 트리거를 바로 연결한다, 나머지는 지금은
   // 순수 시각 요소로만 추가하고 트리거는 블록별로 나중에 확장한다
-  listItem: { label: "List Item", canAddToSection: true, triggers: ["click"] },
-  card: { label: "Card", canAddToSection: true, triggers: ["click"] },
-  table: { label: "Table", canAddToSection: true, triggers: [] },
-  tabs: { label: "Tabs", canAddToSection: true, triggers: [] },
-  select: { label: "Select", canAddToSection: true, triggers: [] },
-  checkbox: { label: "Checkbox", canAddToSection: true, triggers: [] },
-  radio: { label: "Radio", canAddToSection: true, triggers: [] },
-  switch: { label: "Switch", canAddToSection: true, triggers: [] },
-  search: { label: "Search", canAddToSection: true, triggers: [] },
+  listItem: {
+    label: "List Item",
+    canAddToSection: true,
+    triggers: ["click"],
+    nameSlot: "none",
+  },
+  card: {
+    label: "Card",
+    canAddToSection: true,
+    triggers: ["click"],
+    nameSlot: "none",
+  },
+  table: {
+    label: "Table",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "none",
+  },
+  tabs: {
+    label: "Tabs",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "none",
+  },
+  select: {
+    label: "Select",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "none",
+  },
+  checkbox: {
+    label: "Checkbox",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "label",
+  },
+  radio: {
+    label: "Radio",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "label",
+  },
+  switch: {
+    label: "Switch",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "label",
+  },
+  search: {
+    label: "Search",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "label",
+  },
 } satisfies Record<string, BlockDefinition>;
 
 export type BlockType = keyof typeof BLOCK_DEFINITIONS;
