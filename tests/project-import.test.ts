@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { previewProjectImport } from "../src/core/project-import.ts";
 import type { ProjectDocument } from "../src/core/project-change.ts";
+import { BLOCK_DEFINITIONS } from "../src/shared/index.ts";
 
 const current: ProjectDocument = {
   id: "project",
@@ -325,4 +326,20 @@ test("rejects malformed editable element fields at the import boundary", () => {
     errors: ["File is not a Sketchy project."],
     warnings: [],
   });
+});
+
+test("allows every supported block type at the import boundary", () => {
+  const imported = structuredClone(current);
+  imported.revision = 3;
+  imported.project.elements = Object.keys(BLOCK_DEFINITIONS).map((type) => ({
+    id: type,
+    screenId: "home",
+    name: type,
+    type,
+  })) as ProjectDocument["project"]["elements"];
+
+  assert.equal(
+    previewProjectImport(current, JSON.stringify(imported)).valid,
+    true,
+  );
 });

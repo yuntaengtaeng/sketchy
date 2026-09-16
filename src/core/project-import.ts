@@ -6,7 +6,10 @@ import type {
   ProjectDocument,
 } from "./project-change.ts";
 import { previewProjectChanges } from "./validate-project-changes.ts";
-import type { ProjectImportPreview } from "../shared/index.ts";
+import {
+  BLOCK_DEFINITIONS,
+  type ProjectImportPreview,
+} from "../shared/index.ts";
 
 export function previewProjectImport(
   current: ProjectDocument,
@@ -454,9 +457,8 @@ function isElement(item: unknown) {
     typeof element.id === "string" &&
     typeof element.screenId === "string" &&
     typeof element.name === "string" &&
-    ["text", "button", "input", "image", "divider", "section"].includes(
-      element.type as string,
-    ) &&
+    typeof element.type === "string" &&
+    Object.hasOwn(BLOCK_DEFINITIONS, element.type) &&
     (element.description === undefined ||
       typeof element.description === "string") &&
     (element.buttonVariant === undefined ||
