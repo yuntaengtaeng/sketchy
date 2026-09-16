@@ -251,8 +251,17 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       });
       pendingImport = undefined;
     }
-    if (message.type === "UPDATE_PROJECT_SETTINGS")
-      await sync(updateProjectSettings(message.settings), true);
+    if (message.type === "UPDATE_PROJECT_SETTINGS") {
+      // Flow 화살표 표시 여부만 Canvas 다시 그리기가 필요하다, 화면 크기
+      // 프리셋 같은 나머지 설정은 이후 새 화면에만 적용돼 다시 그릴 필요가 없다
+      const showFlowArrowsChanged =
+        readProject().settings.showFlowArrows !==
+        message.settings.showFlowArrows;
+      await sync(
+        updateProjectSettings(message.settings),
+        showFlowArrowsChanged,
+      );
+    }
     if (message.type === "CREATE_SCREEN")
       await sync(await createScreen(message.name), true);
     if (message.type === "DUPLICATE_SCREEN")
