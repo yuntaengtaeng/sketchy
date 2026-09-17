@@ -230,7 +230,15 @@ export function createSyncLoop(deps: SyncLoopDeps) {
         await pushLocalChanges(await cleanProject(readProject()));
       if (decision === "pull") await pullRemoteChanges(session, metadata.id);
       // 로컬, 원격이 동시에 앞서 있으면 어느 쪽도 자동 반영하지 않고 상태만 알린다
-      if (decision === "conflict") setStatus("conflict");
+      if (decision === "conflict") {
+        console.warn("[Sketchy sync conflict]", {
+          projectId: metadata.id,
+          localRevision: metadata.revision,
+          remoteRevision: remote.value,
+          lastSyncedRevision: state.lastSyncedRevision,
+        });
+        setStatus("conflict");
+      }
     } finally {
       pollInFlight = false;
     }
