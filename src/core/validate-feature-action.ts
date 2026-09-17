@@ -1,6 +1,10 @@
 import { elementAncestors } from "../shared/element-tree.ts";
-import { BLOCK_DEFINITIONS, type FeatureAction } from "../shared/index.ts";
-import type { CanonicalProject, DomainElement } from "./project-change.ts";
+import {
+  BLOCK_DEFINITIONS,
+  type DomainElement,
+  type FeatureAction,
+  type Screen,
+} from "../shared/index.ts";
 
 export type FeatureActionIssue = {
   code:
@@ -14,7 +18,7 @@ export type FeatureActionIssue = {
 };
 
 export function validateFeatureAction(
-  project: Pick<CanonicalProject, "screens" | "elements">,
+  project: { screens: Omit<Screen, "nodeId">[]; elements: DomainElement[] },
   element: DomainElement,
   action: FeatureAction,
   allowNewOverlay = false,

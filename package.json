@@ -5,18 +5,13 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "vite",
-    "dev:api": "wrangler dev",
-    "mcp": "tsx src/mcp/server.ts",
-    "d1:migrate:local": "wrangler d1 migrations apply sketchy --local",
     "test": "node --experimental-strip-types --test \"tests/*.test.ts\"",
-    "build:mcpb": "vite build --config vite.mcpb.config.ts && node scripts/build-mcpb.mjs",
-    "build": "tsc --noEmit && vite build && vite build --config vite.plugin.config.ts && npm run build:mcpb",
+    "build": "tsc --noEmit && vite build && vite build --config vite.plugin.config.ts",
     "check": "tsc --noEmit && prettier --check .",
     "format": "prettier --write ."
   },
   "dependencies": {
     "@figma/plugin-typings": "latest",
-    "@modelcontextprotocol/server": "^2.0.0",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@vitejs/plugin-react": "latest",
@@ -25,16 +20,10 @@
     "react-dom": "latest",
     "typescript": "latest",
     "vite": "latest",
-    "vite-plugin-singlefile": "latest",
-    "zod": "^4.6.2"
+    "vite-plugin-singlefile": "latest"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260911.1",
     "@playwright/test": "^1.63.0",
-    "@types/node": "^22.20.2",
-    "fflate": "^0.8.3",
-    "miniflare": "^5.20260911.0-alpha",
-    "tsx": "^4.23.13",
-    "wrangler": "^4.131.1"
+    "@types/node": "^22.20.2"
   }
 }

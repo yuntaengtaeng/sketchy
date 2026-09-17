@@ -1,7 +1,4 @@
-import type { ProjectDocument } from "../core/project-change";
-import type { AuthSession, PluginMessage, Project } from "../shared";
-import { previewProjectImport } from "../core/project-import";
-import { createProjectDocument } from "../core/project-change";
+import type { PluginMessage, Project } from "../shared";
 import {
   createScreen,
   deleteFeature,
@@ -29,18 +26,11 @@ import {
   updateElement,
   updateScreen,
 } from "./commands/canvas";
-import { applyProjectImport } from "./commands/apply-project-import";
 import { renderFlow } from "./commands/render-flow";
-import { SKETCHY_ENDPOINT } from "./commands/remote-sync";
-import { createSyncLoop } from "./sync-loop";
 import {
   cleanProject,
   readProject,
-  readProjectMetadata,
-  readSyncState,
-  saveProjectSnapshot,
   updateProjectSettings,
-  writeSyncState,
 } from "./storage/project";
 
 figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
@@ -48,52 +38,6 @@ figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
 let suppressDocumentChange = false;
 let redrawTimer: ReturnType<typeof setTimeout>;
 let suppressTimer: ReturnType<typeof setTimeout>;
-let pendingImport:
-  { baseRevision: number; document: ProjectDocument } | undefined;
-const AUTH_SESSION_KEY = "sketchy:auth-session";
-
-async function readAuthSession() {
-  return (await figma.clientStorage.getAsync(AUTH_SESSION_KEY)) as
-    AuthSession | undefined;
-}
-
-async function postAuthState() {
-  figma.ui.postMessage({
-    type: "AUTH_STATE",
-    account: (await readAuthSession())?.user,
-  });
-}
-
-async function signOut() {
-  await figma.clientStorage.deleteAsync(AUTH_SESSION_KEY);
-  await postAuthState();
-  syncLoop.stop();
-}
-
-// push, pull, projection 확인, 주기 폴링은 sync-loop 모듈에 위임
-const syncLoop = createSyncLoop({
-  readSession: readAuthSession,
-  onProjectPulled: async (project) => {
-    // Sidebar가 다른 탭이어도 보이도록 Canvas 위에도 알림, Settings 문구와 별개
-    figma.notify("Agent changes applied to this file");
-    await sync(project, true);
-  },
-  applyProjectImport,
-  onStatusChange: (status) => {
-    figma.ui.postMessage({ type: "SYNC_STATUS", status });
-    // 인증 만료는 다시 로그인해야 하므로 로그아웃 상태로 되돌려 Sign-in 버튼을 노출
-    if (status === "auth-expired") void signOut();
-    if (status === "conflict")
-      figma.notify("Couldn't sync, this Figma file also changed", {
-        error: true,
-      });
-    if (status === "unsupported")
-      figma.notify("Couldn't apply the latest agent changes to this file", {
-        error: true,
-      });
-  },
-});
-
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   if (typeof error === "string") return error;
@@ -123,7 +67,6 @@ function logCopiedSketchyElements(event: DocumentChangeEvent) {
     );
     if (!original || original.nodeId === change.node.id) continue;
     console.warn("[Sketchy copied element outside plugin]", {
-      projectId: readProjectMetadata().id,
       elementId,
       originalNodeId: original.nodeId,
       copiedNodeId: change.node.id,
@@ -141,7 +84,6 @@ async function sync(project: Project = readProject(), draw = false) {
     project = await cleanProject(project);
     if (draw) await renderFlow(project);
     figma.ui.postMessage({ type: "STATE", project, ...selection() });
-    void syncLoop.pushLocalChanges(project);
   } finally {
     if (draw)
       suppressTimer = setTimeout(() => (suppressDocumentChange = false), 200);
@@ -150,127 +92,7 @@ async function sync(project: Project = readProject(), draw = false) {
 
 figma.ui.onmessage = async (message: PluginMessage) => {
   try {
-    if (message.type === "READY") {
-      await postAuthState();
-      await sync(readProject(), true);
-      if (readSyncState().connected) syncLoop.start();
-    }
-    if (message.type === "SAVE_AUTH_SESSION") {
-      await figma.clientStorage.setAsync(AUTH_SESSION_KEY, message.session);
-      await postAuthState();
-      if (readSyncState().connected) syncLoop.start();
-    }
-    if (message.type === "SIGN_OUT") await signOut();
-    if (message.type === "CONNECT_AGENT") {
-      const session = await readAuthSession();
-      if (!session) throw new Error("Sign in before connecting Codex.");
-      const project = await cleanProject(readProject());
-      let metadata = readProjectMetadata();
-      let document = createProjectDocument(
-        project,
-        metadata,
-        figma.fileKey || "local-development",
-      );
-      const create = () =>
-        fetch(`${SKETCHY_ENDPOINT}/api/v1/projects`, {
-          method: "POST",
-          headers: {
-            authorization: `Bearer ${session.token}`,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify(document),
-        });
-      let response = await create();
-      if (response.status === 409) {
-        const existing = await fetch(
-          `${SKETCHY_ENDPOINT}/api/v1/projects/${encodeURIComponent(document.id)}`,
-          { headers: { authorization: `Bearer ${session.token}` } },
-        );
-        if (!existing.ok) {
-          metadata = {
-            id: `project-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-            revision: 0,
-            updatedAt: new Date().toISOString(),
-          };
-          saveProjectSnapshot(project, metadata);
-          document = createProjectDocument(
-            project,
-            metadata,
-            figma.fileKey || "local-development",
-          );
-          response = await create();
-        }
-      }
-      if (!response.ok && response.status !== 409)
-        throw new Error("Could not connect this project. Try again.");
-      writeSyncState({
-        connected: true,
-        lastSyncedRevision: metadata.revision,
-      });
-      syncLoop.start();
-      figma.ui.postMessage({
-        type: "AGENT_CONNECTION",
-        connection: {
-          agent: message.agent,
-          setup:
-            message.agent === "codex"
-              ? `codex mcp add sketchy-figma --url "${SKETCHY_ENDPOINT}/mcp"\ncodex mcp login sketchy-figma`
-              : message.agent === "claude-code"
-                ? `claude mcp add --transport http --scope user sketchy-figma "${SKETCHY_ENDPOINT}/mcp"`
-                : `${SKETCHY_ENDPOINT}/mcp`,
-        },
-      });
-    }
-    if (message.type === "EXPORT_PROJECT") {
-      const document = createProjectDocument(
-        await cleanProject(readProject()),
-        readProjectMetadata(),
-        figma.fileKey || "local-development",
-      );
-      figma.ui.postMessage({
-        type: "PROJECT_EXPORT",
-        fileName: "sketchy.project.json",
-        contents: JSON.stringify(document, null, 2),
-      });
-    }
-    if (message.type === "PREVIEW_PROJECT_IMPORT") {
-      const current = createProjectDocument(
-        await cleanProject(readProject()),
-        readProjectMetadata(),
-        figma.fileKey || "local-development",
-      );
-      const preview = previewProjectImport(current, message.contents);
-      pendingImport = preview.valid
-        ? {
-            baseRevision: current.revision,
-            document: JSON.parse(message.contents) as ProjectDocument,
-          }
-        : undefined;
-      figma.ui.postMessage({
-        type: "PROJECT_IMPORT_PREVIEW",
-        preview,
-      });
-    }
-    if (message.type === "APPLY_PROJECT_IMPORT") {
-      if (
-        !pendingImport ||
-        pendingImport.document.revision !== message.revision ||
-        readProjectMetadata().revision !== pendingImport.baseRevision
-      )
-        throw new Error("Review the latest agent changes again.");
-      await sync(await applyProjectImport(pendingImport.document), true);
-      figma.ui.postMessage({
-        type: "PROJECT_IMPORT_PREVIEW",
-        preview: {
-          valid: false,
-          applied: true,
-          summary: ["Figma updated"],
-          errors: [],
-          warnings: ["Export again to mark the MCP project as synced."],
-        },
-      });
-      pendingImport = undefined;
-    }
+    if (message.type === "READY") await sync(readProject(), true);
     if (message.type === "UPDATE_PROJECT_SETTINGS") {
       // Flow 화살표 표시 여부만 Canvas 다시 그리기가 필요하다, 화면 크기
       // 프리셋 같은 나머지 설정은 이후 새 화면에만 적용돼 다시 그릴 필요가 없다

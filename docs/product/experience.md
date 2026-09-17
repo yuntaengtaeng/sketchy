@@ -591,41 +591,9 @@ Destination
 
 ## Spec Export
 
-초기 후보:
+초기 내보내기는 사람이 읽고 공유하는 문서에 집중한다.
 
 - Markdown
 - Plain Text
 
-향후:
-
-- CSV
-- PDF
-- JSON
-
-JSON Export는 다른 도구와 연동할 수 있도록 내부 데이터 구조와 최대한
-일치시킨다.
-
-예:
-
-```json
-{
-  "screen": {
-    "id": "product-detail",
-    "name": "상품 상세",
-    "purpose": "상품 정보를 확인하고 구매한다.",
-    "states": ["default", "loading", "sold-out", "error"],
-    "elements": [
-      {
-        "id": "purchase-button",
-        "name": "구매하기",
-        "type": "button",
-        "interaction": {
-          "trigger": "click",
-          "action": "navigate",
-          "destination": "checkout"
-        }
-      }
-    ]
-  }
-}
-```
+Project JSON Export/Import는 제공하지 않는다. Figma 파일이 원본이며 파일 복제, 공유, 버전 기록과 기기 간 접근은 Figma가 담당한다.

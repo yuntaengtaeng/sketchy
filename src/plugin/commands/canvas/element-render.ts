@@ -1,5 +1,9 @@
-import { sectionLayout, type BlockType, type Element } from "../../../shared";
-import type { DomainElement } from "../../../core/project-change.ts";
+import {
+  sectionLayout,
+  type BlockType,
+  type DomainElement,
+  type Element,
+} from "../../../shared";
 import { elementLabelNode, PART } from "../../canvas-name.ts";
 
 const TEXT_SIZES: Record<

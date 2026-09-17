@@ -5,58 +5,12 @@ import {
 } from "../../shared/index.ts";
 import { readingOrder } from "../reading-order.ts";
 import { adoptCanvasName, elementLabelText } from "../canvas-name.ts";
-import type { ProjectMetadata } from "../../core/project-change.ts";
 import {
   migrateStoredProject,
   parseStoredProject,
 } from "./project-migration.ts";
 
 const KEY = "sketchy:project";
-const METADATA_KEY = "sketchy:project-metadata";
-const SYNC_STATE_KEY = "sketchy:sync-state";
-
-// connected는 이 Figma 문서가 원격 Project에 연결됐는지
-// lastSyncedRevision은 로컬과 서버가 마지막으로 일치했던 revision, decideSync의 기준점
-export type SyncState = { connected: boolean; lastSyncedRevision: number };
-
-export function readSyncState(): SyncState {
-  try {
-    const stored = JSON.parse(figma.root.getPluginData(SYNC_STATE_KEY));
-    if (
-      typeof stored.connected === "boolean" &&
-      Number.isInteger(stored.lastSyncedRevision)
-    )
-      return stored;
-  } catch {
-    // Fall back to the disconnected default below.
-  }
-  return { connected: false, lastSyncedRevision: 0 };
-}
-
-export function writeSyncState(state: SyncState) {
-  figma.root.setPluginData(SYNC_STATE_KEY, JSON.stringify(state));
-}
-
-export function readProjectMetadata(): ProjectMetadata {
-  try {
-    const stored = JSON.parse(figma.root.getPluginData(METADATA_KEY));
-    if (
-      typeof stored.id === "string" &&
-      Number.isInteger(stored.revision) &&
-      typeof stored.updatedAt === "string"
-    )
-      return stored;
-  } catch {
-    // Initialize metadata below.
-  }
-  const metadata = {
-    id: `project-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-    revision: 0,
-    updatedAt: new Date().toISOString(),
-  };
-  figma.root.setPluginData(METADATA_KEY, JSON.stringify(metadata));
-  return metadata;
-}
 
 export function readProject(): Project {
   try {
@@ -72,23 +26,7 @@ function readStoredProjectData(): string {
 
 export const saveProject = (project: Project) => {
   figma.root.setPluginData(KEY, JSON.stringify(project));
-  const metadata = readProjectMetadata();
-  figma.root.setPluginData(
-    METADATA_KEY,
-    JSON.stringify({
-      ...metadata,
-      revision: metadata.revision + 1,
-      updatedAt: new Date().toISOString(),
-    }),
-  );
 };
-export function saveProjectSnapshot(
-  project: Project,
-  metadata: ProjectMetadata,
-) {
-  figma.root.setPluginData(KEY, JSON.stringify(project));
-  figma.root.setPluginData(METADATA_KEY, JSON.stringify(metadata));
-}
 export function updateProjectSettings(settings: ProjectSettings) {
   const project = readProject();
   project.settings = settings;

@@ -5,7 +5,7 @@ import {
   elementTreeIds,
   type BlockType,
 } from "../../../shared";
-import type { DomainElement } from "../../../core/project-change.ts";
+import type { DomainElement } from "../../../shared";
 import {
   normalizeElementOrder,
   readProject,

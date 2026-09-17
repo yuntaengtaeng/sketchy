@@ -1,361 +1,72 @@
 # 기술 설계
 
-기술 검증 항목, 런타임 구조, 데이터 타입과 메타데이터 원칙을 설명한다.
+## 제품 결정
 
-## Technical Spike Before Product Development
+Figma 파일이 Sketchy의 유일한 원본이다.
 
-제품 기능 개발 전에 Figma Plugin API가 Sketchy의 핵심 모델을 지원하는지
-작은 코드로 검증한다.
+Sketchy는 Figma 플러그인 안에서 다음 기능만 제공한다.
 
-가장 먼저 확인할 것은 **Feature → Destination 관계를 실제 Figma
-Prototype 연결로 안정적으로 생성할 수 있는가**이다.
+- low-fi Screen과 UI Block 생성·편집
+- Interaction과 Figma Prototype 연결
+- Flow 시각화
+- 현재 문서에서 계산한 Spec과 Markdown/Text 내보내기
 
-최소 Spike:
+다음 계층은 제품 범위에 두지 않는다.
 
-```text
-Screen A
-  │
-Button
-  │
-  │ Sketchy에서 Destination 지정
-  ▼
-Screen B
-```
+- Sketchy 계정과 Google OAuth
+- 자체 서버, Worker, D1과 원격 Project 저장소
+- 자체 MCP 서버와 외부 AI용 Figma 브리지
+- 원격 revision 동기화와 충돌 해결
+- Project JSON Export/Import
 
-검증 항목:
+외부 AI 기능이 필요하면 사용자가 Figma가 공식 제공하는 Agent/MCP 기능을 별도로 사용한다. Sketchy는 이를 중계하거나 별도의 원격 원본을 만들지 않는다.
 
-- Plugin API를 통해 Prototype reaction을 생성할 수 있는가
-- Button → Screen navigation을 원하는 형태로 설정할 수 있는가
-- 기존 Prototype 설정과 충돌할 때 어떻게 처리할 것인가
-- Node가 삭제/복제/이동되었을 때 Sketchy metadata를 어떻게 유지할
-  것인가
-- Sketchy Connection과 Figma Prototype 중 어느 쪽을 Source of Truth로
-  둘 것인가
+## Source of truth
 
-기술 Spike가 실패하거나 제약이 크다면 Product UX를 구현에 맞춰 조정한다.
+Canvas Node와 파일에 저장된 Sketchy plugin data가 같은 Figma 파일 안에서 함께 동작한다.
 
-Block Picker와 전체 UI를 먼저 만드는 것보다 이 핵심 연결 가능성을 먼저
-검증한다.
+- Screen과 Element의 실제 배치·존재 여부는 Canvas가 기준이다.
+- Sketchy의 의미 정보는 `figma.root.setPluginData("sketchy:project", ...)`에 저장한다.
+- 각 Sketchy Node는 Screen/Element ID를 plugin data로 가진다.
+- 파일 복제, 버전 기록, 권한, 공유와 기기 간 접근은 Figma가 담당한다.
+- 계정, 서버 Project ID, revision, sync cursor는 만들지 않는다.
 
-## Recommended Technical Architecture
-
-Figma Plugin은 크게 두 영역으로 분리한다.
-
-```text
-Figma Sandbox
-      │
-      │ postMessage
-      ▼
-Plugin UI
-```
-
-### Plugin Code
-
-책임:
-
-- Figma Node 조회
-- Frame 생성
-- Component 생성
-- Auto Layout 설정
-- Prototype 설정
-- Plugin Data 저장
-- Selection 감지
-
-### UI
-
-책임:
-
-- Wireframe Library
-- Interaction Editor
-- Spec Editor
-- Flow Viewer
-- Present Mode
-
-## Technical Stack
-
-Sketchy의 기본 기술 스택은 다음과 같이 구성한다.
-
-- Figma Plugin API
-- React
-- TypeScript
-- Vite
-
-### Architecture
-
-React는 Sketchy의 **Plugin UI**를 담당한다.
-
-실제 Figma Canvas 조작은 React에서 직접 수행하지 않고 Plugin Runtime을
-통해 수행한다.
+## Runtime 경계
 
 ```text
 React UI
-    │
-    │ postMessage
-    ▼
-Plugin Runtime (TypeScript)
-    │
-    │ Figma Plugin API
-    ▼
-Figma Canvas
+  ↕ typed PluginMessage / UiMessage
+Figma Plugin Main
+  ├─ Canvas 명령
+  ├─ Project plugin data
+  ├─ Prototype / Flow 반영
+  └─ documentchange 정합성 보정
 ```
 
-#### Plugin UI --- React
+- React UI는 입력과 표시만 담당하고 `figma.*`를 호출하지 않는다.
+- Plugin Main만 Canvas와 plugin data를 읽고 쓴다.
+- `shared`는 직렬화 가능한 모델과 메시지 계약을 제공한다.
+- `core`는 런타임 API에 의존하지 않는 검증만 제공한다.
 
-책임:
+## documentchange의 역할
 
-- Block Picker
-- Screen Details
-- Screen Feature 편집
-- Flow
-- Spec
-- Present Mode
+`documentchange`는 원격 동기화를 위한 기능이 아니다. 사용자가 Figma에서 직접 바꾼 현재 파일을 Sketchy UI와 맞추기 위한 로컬 보정 장치다.
 
-#### Plugin Runtime --- TypeScript
+이 이벤트에서 하는 일은 다음으로 제한한다.
 
-책임:
+- 삭제된 Screen/Element를 Project에서 제거
+- Canvas에서 바꾼 이름과 요소 순서를 Project에 반영
+- Screen 이동 후 Flow 선을 다시 계산
+- Figma 네이티브 복사로 중복된 Sketchy Element ID가 생긴 경우 진단 로그 기록
 
-- Figma Node 생성 / 수정
-- Selection 감지
-- Auto Layout 구성
-- Prototype 연결
-- Plugin Data 저장 / 조회
-- UI에서 전달받은 Command 실행
+네이티브 복사본을 자동으로 새 Sketchy Element로 등록하지 않는다. 새 요소 생성은 Sketchy UI 명령을 통해서만 수행한다. 복사 동작의 제품 지원이 필요해질 때 별도 UX와 ID 재발급 규칙을 설계한다.
 
-#### Shared
+## 저장과 변경 흐름
 
-Plugin UI와 Plugin Runtime 사이에서 공유하는 순수 TypeScript 영역이다.
+1. UI가 typed message를 보낸다.
+2. Plugin Main이 Canvas 명령을 실행한다.
+3. 변경된 Project를 현재 Figma 파일의 plugin data에 저장한다.
+4. Prototype 또는 Flow가 영향을 받으면 같은 파일 안에서 다시 그린다.
+5. 최신 Project와 selection을 UI로 보낸다.
 
-책임:
-
-- Domain Types
-- UI ↔ Plugin Message Types
-- Constants
-- Validation
-
-특히 UI와 Runtime 사이의 메시지는 명시적인 타입으로 관리한다.
-
-```ts
-type PluginMessage =
-  | {
-      type: "CREATE_SCREEN";
-    }
-  | {
-      type: "INSERT_BLOCK";
-      block: "button" | "input" | "table";
-    }
-  | {
-      type: "UPDATE_SCREEN";
-      screenId: string;
-      description: string;
-    };
-```
-
-React UI:
-
-```ts
-parent.postMessage(
-  {
-    pluginMessage: {
-      type: "INSERT_BLOCK",
-      block: "button",
-    },
-  },
-  "*",
-);
-```
-
-Plugin Runtime:
-
-```ts
-figma.ui.onmessage = (message: PluginMessage) => {
-  if (message.type === "INSERT_BLOCK") {
-    // Figma Plugin API를 사용하여 실제 Node 생성
-  }
-};
-```
-
-핵심 원칙:
-
-> **React는 Sketchy UI를 만들고, Figma Plugin API는 Sketchy가 만드는
-> 실제 Canvas를 다룬다.**
-
-## Suggested Project Structure
-
-```text
-sketchy/
-│
-├─ src/
-│  ├─ plugin/
-│  │  ├─ main.ts
-│  │  │
-│  │  ├─ commands/
-│  │  │  ├─ create-screen.ts
-│  │  │  ├─ insert-block.ts
-│  │  │  ├─ create-interaction.ts
-│  │  │  └─ sync-prototype.ts
-│  │  │
-│  │  ├─ nodes/
-│  │  │  ├─ screen.ts
-│  │  │  ├─ button.ts
-│  │  │  ├─ input.ts
-│  │  │  ├─ list.ts
-│  │  │  └─ table.ts
-│  │  │
-│  │  └─ storage/
-│  │     └─ plugin-data.ts
-│  │
-│  ├─ ui/
-│  │  ├─ App.tsx
-│  │  │
-│  │  ├─ features/
-│  │  │  ├─ build/
-│  │  │  ├─ interaction/
-│  │  │  ├─ spec/
-│  │  │  ├─ flow/
-│  │  │  └─ present/
-│  │  │
-│  │  └─ components/
-│  │
-│  ├─ core/
-│  │  ├─ screen/
-│  │  ├─ element/
-│  │  ├─ interaction/
-│  │  ├─ flow/
-│  │  └─ spec/
-│  │
-│  └─ shared/
-│     ├─ types/
-│     ├─ messages/
-│     ├─ validation/
-│     └─ constants/
-│
-├─ manifest.json
-├─ package.json
-└─ README.md
-```
-
-## Domain Types
-
-비즈니스 데이터는 가능한 Figma API와 분리한다.
-
-```ts
-type Screen = {
-  id: string;
-  nodeId: string;
-  name: string;
-  purpose?: string;
-  states: ScreenState[];
-};
-
-type ScreenState =
-  "default" | "loading" | "empty" | "error" | "disabled" | "custom";
-
-type Element = {
-  id: string;
-  nodeId: string;
-  screenId: string;
-  name: string;
-  type: ElementType;
-};
-
-type ElementType =
-  | "button"
-  | "input"
-  | "text"
-  | "image"
-  | "list"
-  | "table"
-  | "navigation"
-  | "custom";
-
-type Interaction = {
-  id: string;
-  sourceElementId: string;
-  trigger: Trigger;
-  action: Action;
-  destinationScreenId?: string;
-  condition?: string;
-  otherwise?: string;
-};
-
-type Trigger = "click" | "change" | "submit" | "open" | "close";
-
-type Action =
-  | "navigate"
-  | "back"
-  | "open-modal"
-  | "open-bottom-sheet"
-  | "close"
-  | "show-message"
-  | "external-link";
-```
-
-## Metadata
-
-Sketchy가 관리하는 Node에는 pluginData를 사용하여 식별 정보를 저장한다.
-
-개념 예:
-
-```text
-sketchy:type = screen
-sketchy:id = screen-product-detail
-```
-
-Element:
-
-```text
-sketchy:type = element
-sketchy:id = purchase-button
-sketchy:screen-id = screen-product-detail
-```
-
-내부 데이터의 ID와 Figma node.id를 분리한다.
-
-Figma Node가 변경되더라도 Sketchy의 Domain Model이 Figma 구현에 지나치게
-의존하지 않도록 한다.
-
-## Agent integration and synchronization
-
-상세한 MCP Tool, Batch Change와 Figma Projection 계약은
-[Sketchy MCP v1 설계](./mcp-v1.md)를 따른다.
-
-MCP 연동에서 Core 코드를 공유하는 것과 실행 중인 상태를 공유하는 것은
-구분한다. 현재 Figma 문서의 `pluginData`는 Plugin Runtime 안의 데이터이므로
-별도 MCP 프로세스가 같은 Core를 import하는 것만으로 접근할 수 없다.
-
-실제 쓰기 가능한 MCP를 시작할 때는 Sketchy API의 revision이 있는 Project를
-Canonical Store로 사용한다.
-
-```text
-                 Sketchy API
-               Project + Revision
-                  /          \
-          Figma Plugin     Sketchy MCP
-                |
-            Figma Canvas
-```
-
-- Sketchy Plugin과 MCP는 모두 API를 통해 변경한다.
-- Sketchy Model은 의미의 원본이고 Figma Canvas는 Projection이다.
-- MCP 변경은 `baseRevision`과 idempotency key를 가진 Batch로 Preview한 뒤
-  적용한다.
-- Connection은 별도로 저장하지 않고 Feature Action의 Destination에서
-  파생한다.
-- Figma Canvas에서 직접 발생한 변경은 Sketchy로 자동 역동기화하지 않는다.
-
-Plugin이 열려 있으면 Canvas의 외부 변경을 감지할 수 있다. Plugin이 닫힌
-동안 변경되었다면 다음 Plugin 실행 또는 Agent 작업 전에 차이를 검사한다.
-차이가 있으면 사용자의 Canvas 변경을 조용히 덮어쓰지 않고 유지하거나
-Sketchy Projection으로 복원하도록 선택하게 한다.
-
-MCP 초기 Tool 표면은 개별 CRUD보다 다음 Batch 중심 API를 우선한다.
-
-```text
-get_project
-get_screen
-preview_project_changes
-apply_project_changes
-```
-
-Canvas에서 Sketchy Model로 가져오는 기능은 자동 동기화가 아니라 별도의
-명시적인 Import/Adopt 작업으로 다룬다.
+서버 호출, polling, push/pull, revision 비교는 없다.

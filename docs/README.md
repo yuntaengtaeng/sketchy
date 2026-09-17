@@ -1,44 +1,26 @@
 # Sketchy 문서 안내
 
-처음부터 전부 읽을 필요는 없다. 맡은 역할과 하려는 일에 맞는 문서부터 시작한다. 현재 결정은 `product`와 `development` 문서가 기준이며, `archive`는 이전 맥락을 확인할 때만 사용한다.
+현재 제품 결정은 `product`와 `development` 문서를 기준으로 한다. `archive`는 이전 탐색 기록이며 구현 기준으로 사용하지 않는다.
 
-## 디자이너
+## 제품
 
-1. [제품 개요](./product/overview.md) — Sketchy가 해결하는 문제와 지키려는 제품 원칙
-2. [제품 경험](./product/experience.md) — Build, Flow, Spec이 연결되는 방식
-3. [기능 모델](./product/feature-model.md) — 화면 요소의 동작과 Interaction UI 원칙
-4. [기능 명세서 만들기](./workflows/functional-spec.md) — 실제 화면 캡처를 포함한 기능 명세 생성 절차
+1. [제품 개요](./product/overview.md) — 문제, 대상 사용자, 제품 원칙과 범위
+2. [제품 경험](./product/experience.md) — Build, Flow, Spec 사용자 경험
+3. [기능 모델](./product/feature-model.md) — Screen, Element, Feature와 Interaction UI 원칙
+4. [범위와 로드맵](./product/roadmap.md) — MVP 범위와 이후 후보
 
-## 기획자 · PM
+## 개발
 
-1. [제품 개요](./product/overview.md) — 가설, 대상 사용자, 제품 경계
-2. [범위와 로드맵](./product/roadmap.md) — MVP 범위, 성공 기준, 이후 후보
-3. [기존 페르소나 검증 종합](../persona/00-독립_페르소나_연구_종합.md) — 지금까지 반복 확인된 사용성 문제
+1. [기술 설계](./development/architecture.md) — 로컬 전용 구조와 데이터 소유권
+2. [블록과 속성 모델](./development/block-types.md) — BlockType별 속성과 확장 절차
+3. [Figma Plugin API 사용 현황](./development/figma-api.md) — 실제 사용하는 Figma API와 동기화 경계
 
-## 개발자
+## 작업 가이드
 
-1. [기능 모델](./product/feature-model.md) — 현재 도메인 규칙과 UI 제약
-2. [블록과 속성 모델](./development/block-types.md) — BlockType별 속성 타입, 새 블록 추가 절차
-3. [기술 설계](./development/architecture.md) — 런타임 구조, 도메인 타입, 메타데이터
-4. [Sketchy MCP v1 설계](./development/mcp-v1.md) — Agent 호환, Batch 변경과 Figma Projection 계약
-5. [Remote MCP와 Sketchy API](./development/remote-mcp.md) — 무료 호스팅, HTTP 계약, 인증과 Plan 경계
-6. [Figma Plugin API 사용 현황](./development/figma-api.md) — 실제로 쓰는 Figma API와 역할, 참고할 만한 다른 API
-7. [범위와 로드맵](./product/roadmap.md) — 구현 범위와 완료 조건
-
-## Claude · AI 에이전트
-
-- Claude 진입점: 루트의 [`CLAUDE.md`](../CLAUDE.md)
-- 개발자·내부 검증용 Codex·Claude 연결: [로컬 MCP 시작하기](./workflows/mcp-local-setup.md)
-- 페르소나 생성 또는 UX 검증 요청: [AI 페르소나 검증 실행 가이드](./research/persona-validation.md)
-- 기능 명세서 생성 요청: [기능 명세서 생성 가이드](./workflows/functional-spec.md)
-- 상호작용 UI 변경: [기능 모델의 Interaction UI 원칙](./product/feature-model.md#interaction-ui-원칙)
-- 일반 개발 작업: 루트의 [`AGENTS.md`](../AGENTS.md)
+- [기능 명세서 만들기](./workflows/functional-spec.md)
+- [AI 페르소나 검증](./research/persona-validation.md)
+- 일반 개발 규칙: [AGENTS.md](../AGENTS.md)
 
 ## 보관 문서
 
-- [v4 통합 원문](./archive/SKETCHY_PROJECT_v4.md) — 분리 전 원본. 현재 문서와 충돌하면 위 주제별 문서를 따른다.
-- [MCP × Figma Agent 연동 구상](./archive/mcp-figma-agent-concept.md) — Remote MCP 이전 초기 탐색안. 실행 기준은 [Sketchy MCP v1 설계](./development/mcp-v1.md)와 [Remote MCP와 Sketchy API](./development/remote-mcp.md)를 따른다.
-
-## UX 검토 자료
-
-- Google 로그인 도입 검토: [독립 검토 A](./research/oauth-login-ux-review-a.md), [독립 검토 B](./research/oauth-login-ux-review-b.md)
+- [v4 통합 원문](./archive/SKETCHY_PROJECT_v4.md) — 현재 결정보다 앞선 제품 탐색 기록

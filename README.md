@@ -20,6 +20,3 @@ npm run build
 In Figma Desktop, import `manifest.json` via **Plugins → Development → Import plugin from manifest**.
 
 Create two screens, add a button to the first, select that button on the canvas, and choose the second screen under **Go to**. The Flow and Spec tabs update from the same interaction.
-
-To connect the development MCP to Codex or Claude, follow
-[로컬 MCP 시작하기](./docs/workflows/mcp-local-setup.md).

@@ -163,7 +163,7 @@ Screen Details와 Feature 정보를 기반으로 최소 Spec을 자동 생성한
 - 복잡한 Condition / Exception
 - 대규모 Flow 탐색
 - Present Mode
-- CSV / PDF / JSON Export
+- CSV / PDF Export
 - Make it Sketchy
 - Screenshot Vision 분석
 - High-fidelity 표현 기능

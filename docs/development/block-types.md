@@ -31,7 +31,7 @@ discriminated union 우선 원칙). trait는 여러 BlockType이 공유할 수 �
 UI 쪽에서 블록별로 다르게 붙인다.
 
 일반 `Omit<Element, "nodeId">`는 union의 key 교집합만 남기므로 variant별
-필드가 사라진다. `core/project-change.ts`의 `DomainElement`는 각 variant에
+필드가 사라진다. `shared/index.ts`의 `DomainElement`는 각 variant에
 개별로 Omit을 분배하는 `DistributiveOmit`을 쓴다.
 
 ## 현재 블록과 속성

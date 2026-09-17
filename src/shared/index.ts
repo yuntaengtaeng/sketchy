@@ -265,37 +265,11 @@ export type Project = {
   features: Feature[];
 };
 
-export type SketchyAccount = {
-  id: string;
-  email: string;
-  name?: string;
-  pictureUrl?: string;
-};
+type DistributiveOmit<T, K extends keyof never> = T extends unknown
+  ? Omit<T, K>
+  : never;
 
-export type AuthSession = {
-  token: string;
-  user: SketchyAccount;
-};
-
-export type AgentConnection = {
-  agent: "codex" | "claude-code" | "claude-app";
-  setup: string;
-};
-
-// Figma Plugin과 서버 사이 자동 동기화 상태
-// conflict, auth-expired, unsupported만 사용자 조치 필요
-export type SyncStatus =
-  "syncing" | "applied" | "conflict" | "auth-expired" | "unsupported";
-
-export type ProjectImportPreview = {
-  valid: boolean;
-  applied?: boolean;
-  requiresExport?: boolean;
-  revision?: number;
-  summary: string[];
-  errors: string[];
-  warnings: string[];
-};
+export type DomainElement = DistributiveOmit<Element, "nodeId">;
 
 export function projectWithoutScreen(project: Project, screenId: string) {
   const screenIds = new Set(
@@ -332,12 +306,6 @@ export const createEmptyProject = (): Project => ({
 
 export type PluginMessage =
   | { type: "READY" }
-  | { type: "SAVE_AUTH_SESSION"; session: AuthSession }
-  | { type: "SIGN_OUT" }
-  | { type: "CONNECT_AGENT"; agent: AgentConnection["agent"] }
-  | { type: "EXPORT_PROJECT" }
-  | { type: "PREVIEW_PROJECT_IMPORT"; contents: string }
-  | { type: "APPLY_PROJECT_IMPORT"; revision: number }
   | { type: "UPDATE_PROJECT_SETTINGS"; settings: ProjectSettings }
   | { type: "CREATE_SCREEN"; name: string }
   | { type: "DUPLICATE_SCREEN"; screenId: string }
@@ -418,9 +386,4 @@ export type UiMessage =
       selectedScreenId?: string;
       selectedElementId?: string;
     }
-  | { type: "PROJECT_EXPORT"; fileName: string; contents: string }
-  | { type: "AUTH_STATE"; account?: SketchyAccount }
-  | { type: "AGENT_CONNECTION"; connection: AgentConnection }
-  | { type: "PROJECT_IMPORT_PREVIEW"; preview: ProjectImportPreview }
-  | { type: "SYNC_STATUS"; status: SyncStatus }
   | { type: "ERROR"; message: string };

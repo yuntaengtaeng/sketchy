@@ -322,3 +322,9 @@ NO → 추가하지 않는다.
 
 Sketchy의 제품 범위를 판단할 때 Low-fi의 시각적 완성도를 목표로 삼지
 않는다. 핵심은 **기획 정보의 입력 비용과 전달 비용을 줄이는 것**이다.
+
+## Product Boundary
+
+Figma 파일이 유일한 원본이다. Sketchy는 해당 파일 안에서 low-fi UI를 생성하고 Interaction, Flow, Spec을 연결하는 로컬 플러그인이다.
+
+Sketchy는 별도 계정, 서버 저장소, 원격 동기화, 자체 MCP, Project JSON Import/Export를 제공하지 않는다. 파일 공유, 권한, 버전과 기기 간 접근은 Figma에 맡긴다. 외부 AI가 필요하면 사용자가 Figma의 공식 기능을 직접 사용하며 Sketchy가 중계하지 않는다.
