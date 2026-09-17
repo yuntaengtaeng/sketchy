@@ -3,6 +3,9 @@ export {
   insertBlock,
   moveElement,
   selectElement,
+  updateElement,
+} from "./element";
+export {
   setButtonVariant,
   setCardType,
   setChecked,
@@ -16,8 +19,7 @@ export {
   setTabItems,
   setTabSelection,
   setTextSize,
-  updateElement,
-} from "./element";
+} from "./elementSetters";
 export { deleteFeature, saveFeature } from "./feature";
 export {
   createScreen,
