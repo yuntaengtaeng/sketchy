@@ -1,6 +1,6 @@
 import type { Element as SketchyElement } from "../../../shared";
 import { post } from "../../plugin";
-import styles from "./Build.module.css";
+import styles from "./NodeList.module.css";
 
 export default function NodeList({
   title,

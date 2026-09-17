@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { BLOCK_DEFINITIONS, type BlockType } from "../../../shared";
 import { post } from "../../plugin";
-import styles from "./Build.module.css";
+import styles from "./BlockPicker.module.css";
 
 // Quick add는 항상 이 4개만 고정, 사용 빈도가 늘어도 이 줄 길이는 안 바뀐다
 const QUICK_FIXED: BlockType[] = ["text", "button", "input", "image"];
@@ -28,7 +28,7 @@ const CATEGORIES: { key: string; label: string; blocks: BlockType[] }[] = [
 
 // 순수 CSS ::after만으로 표현하기 어려운(자식이 여러 개인) 스와치만 여기서
 // 마크업으로 채운다, 나머지(button/input/image/divider/section/checkbox/
-// radio/switch/select/search)는 Build.module.css의 data-block 규칙만으로 그린다
+// radio/switch/select/search)는 BlockPicker.module.css의 data-block 규칙만으로 그린다
 const COMPOSITE_PREVIEWS: Partial<Record<BlockType, ReactNode>> = {
   listItem: (
     <span className={styles.swListItem}>

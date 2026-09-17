@@ -1,7 +1,7 @@
-import type { Element as SketchyElement } from "../../../shared";
-import SegmentedField from "../../components/properties/SegmentedField";
-import StringListField from "../../components/properties/StringListField";
-import { post } from "../../plugin";
+import type { Element as SketchyElement } from "../../../../shared";
+import SegmentedField from "../../../components/properties/SegmentedField";
+import StringListField from "../../../components/properties/StringListField";
+import { post } from "../../../plugin";
 
 export default function SelectOptions({
   element,

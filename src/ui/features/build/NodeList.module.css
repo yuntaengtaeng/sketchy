@@ -1,0 +1,39 @@
+.nodes {
+  display: grid;
+  gap: 6px;
+}
+
+.node {
+  display: flex;
+  gap: 4px;
+}
+
+.nodeSelect {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.nodeSelect[aria-pressed="true"] {
+  background: var(--figma-color-bg-selected, #e5e5e5);
+}
+
+.nodes small {
+  color: var(--figma-color-text-secondary, #777);
+}
+
+.nodeMove {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+}
+
+.nodeMove button {
+  min-height: 0;
+  padding: 0 6px;
+  font-size: 9px;
+  line-height: 1;
+}

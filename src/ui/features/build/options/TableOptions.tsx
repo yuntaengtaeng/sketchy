@@ -1,7 +1,7 @@
-import type { Element as SketchyElement } from "../../../shared";
-import CountField from "../../components/properties/CountField";
-import StringListField from "../../components/properties/StringListField";
-import { post } from "../../plugin";
+import type { Element as SketchyElement } from "../../../../shared";
+import CountField from "../../../components/properties/CountField";
+import StringListField from "../../../components/properties/StringListField";
+import { post } from "../../../plugin";
 
 export default function TableOptions({ element }: { element: SketchyElement }) {
   const columns =

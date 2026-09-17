@@ -1,6 +1,6 @@
-import type { Element as SketchyElement } from "../../../shared";
-import CheckedField from "../../components/properties/CheckedField";
-import { post } from "../../plugin";
+import type { Element as SketchyElement } from "../../../../shared";
+import CheckedField from "../../../components/properties/CheckedField";
+import { post } from "../../../plugin";
 
 export default function SwitchOptions({
   element,

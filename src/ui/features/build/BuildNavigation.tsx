@@ -6,7 +6,7 @@ import type {
 } from "../../../shared";
 import { elementAncestors, elementSiblings } from "../../../shared";
 import { post } from "../../plugin";
-import styles from "./Build.module.css";
+import styles from "./BuildNavigation.module.css";
 
 export default function BuildNavigation({
   project,

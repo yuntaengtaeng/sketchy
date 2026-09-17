@@ -1,7 +1,7 @@
 import type { Project, Screen } from "../../../shared";
 import { post } from "../../plugin";
 import BlockPicker from "./BlockPicker";
-import styles from "./Build.module.css";
+import styles from "./ScreenEditor.module.css";
 import NodeList from "./NodeList";
 
 export function ScreenBrowser({ project }: { project: Project }) {

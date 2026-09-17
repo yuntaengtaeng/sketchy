@@ -1,5 +1,5 @@
-import type { Element as SketchyElement } from "../../../shared";
-import { post } from "../../plugin";
+import type { Element as SketchyElement } from "../../../../shared";
+import { post } from "../../../plugin";
 
 export default function InputOptions({ element }: { element: SketchyElement }) {
   const placeholder = element.type === "input" ? element.placeholder : "";

@@ -2,7 +2,7 @@ import type { Element as SketchyElement, Project } from "../../../shared";
 import { BLOCK_DEFINITIONS } from "../../../shared";
 import { post } from "../../plugin";
 import { BLOCK_OPTIONS } from "./blockRegistry";
-import styles from "./Build.module.css";
+import styles from "./ElementDetails.module.css";
 import FeatureDetails from "./FeatureDetails";
 
 export default function ElementDetails({

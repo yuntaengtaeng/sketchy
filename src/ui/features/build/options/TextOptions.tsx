@@ -1,6 +1,6 @@
-import type { Element as SketchyElement } from "../../../shared";
-import SegmentedField from "../../components/properties/SegmentedField";
-import { post } from "../../plugin";
+import type { Element as SketchyElement } from "../../../../shared";
+import SegmentedField from "../../../components/properties/SegmentedField";
+import { post } from "../../../plugin";
 
 type TextSize = "display" | "title" | "subtitle" | "body" | "caption";
 

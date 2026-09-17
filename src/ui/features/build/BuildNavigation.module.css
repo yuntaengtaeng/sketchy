@@ -1,0 +1,48 @@
+.contextNavigation {
+  padding: 0 0 12px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 12px 0 7px;
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+
+.breadcrumb::-webkit-scrollbar {
+  display: block;
+  height: 4px;
+}
+
+.breadcrumb span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.breadcrumb button {
+  min-height: 0;
+  padding: 3px;
+  border: 0;
+  text-transform: none;
+}
+
+.breadcrumb b {
+  padding: 3px;
+  font-weight: 700;
+}
+
+.levelPicker {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  margin-top: 5px;
+  gap: 6px;
+}
+
+.levelPicker select {
+  padding: 6px;
+}
