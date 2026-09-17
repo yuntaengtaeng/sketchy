@@ -112,6 +112,26 @@ function selection() {
   };
 }
 
+function logCopiedSketchyElements(event: DocumentChangeEvent) {
+  const project = readProject();
+  for (const change of event.documentChanges) {
+    if (change.type !== "CREATE") continue;
+    if (!("getPluginData" in change.node)) continue;
+    const elementId = change.node.getPluginData("sketchy:element-id");
+    const original = project.elements.find(
+      (element) => element.id === elementId,
+    );
+    if (!original || original.nodeId === change.node.id) continue;
+    console.warn("[Sketchy copied element outside plugin]", {
+      projectId: readProjectMetadata().id,
+      elementId,
+      originalNodeId: original.nodeId,
+      copiedNodeId: change.node.id,
+      origin: change.origin,
+    });
+  }
+}
+
 async function sync(project: Project = readProject(), draw = false) {
   if (draw) {
     clearTimeout(suppressTimer);
@@ -353,8 +373,9 @@ figma.ui.onmessage = async (message: PluginMessage) => {
 
 figma.on("selectionchange", () => sync());
 void figma.loadAllPagesAsync().then(() =>
-  figma.on("documentchange", () => {
+  figma.on("documentchange", (event) => {
     if (suppressDocumentChange) return;
+    logCopiedSketchyElements(event);
     clearTimeout(redrawTimer);
     redrawTimer = setTimeout(() => sync(readProject(), true), 200);
   }),
