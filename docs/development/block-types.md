@@ -88,7 +88,7 @@ Picker는 [기능 모델](../product/feature-model.md)의 Trigger 축(트리거
    헬퍼(또는 `primaryAxisSizingMode`/`counterAxisSizingMode`를 `"AUTO"`로
    직접 설정)를 쓰고, `layoutSizingHorizontal` 등은 `appendChild` **이후**
    에만 설정한다 — 자세한 이유는
-   [Figma Plugin API 사용 현황의 Auto Layout 함정](./figma-api.md)을 본다.
+   기존 `hugFrame`과 Element 렌더러 패턴을 따른다.
 3. `src/plugin/commands/canvas/element.ts`: `setX` 커맨드 작성(기존
    `setButtonVariant`/`setChecked` 패턴 참고), `index.ts` barrel에 export
    추가.
