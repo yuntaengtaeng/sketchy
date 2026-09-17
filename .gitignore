@@ -1,9 +1,4 @@
 node_modules/
 dist/
-.wrangler/
-.dev.vars
-mcpb/server/
 *.log
-sketchy.project.json
 .DS_Store
-sketchy.project.json

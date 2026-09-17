@@ -7,9 +7,7 @@ For every coding task, read and apply `.agents/skills/sketchy-code-style/SKILL.m
 Also apply every specialist skill whose runtime is affected:
 
 - `.agents/skills/sketchy-figma-react/SKILL.md` for `src/ui`, `src/plugin`, or the Main ↔ UI contract.
-- `.agents/skills/sketchy-api-worker/SKILL.md` for `src/api`, Worker HTTP routes, authentication, OAuth, D1, or remote persistence.
-- `.agents/skills/sketchy-mcp/SKILL.md` for `src/mcp`, MCP tools/schemas/transports, or Preview/Apply agent workflows.
-- Cross-runtime changes use every applicable specialist skill. Keep shared domain rules in `core`/`shared`, not in runtime adapters.
+- Keep shared domain rules in `core`/`shared`, not in runtime adapters.
 
 - Understand the affected flow before editing; fix root causes in the shared path.
 - Reuse existing code, then standard APIs, then installed dependencies.
