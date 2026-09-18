@@ -97,20 +97,23 @@ export async function saveFeature(
     !source ||
     !("setReactionsAsync" in source)
   )
-    throw new Error("Select a Sketchy button.");
+    throw new Error("Select a Button, List Item, or Card, then try again.");
   const issue = validateFeatureAction(project, element, action, true);
   if (issue)
     throw new Error(
       {
-        TRIGGER_NOT_SUPPORTED: "Select a Sketchy button.",
-        DESTINATION_REQUIRED: "Select a destination screen.",
-        DESTINATION_NOT_FOUND: "Select an existing destination screen.",
+        TRIGGER_NOT_SUPPORTED:
+          "Select a Button, List Item, or Card, then try again.",
+        DESTINATION_REQUIRED: "Choose a destination to continue.",
+        DESTINATION_NOT_FOUND:
+          "The destination no longer exists. Choose another destination.",
         INVALID_DESTINATION:
           action.type === "overlay"
-            ? "Select a popup destination."
-            : "Select a screen destination.",
-        NESTED_OVERLAY: "A popup cannot open another popup.",
-        NOT_INSIDE_POPUP: "Only a popup can be closed.",
+            ? "Choose a popup created from this screen."
+            : "Choose a regular screen as the destination.",
+        NESTED_OVERLAY:
+          "Choose another result; a popup cannot open another popup.",
+        NOT_INSIDE_POPUP: "Choose Close popup from an element inside a popup.",
       }[issue.code],
     );
   const previous = project.features.filter(
@@ -124,7 +127,9 @@ export async function saveFeature(
       )
     : -1;
   if (featureId && featureIndex < 0)
-    throw new Error("Select an existing case.");
+    throw new Error(
+      "This outcome no longer exists. Select the element and try again.",
+    );
   let createdOverlay: FrameNode | undefined;
   if (action.type === "overlay" && !destination) {
     const created = await createOverlayScreen(project, element.screenId);
@@ -168,7 +173,9 @@ export async function deleteFeature(featureId: string) {
   );
   const source = element && (await figma.getNodeByIdAsync(element.nodeId));
   if (!feature || !element || !source || !("setReactionsAsync" in source))
-    throw new Error("Select an existing case.");
+    throw new Error(
+      "This outcome no longer exists. Select the element and try again.",
+    );
   const previous = project.features.filter(
     (item) => item.trigger?.elementId === element.id,
   );

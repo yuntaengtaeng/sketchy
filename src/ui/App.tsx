@@ -16,6 +16,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("build");
   const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean>();
   const [insertedElementId, setInsertedElementId] = useState<string>();
   const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
@@ -33,6 +34,7 @@ export default function App() {
         setProject(message.project);
         setScreenId(message.selectedScreenId);
         setElementId(message.selectedElementId);
+        setOnboardingComplete(message.onboardingComplete);
         if (message.insertedElementId) {
           clearTimeout(highlightTimer);
           setInsertedElementId(message.insertedElementId);
@@ -81,6 +83,7 @@ export default function App() {
           screen={screen}
           element={element}
           insertedElementId={insertedElementId}
+          onboardingComplete={onboardingComplete}
         />
       )}
       {route.name === "workspace" && tab === "flow" && (

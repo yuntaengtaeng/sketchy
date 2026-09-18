@@ -37,8 +37,15 @@ import {
 figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
 
 let suppressDocumentChange = false;
+let onboardingComplete = false;
 let redrawTimer: ReturnType<typeof setTimeout>;
 let suppressTimer: ReturnType<typeof setTimeout>;
+const ONBOARDING_KEY = "sketchy:onboarding-complete";
+
+async function completeOnboarding() {
+  onboardingComplete = true;
+  await figma.clientStorage.setAsync(ONBOARDING_KEY, true);
+}
 function errorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   if (typeof error === "string") return error;
@@ -92,6 +99,7 @@ async function sync(
       type: "STATE",
       project,
       ...selection(),
+      onboardingComplete,
       insertedElementId,
     });
   } finally {
@@ -102,7 +110,23 @@ async function sync(
 
 figma.ui.onmessage = async (message: PluginMessage) => {
   try {
-    if (message.type === "READY") await sync(readProject(), true);
+    if (message.type === "READY") {
+      const project = readProject();
+      const savedOnboardingComplete =
+        (await figma.clientStorage.getAsync(ONBOARDING_KEY)) === true;
+      const hasExistingProject =
+        project.screens.length > 0 ||
+        project.elements.length > 0 ||
+        project.features.length > 0;
+      onboardingComplete = savedOnboardingComplete || hasExistingProject;
+      if (hasExistingProject && !savedOnboardingComplete)
+        await figma.clientStorage.setAsync(ONBOARDING_KEY, true);
+      await sync(project, true);
+    }
+    if (message.type === "DISMISS_ONBOARDING") {
+      await completeOnboarding();
+      await sync();
+    }
     if (message.type === "UPDATE_PROJECT_SETTINGS") {
       // Flow 화살표 표시 여부만 Canvas 다시 그리기가 필요하다, 화면 크기
       // 프리셋 같은 나머지 설정은 이후 새 화면에만 적용돼 다시 그릴 필요가 없다
@@ -184,17 +208,17 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         await updateScreen(message.screenId, message.name, message.purpose),
         true,
       );
-    if (message.type === "SAVE_FEATURE")
-      await sync(
-        await saveFeature(
-          message.sourceElementId,
-          message.action,
-          message.featureId,
-          message.condition,
-          message.description,
-        ),
-        true,
+    if (message.type === "SAVE_FEATURE") {
+      const project = await saveFeature(
+        message.sourceElementId,
+        message.action,
+        message.featureId,
+        message.condition,
+        message.description,
       );
+      if (!onboardingComplete) await completeOnboarding();
+      await sync(project, true);
+    }
     if (message.type === "DELETE_FEATURE")
       await sync(await deleteFeature(message.featureId), true);
     if (message.type === "SELECT_SCREEN") await selectScreen(message.screenId);

@@ -50,7 +50,9 @@ export function updateNavigation(
     destinationId &&
     reactions.some((reaction, index) => index !== owned && isClick(reaction))
   )
-    throw new Error("This button already has a Figma click interaction.");
+    throw new Error(
+      "Remove this element's existing click interaction in Figma, then try again.",
+    );
 
   const next = reactions.filter((_, index) => index !== owned);
   if (destinationId)
@@ -78,7 +80,9 @@ export function updateCloseOverlay(
     !remove &&
     reactions.some((reaction, index) => index !== owned && isClick(reaction))
   )
-    throw new Error("This button already has a Figma click interaction.");
+    throw new Error(
+      "Remove this element's existing click interaction in Figma, then try again.",
+    );
   const next = reactions.filter((_, index) => index !== owned);
   if (!remove)
     next.push({

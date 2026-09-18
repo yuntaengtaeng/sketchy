@@ -47,7 +47,7 @@ export default function FeatureDetails({
           type="button"
           onClick={() => save(undefined, { type: "describe" })}
         >
-          + Add case
+          + Another outcome
         </button>
       )}
     </>

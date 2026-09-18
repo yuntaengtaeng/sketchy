@@ -13,12 +13,12 @@ export type CaseChanges = { condition?: string; description?: string };
 const screenChoices = [
   ["navigate", "Go to screen"],
   ["overlay", "Open popup"],
-  ["describe", "Stay on screen"],
+  ["describe", "Describe result"],
 ] as const;
 const popupChoices = [
   ["navigate", "Go to screen"],
   ["close-overlay", "Close popup"],
-  ["describe", "Stay on screen"],
+  ["describe", "Describe result"],
 ] as const;
 
 export default function FeatureCaseEditor({
@@ -70,15 +70,15 @@ export default function FeatureCaseEditor({
             {/* Flow/Canvas의 조건부 연결선과 같은 점선으로, 이 케이스는
             실제로 눌러도 재생되지 않고 Flow·Spec에만 표시된다는 걸 알린다 */}
             <span className={styles.flowMark} aria-hidden="true" />
-            {`Case ${index + 1} · flow`}
+            {`Outcome ${index + 1} · Flow and Spec only`}
           </>
         ) : (
-          "Default · prototype"
+          "When clicked"
         )}
       </legend>
       {!!index && feature && (
         <label>
-          When
+          If
           <input
             defaultValue={feature.condition || ""}
             placeholder="e.g. Cannot continue yet"
@@ -91,7 +91,7 @@ export default function FeatureCaseEditor({
         </label>
       )}
       <div className={styles.actions}>
-        <span>What happens?</span>
+        <span>Result</span>
         <div className={styles.choices}>
           {choices.map(([value, label]) => (
             <button
@@ -167,7 +167,9 @@ export default function FeatureCaseEditor({
       )}
       {feature && (
         <label>
-          {feature.action.type === "describe" ? "Outcome" : "Also happens"}
+          {feature.action.type === "describe"
+            ? "What happens?"
+            : "Additional result"}
           <textarea
             defaultValue={feature.description || ""}
             placeholder={
@@ -191,7 +193,7 @@ export default function FeatureCaseEditor({
             post({ type: "DELETE_FEATURE", featureId: feature.id })
           }
         >
-          Remove case
+          Remove outcome
         </button>
       )}
     </fieldset>

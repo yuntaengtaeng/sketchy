@@ -4,13 +4,16 @@ import { post } from "../../plugin";
 import { BLOCK_OPTIONS } from "./blockRegistry";
 import styles from "./ElementDetails.module.css";
 import FeatureDetails from "./FeatureDetails";
+import { OnboardingTarget } from "./OnboardingCoachmark";
 
 export default function ElementDetails({
   project,
   element,
+  onboarding = false,
 }: {
   project: Project;
   element: SketchyElement;
+  onboarding?: boolean;
 }) {
   const Options = BLOCK_OPTIONS[element.type];
   const screen = project.screens.find((item) => item.id === element.screenId);
@@ -52,7 +55,9 @@ export default function ElementDetails({
       {Options && <Options element={element} />}
       {BLOCK_DEFINITIONS[element.type].triggers.length > 0 ? (
         (!screen?.kind || insidePopup) && (
-          <FeatureDetails project={project} element={element} />
+          <OnboardingTarget active={onboarding}>
+            <FeatureDetails project={project} element={element} />
+          </OnboardingTarget>
         )
       ) : (
         <p className={`muted ${styles.noInteraction}`}>

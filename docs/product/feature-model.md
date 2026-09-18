@@ -108,7 +108,7 @@ On click
 
 ```
 찜하기
-[ Stay on screen ]
+[ Describe result ]
 [ 상품을 찜 목록에 추가한다 ]
 ```
 
@@ -154,9 +154,9 @@ Sketchy의 목표는 사용법을 읽게 하는 것이 아니라, 가장 적은 
 
 - 컨트롤의 이름은 설명이 아니라 사용자가 얻을 결과를 말한다. 설명 문구가 계속 필요하면 문구를 추가하지 않고 동작이나 이름을 다시 설계한다.
 - 고정된 소수의 배타적 선택은 Radio 또는 Segmented selector, 개수가 늘어나는 대상 목록은 Select, 독립적인 켜기/끄기는 Checkbox 또는 Switch를 사용한다.
-- 한 Case는 대표 시각 결과 하나를 가진다. 일반 Screen에서는 `Go to screen`, `Open popup`, `Stay on screen` 중 하나이며 Popup 내부에서는 중첩 Popup 대신 `Go to screen`, `Close popup`, `Stay on screen` 중 하나다. 같은 버튼의 조건 분기는 Case를 추가해 표현하되 범용 `actions[]` 워크플로 엔진으로 확장하지 않는다.
-- 첫 Case는 `Default · prototype`, 추가 Case는 `Case · flow`로 구분하고 `When` 조건과 함께 Flow와 Spec에 표시한다. 조건부 연결선은 점선으로 그리며 Figma가 판정할 수 없는 조건을 실행되는 것처럼 가장하지 않는다.
-- 저장·요청처럼 대표 결과와 함께 일어나는 비시각 부수효과는 각 Case의 `Also happens`에 적는다.
+- 한 결과는 대표 시각 결과 하나를 가진다. 일반 Screen에서는 `Go to screen`, `Open popup`, `Describe result` 중 하나이며 Popup 내부에서는 중첩 Popup 대신 `Go to screen`, `Close popup`, `Describe result` 중 하나다. 같은 버튼의 조건 분기는 결과를 추가해 표현하되 범용 `actions[]` 워크플로 엔진으로 확장하지 않는다.
+- 첫 결과는 `When clicked`, 추가 결과는 `Outcome N · Flow and Spec only`로 구분하고 `If` 조건과 함께 Flow와 Spec에 표시한다. 조건부 연결선은 점선으로 그리며 Figma가 판정할 수 없는 조건을 실행되는 것처럼 가장하지 않는다.
+- 저장·요청처럼 대표 결과와 함께 일어나는 비시각 부수효과는 각 결과의 `Additional result`에 적는다.
 - 기본 Case에서 실행 행동으로 노출한 선택지는 실제 Figma Prototype을 만든다. 실행할 수 없는 조건 Case에는 실행되는 것처럼 보이는 이름을 붙이지 않는다.
 - Popup은 원본 Screen을 복제한 파생 상태(`baseScreenId`)에 Dim과 Popup을 얹고 실제 Overlay로 연결한다. 화면 이동과 혼동하지 않도록 Flow에서는 중립 회색 점선을 사용한다. Plugin API로 위치를 보장할 수 없는 Snackbar는 실행 선택지로 노출하지 않는다.
 - Popup Destination은 같은 원본 Screen에서 파생된 상태로 제한한다. Popup 내부 버튼은 Figma의 실제 `CLOSE` 액션을 사용하며 중첩 Popup을 만들지 않는다.

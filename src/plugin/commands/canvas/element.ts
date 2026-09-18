@@ -25,7 +25,7 @@ export async function insertBlock(
   const screen = project.screens.find((item) => item.id === screenId);
   const frame = screen && (await figma.getNodeByIdAsync(screen.nodeId));
   if (!frame || frame.type !== "FRAME")
-    throw new Error("Select an existing Sketchy screen.");
+    throw new Error("Select a Sketchy screen, then try again.");
   const parentElement = project.elements.find(
     (item) => item.id === parentElementId && item.screenId === screenId,
   );
@@ -36,13 +36,15 @@ export async function insertBlock(
     parentElement &&
     (parentElement.type !== "section" || parentNode?.type !== "FRAME")
   )
-    throw new Error("Select a Sketchy section.");
+    throw new Error("Select a section, then add the block again.");
   if (
     block === "section" &&
     parentElement &&
     !canNestSection(project.elements, parentElement)
   )
-    throw new Error("Sections can only be nested one level deep.");
+    throw new Error(
+      "Choose the screen or a top-level section; sections can only be nested one level.",
+    );
   const elementId = id();
   const base = {
     id: elementId,
@@ -190,7 +192,9 @@ export async function deleteElement(elementId: string) {
   const element = project.elements.find((item) => item.id === elementId);
   if (!element) return project;
   if (element.role === "popup")
-    throw new Error("The popup itself is required.");
+    throw new Error(
+      "Delete the popup state instead; the popup container is required.",
+    );
   const node = await figma.getNodeByIdAsync(element.nodeId);
   node?.remove();
   const removed = elementTreeIds(project.elements, elementId);

@@ -94,7 +94,7 @@ export async function duplicateScreen(screenId: string) {
   const screen = project.screens.find((item) => item.id === screenId);
   const source = screen && (await figma.getNodeByIdAsync(screen.nodeId));
   if (!screen || source?.type !== "FRAME")
-    throw new Error("Select an existing Sketchy screen.");
+    throw new Error("Select a Sketchy screen, then try again.");
 
   const existing = (
     await Promise.all(
@@ -141,7 +141,7 @@ export async function createOverlayScreen(
   const source =
     baseScreen && (await figma.getNodeByIdAsync(baseScreen.nodeId));
   if (!baseScreen || source?.type !== "FRAME")
-    throw new Error("Select an existing Sketchy screen.");
+    throw new Error("Select a Sketchy screen, then try again.");
 
   const number =
     project.screens.filter((screen) => screen.baseScreenId === baseScreenId)
@@ -233,7 +233,7 @@ export async function deleteScreen(screenId: string) {
   const screen = project.screens.find((item) => item.id === screenId);
   const node = screen && (await figma.getNodeByIdAsync(screen.nodeId));
   if (!screen || node?.type !== "FRAME")
-    throw new Error("Select an existing Sketchy screen.");
+    throw new Error("Select a Sketchy screen, then try again.");
 
   const removedScreens = project.screens.filter(
     (item) => item.id === screenId || item.baseScreenId === screenId,

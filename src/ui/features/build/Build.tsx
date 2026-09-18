@@ -3,8 +3,11 @@ import type {
   Project,
   Screen,
 } from "../../../shared";
+import { post } from "../../plugin";
 import BuildNavigation from "./BuildNavigation";
 import ElementDetails from "./ElementDetails";
+import { getOnboardingStep } from "./onboarding";
+import OnboardingCoachmark, { OnboardingTarget } from "./OnboardingCoachmark";
 import ScreenEditor, { ScreenBrowser } from "./ScreenEditor";
 import SectionEditor from "./SectionEditor";
 
@@ -13,6 +16,7 @@ type Props = {
   screen?: Screen;
   element?: SketchyElement;
   insertedElementId?: string;
+  onboardingComplete?: boolean;
 };
 
 export default function Build({
@@ -20,8 +24,35 @@ export default function Build({
   screen,
   element,
   insertedElementId,
+  onboardingComplete,
 }: Props) {
-  if (!screen) return <ScreenBrowser project={project} />;
+  const onboardingStep = getOnboardingStep(
+    project,
+    screen,
+    element,
+    onboardingComplete,
+  );
+  const coachmark = (
+    <OnboardingCoachmark
+      step={onboardingStep}
+      onSkip={() => post({ type: "DISMISS_ONBOARDING" })}
+    />
+  );
+
+  if (!screen)
+    return (
+      <>
+        <OnboardingTarget
+          active={
+            onboardingStep === "create-screen" ||
+            onboardingStep === "select-screen"
+          }
+        >
+          <ScreenBrowser project={project} />
+        </OnboardingTarget>
+        {coachmark}
+      </>
+    );
   return (
     <>
       <BuildNavigation project={project} screen={screen} element={element} />
@@ -33,6 +64,7 @@ export default function Build({
             key={element.id}
             project={project}
             element={element}
+            onboarding={onboardingStep === "choose-result"}
           />
           {element.type === "section" ? (
             <SectionEditor
@@ -49,8 +81,10 @@ export default function Build({
           project={project}
           screen={screen}
           insertedElementId={insertedElementId}
+          onboardingStep={onboardingStep}
         />
       )}
+      {coachmark}
     </>
   );
 }

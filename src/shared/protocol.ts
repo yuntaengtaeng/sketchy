@@ -2,6 +2,7 @@ import type { BlockType, Project, ProjectSettings } from "./index.ts";
 
 export type PluginMessage =
   | { type: "READY" }
+  | { type: "DISMISS_ONBOARDING" }
   | { type: "UPDATE_PROJECT_SETTINGS"; settings: ProjectSettings }
   | { type: "CREATE_SCREEN"; name: string }
   | { type: "DUPLICATE_SCREEN"; screenId: string }
@@ -82,6 +83,7 @@ export type UiMessage =
       project: Project;
       selectedScreenId?: string;
       selectedElementId?: string;
+      onboardingComplete: boolean;
       // BlockPicker로 막 추가한 Element의 id, 선택은 그대로 화면에 두고
       // NodeList가 이 id로 스크롤+하이라이트만 해서 어디 있는지 알려준다
       insertedElementId?: string;

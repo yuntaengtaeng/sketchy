@@ -3,13 +3,16 @@ import { post } from "../../plugin";
 import BlockPicker from "./BlockPicker";
 import styles from "./ScreenEditor.module.css";
 import NodeList from "./NodeList";
+import type { OnboardingStep } from "./onboarding";
+import { OnboardingTarget } from "./OnboardingCoachmark";
 
 export function ScreenBrowser({ project }: { project: Project }) {
+  const hasScreens = project.screens.some((screen) => !screen.kind);
   return (
     <section>
       <h2>Screens</h2>
       <div className={styles.screenPicker}>
-        <ScreenSelect project={project} />
+        {hasScreens && <ScreenSelect project={project} />}
         <NewScreen project={project} />
       </div>
     </section>
@@ -20,10 +23,12 @@ export default function ScreenEditor({
   project,
   screen,
   insertedElementId,
+  onboardingStep,
 }: {
   project: Project;
   screen: Screen;
   insertedElementId?: string;
+  onboardingStep?: OnboardingStep;
 }) {
   const derivedStates = project.screens.filter(
     (item) => item.baseScreenId === screen.id,
@@ -88,12 +93,16 @@ export default function ScreenEditor({
           />
         </label>
       </section>
-      <BlockPicker screenId={screen.id} />
-      <NodeList
-        title={`Inside ${screen.name}`}
-        nodes={nodes}
-        insertedElementId={insertedElementId}
-      />
+      <OnboardingTarget active={onboardingStep === "add-button"}>
+        <BlockPicker screenId={screen.id} />
+      </OnboardingTarget>
+      <OnboardingTarget active={onboardingStep === "select-element"}>
+        <NodeList
+          title={`Inside ${screen.name}`}
+          nodes={nodes}
+          insertedElementId={insertedElementId}
+        />
+      </OnboardingTarget>
       <section>
         {!screen.kind && (
           <button
@@ -163,6 +172,7 @@ export function ScreenSelect({
 }
 
 export function NewScreen({ project }: { project: Project }) {
+  const hasScreens = project.screens.some((screen) => !screen.kind);
   return (
     <button
       onClick={() =>
@@ -172,7 +182,7 @@ export function NewScreen({ project }: { project: Project }) {
         })
       }
     >
-      + Screen
+      {hasScreens ? "+ Screen" : "Create first screen"}
     </button>
   );
 }
