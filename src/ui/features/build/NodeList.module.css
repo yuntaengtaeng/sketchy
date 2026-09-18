@@ -5,7 +5,55 @@
 
 .node {
   display: flex;
+  align-items: center;
   gap: 4px;
+}
+
+.node[data-dragging] {
+  opacity: 0.4;
+}
+
+.node[data-inserted] {
+  animation: insertedPulse 1.2s ease-out;
+}
+
+@keyframes insertedPulse {
+  0% {
+    background: var(--figma-color-bg-selected, #e5e5e5);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 34px;
+  border-radius: 2px;
+  font-size: 15px;
+  color: var(--figma-color-text-secondary, #777);
+  cursor: grab;
+}
+
+.dragHandle:hover {
+  background: var(--figma-color-bg-hover, #eee);
+}
+
+.dragHandle:focus-visible {
+  outline-offset: 2px;
+}
+
+.dropLine {
+  height: 0;
+  margin: 3px 0;
+  border-top: 2px dashed var(--sketchy-line);
+  /* 이 선 자체가 드롭 이벤트를 가로채면 정확히 이 위에서 손을 놓았을 때
+  drop 없이 dragend로 끝난다, 이벤트가 통과해 아래 컨테이너로 가게 한다 */
+  pointer-events: none;
 }
 
 .nodeSelect {
@@ -20,20 +68,21 @@
   background: var(--figma-color-bg-selected, #e5e5e5);
 }
 
+.nodeDelete {
+  flex-shrink: 0;
+  min-height: 0;
+  padding: 2px 6px;
+  border: 0;
+  color: var(--figma-color-text-secondary, #777);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.nodeDelete:hover {
+  color: var(--figma-color-text-danger, #a00);
+  background: var(--figma-color-bg-hover, #eee);
+}
+
 .nodes small {
   color: var(--figma-color-text-secondary, #777);
-}
-
-.nodeMove {
-  display: grid;
-  flex-shrink: 0;
-  grid-template-rows: 1fr 1fr;
-  gap: 2px;
-}
-
-.nodeMove button {
-  min-height: 0;
-  padding: 0 6px;
-  font-size: 9px;
-  line-height: 1;
 }

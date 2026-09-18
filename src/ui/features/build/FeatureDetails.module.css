@@ -56,3 +56,12 @@
 .case > label {
   margin-top: 0;
 }
+
+/* Flow/Canvas의 조건부 연결선(회색 점선)과 같은 색·스타일 */
+.flowMark {
+  display: inline-block;
+  width: 14px;
+  margin-right: 5px;
+  border-top: 2px dashed #8c8c8c;
+  vertical-align: middle;
+}

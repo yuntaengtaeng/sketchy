@@ -65,7 +65,16 @@ export default function FeatureCaseEditor({
   return (
     <fieldset className={styles.case}>
       <legend>
-        {index ? `Case ${index + 1} · flow` : "Default · prototype"}
+        {index ? (
+          <>
+            {/* Flow/Canvas의 조건부 연결선과 같은 점선으로, 이 케이스는
+            실제로 눌러도 재생되지 않고 Flow·Spec에만 표시된다는 걸 알린다 */}
+            <span className={styles.flowMark} aria-hidden="true" />
+            {`Case ${index + 1} · flow`}
+          </>
+        ) : (
+          "Default · prototype"
+        )}
       </legend>
       {!!index && feature && (
         <label>

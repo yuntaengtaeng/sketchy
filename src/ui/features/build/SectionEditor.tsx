@@ -8,11 +8,13 @@ export default function SectionEditor({
   screenId,
   section,
   selectedElementId,
+  insertedElementId,
 }: {
   project: Project;
   screenId: string;
   section: SketchyElement;
   selectedElementId?: string;
+  insertedElementId?: string;
 }) {
   const nodes = project.elements
     .filter((item) => item.parentElementId === section.id)
@@ -28,6 +30,7 @@ export default function SectionEditor({
         title={`Inside ${section.name}`}
         nodes={nodes}
         selectedElementId={selectedElementId}
+        insertedElementId={insertedElementId}
       />
     </>
   );

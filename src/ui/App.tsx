@@ -16,6 +16,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>("build");
   const [route, setRoute] = useState<Route>({ name: "workspace" });
   const [error, setError] = useState("");
+  const [insertedElementId, setInsertedElementId] = useState<string>();
   const screen = project.screens.find((item) => item.id === screenId);
   const element = project.elements.find((item) => item.id === elementId);
   const context =
@@ -25,12 +26,21 @@ export default function App() {
 
   useEffect(() => {
     let errorTimer: ReturnType<typeof setTimeout>;
+    let highlightTimer: ReturnType<typeof setTimeout>;
     onmessage = ({ data }) => {
       const message = data.pluginMessage as UiMessage;
       if (message?.type === "STATE") {
         setProject(message.project);
         setScreenId(message.selectedScreenId);
         setElementId(message.selectedElementId);
+        if (message.insertedElementId) {
+          clearTimeout(highlightTimer);
+          setInsertedElementId(message.insertedElementId);
+          highlightTimer = setTimeout(
+            () => setInsertedElementId(undefined),
+            1200,
+          );
+        }
       }
       if (message?.type === "ERROR") {
         clearTimeout(errorTimer);
@@ -39,7 +49,10 @@ export default function App() {
       }
     };
     post({ type: "READY" });
-    return () => clearTimeout(errorTimer);
+    return () => {
+      clearTimeout(errorTimer);
+      clearTimeout(highlightTimer);
+    };
   }, []);
 
   return (
@@ -63,7 +76,12 @@ export default function App() {
       )}
       {route.name === "settings" && <Settings settings={project.settings} />}
       {route.name === "workspace" && tab === "build" && (
-        <Build project={project} screen={screen} element={element} />
+        <Build
+          project={project}
+          screen={screen}
+          element={element}
+          insertedElementId={insertedElementId}
+        />
       )}
       {route.name === "workspace" && tab === "flow" && (
         <Flow project={project} selectedScreenId={screenId} />

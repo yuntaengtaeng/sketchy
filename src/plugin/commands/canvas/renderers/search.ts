@@ -1,28 +1,16 @@
 import { PART } from "../../../canvas-name.ts";
 import { createLabel, hugFrame } from "./shared";
 
-// 돋보기 아이콘, auto-layout 없는 고정 14x14 프레임 안에 원+손잡이를 절대
-// 좌표로 배치해 하나의 auto-layout 자식처럼 다룬다
+// 돋보기 아이콘. rotation으로 손잡이 각도를 맞추면 회전 기준점 계산이
+// 어긋나기 쉬워(원과 안 이어짐), SVG 좌표를 직접 박아 넣어 원의 오른쪽
+// 아래 45도 지점에서 바깥쪽으로 손잡이가 정확히 이어지게 한다
 function createSearchIcon() {
-  const icon = figma.createFrame();
-  icon.resize(14, 14);
-  icon.fills = [];
-  const circle = figma.createEllipse();
-  circle.resize(9, 9);
-  circle.x = 0;
-  circle.y = 0;
-  circle.strokes = [{ type: "SOLID", color: { r: 0.4, g: 0.4, b: 0.4 } }];
-  circle.strokeWeight = 1.6;
-  circle.fills = [];
-  const handle = figma.createRectangle();
-  handle.resize(1.6, 5);
-  handle.x = 9;
-  handle.y = 9;
-  handle.rotation = -45;
-  handle.fills = [{ type: "SOLID", color: { r: 0.4, g: 0.4, b: 0.4 } }];
-  icon.appendChild(circle);
-  icon.appendChild(handle);
-  return icon;
+  return figma.createNodeFromSvg(`
+    <svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="4.5" cy="4.5" r="4.2" fill="none" stroke="#666666" stroke-width="1.6" />
+      <line x1="7.6" y1="7.6" x2="13" y2="13" stroke="#666666" stroke-width="1.6" stroke-linecap="round" />
+    </svg>
+  `);
 }
 
 export function createSearchNode() {

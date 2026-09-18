@@ -18,6 +18,7 @@ export type PluginMessage =
     }
   | { type: "DELETE_ELEMENT"; elementId: string }
   | { type: "MOVE_ELEMENT"; elementId: string; direction: "up" | "down" }
+  | { type: "REORDER_ELEMENT"; elementId: string; toIndex: number }
   | {
       type: "UPDATE_ELEMENT";
       elementId: string;
@@ -81,5 +82,8 @@ export type UiMessage =
       project: Project;
       selectedScreenId?: string;
       selectedElementId?: string;
+      // BlockPicker로 막 추가한 Element의 id, 선택은 그대로 화면에 두고
+      // NodeList가 이 id로 스크롤+하이라이트만 해서 어디 있는지 알려준다
+      insertedElementId?: string;
     }
   | { type: "ERROR"; message: string };

@@ -5,7 +5,7 @@ import {
   elementTreeIds,
   type BlockType,
 } from "../../../shared";
-import type { DomainElement } from "../../../shared";
+import type { DomainElement, Project } from "../../../shared";
 import {
   normalizeElementOrder,
   readProject,
@@ -95,20 +95,18 @@ export async function insertBlock(
   await normalizeElementOrder(project);
   saveProject(project);
   figma.currentPage.selection = [parentNode as FrameNode];
-  return project;
+  return { project, elementId };
 }
 
 // order는 figma 시각 위치에서 자동 계산되므로(normalizeElementOrder) 노드
 // 트리에서 실제 위치만 바꾸면 다음 sync에서 order가 알아서 따라온다
 // 형제 판정은 실제 Figma 자식 배열(시각적 진실)을 기준으로 하고, model의
 // order 필드(오래됐을 수 있음)는 어떤 요소들이 형제인지 판단할 때만 쓴다
-export async function moveElement(elementId: string, direction: "up" | "down") {
-  const project = readProject();
+async function visualSiblingsOf(project: Project, elementId: string) {
   const element = project.elements.find((item) => item.id === elementId);
-  if (!element) return project;
+  if (!element) return;
   const node = await figma.getNodeByIdAsync(element.nodeId);
-  if (!node || !("parent" in node) || node.parent?.type !== "FRAME")
-    return project;
+  if (!node || !("parent" in node) || node.parent?.type !== "FRAME") return;
   const parent = node.parent;
   const siblingElementIds = new Set(
     elementSiblings(project.elements, element).map((item) => item.id),
@@ -116,7 +114,21 @@ export async function moveElement(elementId: string, direction: "up" | "down") {
   const visualSiblings = parent.children.filter((child) =>
     siblingElementIds.has(child.getPluginData("sketchy:element-id")),
   );
-  const index = visualSiblings.indexOf(node as SceneNode);
+  return { parent, node: node as SceneNode, visualSiblings };
+}
+
+// insertChild의 self-move index 계산이 믿을 수 없어(제자리 no-op 확인됨),
+// 대신 원하는 최종 순서대로 appendChild를 반복해 끝에서부터 다시 쌓는다
+function applyOrder(parent: FrameNode, order: SceneNode[]) {
+  for (const sibling of order) parent.appendChild(sibling);
+}
+
+export async function moveElement(elementId: string, direction: "up" | "down") {
+  const project = readProject();
+  const resolved = await visualSiblingsOf(project, elementId);
+  if (!resolved) return project;
+  const { parent, node, visualSiblings } = resolved;
+  const index = visualSiblings.indexOf(node);
   const swapIndex = direction === "up" ? index - 1 : index + 1;
   if (index === -1 || swapIndex < 0 || swapIndex >= visualSiblings.length)
     return project;
@@ -125,9 +137,27 @@ export async function moveElement(elementId: string, direction: "up" | "down") {
     reordered[swapIndex],
     reordered[index],
   ];
-  // insertChild의 self-move index 계산이 믿을 수 없어(제자리 no-op 확인됨),
-  // 대신 원하는 최종 순서대로 appendChild를 반복해 끝에서부터 다시 쌓는다
-  for (const sibling of reordered) parent.appendChild(sibling);
+  applyOrder(parent, reordered);
+  return project;
+}
+
+// 드래그 리오더: 목록 안 어디로든 한 번의 드롭으로 옮긴다, 화살표 버튼처럼
+// 인접 스왑을 반복할 필요가 없다
+export async function reorderElement(elementId: string, toIndex: number) {
+  const project = readProject();
+  const resolved = await visualSiblingsOf(project, elementId);
+  if (!resolved) return project;
+  const { parent, node, visualSiblings } = resolved;
+  const fromIndex = visualSiblings.indexOf(node);
+  const clampedToIndex = Math.max(
+    0,
+    Math.min(toIndex, visualSiblings.length - 1),
+  );
+  if (fromIndex === -1 || fromIndex === clampedToIndex) return project;
+  const reordered = [...visualSiblings];
+  const [moved] = reordered.splice(fromIndex, 1);
+  reordered.splice(clampedToIndex, 0, moved);
+  applyOrder(parent, reordered);
   return project;
 }
 

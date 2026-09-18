@@ -22,6 +22,10 @@ export function createToggleRow(
     indicator.cornerRadius = 9;
     indicator.strokes = [];
     indicator.layoutMode = "HORIZONTAL";
+    // 명시 안 하면 자식(knob) 크기에 맞춰 다시 hug될 수 있어, 32x18
+    // 고정 크기가 자식과 무관하게 유지되도록 명시적으로 못박는다
+    indicator.primaryAxisSizingMode = "FIXED";
+    indicator.counterAxisSizingMode = "FIXED";
     indicator.paddingLeft = indicator.paddingRight = 2;
     indicator.paddingTop = indicator.paddingBottom = 2;
     indicator.primaryAxisAlignItems = checked ? "MAX" : "MIN";
@@ -48,13 +52,15 @@ export function createToggleRow(
         color: checked ? { r: 0.15, g: 0.15, b: 0.15 } : { r: 1, g: 1, b: 1 },
       },
     ];
+    indicator.layoutMode = "HORIZONTAL";
+    indicator.primaryAxisSizingMode = "FIXED";
+    indicator.counterAxisSizingMode = "FIXED";
+    indicator.primaryAxisAlignItems = "CENTER";
+    indicator.counterAxisAlignItems = "CENTER";
     if (element.type === "checkbox") {
       const check = createLabel("✓", 13, { r: 1, g: 1, b: 1 });
       check.setPluginData(PART, "check-glyph");
       check.visible = checked;
-      indicator.layoutMode = "HORIZONTAL";
-      indicator.primaryAxisAlignItems = "CENTER";
-      indicator.counterAxisAlignItems = "CENTER";
       indicator.appendChild(check);
     } else {
       const dot = figma.createFrame();
@@ -63,9 +69,6 @@ export function createToggleRow(
       dot.cornerRadius = 5;
       dot.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
       dot.visible = checked;
-      indicator.layoutMode = "HORIZONTAL";
-      indicator.primaryAxisAlignItems = "CENTER";
-      indicator.counterAxisAlignItems = "CENTER";
       indicator.appendChild(dot);
     }
   }

@@ -2,6 +2,7 @@ export {
   deleteElement,
   insertBlock,
   moveElement,
+  reorderElement,
   selectElement,
   updateElement,
 } from "./element";

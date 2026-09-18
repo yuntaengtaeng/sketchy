@@ -19,9 +19,11 @@ export function ScreenBrowser({ project }: { project: Project }) {
 export default function ScreenEditor({
   project,
   screen,
+  insertedElementId,
 }: {
   project: Project;
   screen: Screen;
+  insertedElementId?: string;
 }) {
   const derivedStates = project.screens.filter(
     (item) => item.baseScreenId === screen.id,
@@ -87,13 +89,12 @@ export default function ScreenEditor({
         </label>
       </section>
       <BlockPicker screenId={screen.id} />
-      <NodeList title={`Inside ${screen.name}`} nodes={nodes} />
+      <NodeList
+        title={`Inside ${screen.name}`}
+        nodes={nodes}
+        insertedElementId={insertedElementId}
+      />
       <section>
-        <h2>Other screens</h2>
-        <div className={styles.screenPicker}>
-          <ScreenSelect project={project} screen={screen} />
-          <NewScreen project={project} />
-        </div>
         {!screen.kind && (
           <button
             className={styles.secondaryAction}
@@ -119,7 +120,9 @@ export default function ScreenEditor({
   );
 }
 
-function ScreenSelect({
+// BuildNavigation의 화면 전환 셀렉트와 공유, "다른 화면으로 전환"이라는 같은
+// 기능을 두 곳에 따로 두지 않는다
+export function ScreenSelect({
   project,
   screen,
 }: {
@@ -159,7 +162,7 @@ function ScreenSelect({
   );
 }
 
-function NewScreen({ project }: { project: Project }) {
+export function NewScreen({ project }: { project: Project }) {
   return (
     <button
       onClick={() =>

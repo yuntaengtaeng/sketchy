@@ -12,9 +12,15 @@ type Props = {
   project: Project;
   screen?: Screen;
   element?: SketchyElement;
+  insertedElementId?: string;
 };
 
-export default function Build({ project, screen, element }: Props) {
+export default function Build({
+  project,
+  screen,
+  element,
+  insertedElementId,
+}: Props) {
   if (!screen) return <ScreenBrowser project={project} />;
   return (
     <>
@@ -34,11 +40,16 @@ export default function Build({ project, screen, element }: Props) {
               screenId={screen.id}
               section={element}
               selectedElementId={element?.id}
+              insertedElementId={insertedElementId}
             />
           ) : null}
         </>
       ) : (
-        <ScreenEditor project={project} screen={screen} />
+        <ScreenEditor
+          project={project}
+          screen={screen}
+          insertedElementId={insertedElementId}
+        />
       )}
     </>
   );

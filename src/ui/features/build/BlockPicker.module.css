@@ -22,7 +22,8 @@
 }
 
 .block[data-block="button"] .preview,
-.block[data-block="input"] .preview {
+.block[data-block="input"] .preview,
+.block[data-block="search"] .preview {
   border: 1px solid currentColor;
   border-radius: 2px;
   font-size: 9px;
@@ -45,6 +46,11 @@
   content: "Type...";
   margin-left: 7px;
   opacity: 0.55;
+}
+
+.block[data-block="search"] .preview svg {
+  flex-shrink: 0;
+  margin-left: 7px;
 }
 
 .block[data-block="image"] .preview {
@@ -83,15 +89,31 @@
   border-radius: 50%;
 }
 
-.block[data-block="switch"] .preview::after {
-  content: "";
+.block[data-block="switch"] .preview {
+  position: relative;
   width: 28px;
   height: 15px;
+}
+
+/* ::before가 항상 ::after보다 먼저 칠해진다(소스 순서와 무관), 그래서
+필/노브 순서를 여기 맞춰야 노브가 필에 가려지지 않는다 */
+.block[data-block="switch"] .preview::before {
+  content: "";
+  position: absolute;
+  inset: 0;
   border-radius: 8px;
   background: currentColor;
-  box-shadow:
-    inset -11px 0 0 0 var(--figma-color-bg, #fafafa),
-    inset -11px 0 0 1.5px currentColor;
+}
+
+.block[data-block="switch"] .preview::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--figma-color-bg, #fafafa);
 }
 
 .block[data-block="select"] .preview::after {
@@ -105,15 +127,6 @@
   justify-content: flex-end;
   padding-right: 4px;
   font-size: 10px;
-}
-
-.block[data-block="search"] .preview::after {
-  content: "";
-  width: 11px;
-  height: 11px;
-  border: 1.6px solid currentColor;
-  border-radius: 50%;
-  box-shadow: 5px 5px 0 -3px currentColor;
 }
 
 .swListItem,

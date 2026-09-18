@@ -1,3 +1,8 @@
+/* label과 같은 리듬으로 위 여백을 줘서 위 요소에 붙어 보이지 않게 한다 */
+.noInteraction {
+  margin-top: 10px;
+}
+
 .delete {
   display: block;
   margin: 14px auto 0;

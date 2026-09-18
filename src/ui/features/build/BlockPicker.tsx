@@ -28,8 +28,31 @@ const CATEGORIES: { key: string; label: string; blocks: BlockType[] }[] = [
 
 // 순수 CSS ::after만으로 표현하기 어려운(자식이 여러 개인) 스와치만 여기서
 // 마크업으로 채운다, 나머지(button/input/image/divider/section/checkbox/
-// radio/switch/select/search)는 BlockPicker.module.css의 data-block 규칙만으로 그린다
+// radio/switch/select)는 BlockPicker.module.css의 data-block 규칙만으로 그린다.
+// search는 CSS로 각도를 다시 맞추는 대신, 실제 캔버스 렌더링
+// (renderers/search.ts의 createSearchIcon)과 같은 좌표의 SVG를 그대로 쓴다
 const COMPOSITE_PREVIEWS: Partial<Record<BlockType, ReactNode>> = {
+  search: (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+      <circle
+        cx="4.5"
+        cy="4.5"
+        r="4.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <line
+        x1="7.6"
+        y1="7.6"
+        x2="13"
+        y2="13"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  ),
   listItem: (
     <span className={styles.swListItem}>
       <i className={styles.swAvatar} />

@@ -7,6 +7,7 @@ import {
   duplicateScreen,
   insertBlock,
   moveElement,
+  reorderElement,
   setButtonVariant,
   setCardType,
   setChecked,
@@ -75,7 +76,11 @@ function logCopiedSketchyElements(event: DocumentChangeEvent) {
   }
 }
 
-async function sync(project: Project = readProject(), draw = false) {
+async function sync(
+  project: Project = readProject(),
+  draw = false,
+  insertedElementId?: string,
+) {
   if (draw) {
     clearTimeout(suppressTimer);
     suppressDocumentChange = true;
@@ -83,7 +88,12 @@ async function sync(project: Project = readProject(), draw = false) {
   try {
     project = await cleanProject(project);
     if (draw) await renderFlow(project);
-    figma.ui.postMessage({ type: "STATE", project, ...selection() });
+    figma.ui.postMessage({
+      type: "STATE",
+      project,
+      ...selection(),
+      insertedElementId,
+    });
   } finally {
     if (draw)
       suppressTimer = setTimeout(() => (suppressDocumentChange = false), 200);
@@ -110,15 +120,15 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       await sync(await duplicateScreen(message.screenId), true);
     if (message.type === "DELETE_SCREEN")
       await sync(await deleteScreen(message.screenId), true);
-    if (message.type === "INSERT_BLOCK")
-      await sync(
-        await insertBlock(
-          message.screenId,
-          message.block,
-          message.parentElementId,
-          message.buttonVariant,
-        ),
+    if (message.type === "INSERT_BLOCK") {
+      const { project, elementId } = await insertBlock(
+        message.screenId,
+        message.block,
+        message.parentElementId,
+        message.buttonVariant,
       );
+      await sync(project, false, elementId);
+    }
     if (message.type === "SET_BUTTON_VARIANT")
       await sync(await setButtonVariant(message.elementId, message.variant));
     if (message.type === "SET_SECTION_DIRECTION")
@@ -155,6 +165,11 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       await sync(await deleteElement(message.elementId), true);
     if (message.type === "MOVE_ELEMENT")
       await sync(await moveElement(message.elementId, message.direction), true);
+    if (message.type === "REORDER_ELEMENT")
+      await sync(
+        await reorderElement(message.elementId, message.toIndex),
+        true,
+      );
     if (message.type === "UPDATE_ELEMENT")
       await sync(
         await updateElement(

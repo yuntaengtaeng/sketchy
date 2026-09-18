@@ -50,10 +50,15 @@ export default function ElementDetails({
         />
       </label>
       {Options && <Options element={element} />}
-      {BLOCK_DEFINITIONS[element.type].triggers.length > 0 &&
+      {BLOCK_DEFINITIONS[element.type].triggers.length > 0 ? (
         (!screen?.kind || insidePopup) && (
           <FeatureDetails project={project} element={element} />
-        )}
+        )
+      ) : (
+        <p className={`muted ${styles.noInteraction}`}>
+          This element doesn't support interactions.
+        </p>
+      )}
       {element.role !== "popup" && (
         <button
           className={styles.delete}

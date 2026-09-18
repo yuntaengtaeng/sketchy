@@ -2,14 +2,63 @@
   padding: 0 0 12px;
 }
 
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+}
+
 .breadcrumb {
   display: flex;
+  flex: 1;
+  min-width: 0;
   align-items: center;
   gap: 5px;
   overflow-x: auto;
-  padding: 12px 0 7px;
+  padding-bottom: 7px;
   white-space: nowrap;
   scrollbar-width: thin;
+}
+
+.screenSwitcher {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+/* breadcrumb이 있을 때만 구분선을 붙여 두 컨트롤을 시각적으로 나눈다 */
+.screenSwitcher:not(:only-child) {
+  padding-left: 8px;
+  border-left: 1px solid var(--sketchy-line);
+}
+
+/* 요소 안에 들어와 있을 때는 breadcrumb(뎁스 확인·이동)이 메인이라,
+화면 전환은 같은 크기의 버튼/셀렉트로 나란히 두지 않고 옅은 텍스트
+링크 수준으로 눌러서 보조라는 걸 분명히 한다 */
+.screenSwitcher[data-compact] select,
+.screenSwitcher[data-compact] button {
+  min-height: 0;
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--figma-color-text-secondary, #777);
+  font-size: 11px;
+}
+
+.screenSwitcher[data-compact] select {
+  max-width: 64px;
+}
+
+.screenSwitcher[data-compact] select:hover,
+.screenSwitcher[data-compact] button:hover {
+  background: var(--figma-color-bg-hover, #eee);
+}
+
+.screenSwitcher select {
+  max-width: 120px;
+  padding: 6px;
 }
 
 .breadcrumb::-webkit-scrollbar {
