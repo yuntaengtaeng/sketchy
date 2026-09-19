@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   buildProjectFlowDiagram,
   buildProjectMarkdown,
+  describeFeature,
 } from "../src/ui/features/spec/describe.ts";
 import type { Project } from "../src/shared/index.ts";
 
@@ -94,6 +95,46 @@ test("renders each screen with purpose, nested elements and behavior", () => {
   assert.match(markdown, /^ {2}- 1-1\. Rating \(Text\): 4\.8$/m);
   assert.match(markdown, /^- 2\. Buy \(Button\)$/m);
   assert.match(markdown, /Starts checkout/);
+});
+
+test("describes a toast outcome as a real result, not a documentation-only one", () => {
+  const withToast: Project = {
+    ...project,
+    screens: [
+      ...project.screens,
+      {
+        id: "toast-1",
+        name: "Product detail · Toast 1",
+        purpose: "",
+        nodeId: "1:9",
+        kind: "toast",
+        baseScreenId: "detail",
+      },
+    ],
+    elements: [
+      ...project.elements,
+      {
+        id: "toast-message",
+        screenId: "toast-1",
+        name: "Added to your wishlist",
+        type: "text",
+        nodeId: "1:10",
+      },
+    ],
+    features: [
+      {
+        id: "wishlist-toast",
+        screenId: "detail",
+        name: "Wishlist",
+        trigger: { type: "click", elementId: "buy" },
+        action: { type: "toast", destinationScreenId: "toast-1" },
+      },
+    ],
+  };
+  assert.equal(
+    describeFeature(withToast, withToast.features[0]),
+    "Click Buy → Show toast: Added to your wishlist",
+  );
 });
 
 test("falls back to placeholder text for empty screens", () => {

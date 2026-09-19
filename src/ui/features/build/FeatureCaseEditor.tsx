@@ -13,11 +13,13 @@ export type CaseChanges = { condition?: string; description?: string };
 const screenChoices = [
   ["navigate", "Go to screen"],
   ["overlay", "Open popup"],
+  ["toast", "Show toast"],
   ["describe", "Describe result"],
 ] as const;
 const popupChoices = [
   ["navigate", "Go to screen"],
   ["close-overlay", "Close popup"],
+  ["toast", "Show toast"],
   ["describe", "Describe result"],
 ] as const;
 
@@ -49,7 +51,9 @@ export default function FeatureCaseEditor({
   // 고를 때까지는 저장하지 않고 이 draft 상태로만 선택 UI를 보여준다.
   const [draftingNavigate, setDraftingNavigate] = useState(false);
   const destinationAction =
-    action?.type === "navigate" || action?.type === "overlay"
+    action?.type === "navigate" ||
+    action?.type === "overlay" ||
+    action?.type === "toast"
       ? action
       : draftingNavigate
         ? { type: "navigate" as const }
@@ -60,6 +64,14 @@ export default function FeatureCaseEditor({
           (item) =>
             item.screenId === destinationAction.destinationScreenId &&
             item.role === "popup",
+        )
+      : undefined;
+  const toastMessageElement =
+    destinationAction?.type === "toast"
+      ? project.elements.find(
+          (item) =>
+            item.screenId === destinationAction.destinationScreenId &&
+            item.type === "text",
         )
       : undefined;
   return (
@@ -114,7 +126,9 @@ export default function FeatureCaseEditor({
                     ? { type: "overlay" }
                     : value === "close-overlay"
                       ? { type: "close-overlay" }
-                      : { type: "describe" },
+                      : value === "toast"
+                        ? { type: "toast" }
+                        : { type: "describe" },
                 );
               }}
             >
@@ -145,7 +159,10 @@ export default function FeatureCaseEditor({
                   (destinationAction.type === "overlay"
                     ? item.kind === "popup" &&
                       item.baseScreenId === element.screenId
-                    : !item.kind),
+                    : destinationAction.type === "toast"
+                      ? item.kind === "toast" &&
+                        item.baseScreenId === element.screenId
+                      : !item.kind),
               )
               .map((item) => (
                 <option key={item.id} value={item.id}>
@@ -163,6 +180,16 @@ export default function FeatureCaseEditor({
           }
         >
           Edit popup
+        </button>
+      )}
+      {toastMessageElement && (
+        <button
+          type="button"
+          onClick={() =>
+            post({ type: "SELECT_ELEMENT", elementId: toastMessageElement.id })
+          }
+        >
+          Edit toast message
         </button>
       )}
       {feature && (

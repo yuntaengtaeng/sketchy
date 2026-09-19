@@ -44,7 +44,16 @@ export default function Flow({
             </small>
             →
           </span>
-          {"destinationScreenId" in action ? (
+          {action.type === "toast" ? (
+            <div>
+              Show toast:{" "}
+              {project.elements.find(
+                (item) =>
+                  item.screenId === destination?.id && item.type === "text",
+              )?.name || "Not described"}
+              {feature.description && <small>{feature.description}</small>}
+            </div>
+          ) : "destinationScreenId" in action ? (
             destination ? (
               <button
                 onClick={() =>
@@ -70,9 +79,9 @@ export default function Flow({
               <small>Not interactive</small>
             </div>
           )}
-          {"destinationScreenId" in action && feature.description && (
-            <small>{feature.description}</small>
-          )}
+          {"destinationScreenId" in action &&
+            action.type !== "toast" &&
+            feature.description && <small>{feature.description}</small>}
         </div>
       );
     });

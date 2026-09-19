@@ -152,13 +152,21 @@ export function describeFeature(project: Project, feature: Feature) {
           (screen) => screen.id === action.destinationScreenId,
         )
       : undefined;
+  const toastMessage =
+    action.type === "toast"
+      ? project.elements.find(
+          (item) => item.screenId === destination?.id && item.type === "text",
+        )?.name
+      : undefined;
   const result =
     action.type === "close-overlay"
       ? `Close popup${feature.description ? `; ${feature.description}` : ""}`
-      : "destinationScreenId" in action
-        ? destination
-          ? `${action.type === "navigate" ? "Go to" : "Open"} ${destination.name}${feature.description ? `; ${feature.description}` : ""}`
-          : "Destination not selected"
-        : feature.description || "Outcome not described";
+      : action.type === "toast"
+        ? `Show toast: ${toastMessage || "Not described"}${feature.description ? `; ${feature.description}` : ""}`
+        : "destinationScreenId" in action
+          ? destination
+            ? `${action.type === "navigate" ? "Go to" : "Open"} ${destination.name}${feature.description ? `; ${feature.description}` : ""}`
+            : "Destination not selected"
+          : feature.description || "Outcome not described";
   return `${feature.condition ? `When ${feature.condition}, ` : ""}${trigger} ${element?.name || feature.name} → ${result}`;
 }

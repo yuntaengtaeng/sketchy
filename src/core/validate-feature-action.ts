@@ -33,7 +33,8 @@ export function validateFeatureAction(
 
   if (
     (action.type === "navigate" ||
-      (action.type === "overlay" && !allowNewOverlay)) &&
+      ((action.type === "overlay" || action.type === "toast") &&
+        !allowNewOverlay)) &&
     !action.destinationScreenId
   )
     return {
@@ -77,6 +78,16 @@ export function validateFeatureAction(
     return {
       code: "INVALID_DESTINATION",
       message: "Overlay needs a popup from the same screen.",
+    };
+  if (
+    action.type === "toast" &&
+    destination &&
+    (destination.kind !== "toast" ||
+      destination.baseScreenId !== element.screenId)
+  )
+    return {
+      code: "INVALID_DESTINATION",
+      message: "Toast needs a toast created from the same screen.",
     };
 
   const insidePopup = elementAncestors(project.elements, element).some(

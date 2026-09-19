@@ -40,7 +40,8 @@ type Action =
   | { type: "navigate"; destinationScreenId?: string }
   | { type: "overlay"; destinationScreenId?: string }
   | { type: "close-overlay" }
-  | { type: "describe" };
+  | { type: "describe" }
+  | { type: "toast"; message?: string };
 
 interface Feature {
   id: string;
@@ -62,7 +63,8 @@ interface Feature {
 | 구매하기     | click   | navigate      | 주문서 화면    |
 | 상품 옵션    | click   | overlay       | 상품 옵션 상태 |
 | Popup 닫기   | click   | close-overlay | 없음           |
-| 찜하기       | click   | describe      | 없음           |
+| 찜하기       | click   | toast         | 없음           |
+| 임시 저장    | click   | describe      | 없음           |
 | 입력 오류 시 | click   | overlay       | 오류 Popup     |
 
 "인풋 입력"처럼 그 자체로 결과를 만들지 않는 요소는 Feature가 아니라, Feature가 발생하기 위한 **전제조건(Element의 존재)** 일 뿐이다. 예: 로그인 Feature = `submit 버튼 클릭 → Home 이동`. 이메일/비밀번호 Input은 Feature를 발생시키지 않는다.
@@ -108,8 +110,8 @@ On click
 
 ```
 찜하기
-[ Describe result ]
-[ 상품을 찜 목록에 추가한다 ]
+[ Show toast ]
+[ 찜 목록에 추가되었습니다 ]
 ```
 
 ```
@@ -136,17 +138,19 @@ type Action =
   | { type: "navigate"; destinationScreenId?: string }
   | { type: "overlay"; destinationScreenId?: string }
   | { type: "close-overlay" }
-  | { type: "describe" };
+  | { type: "describe" }
+  | { type: "toast"; message?: string };
 ```
 
 - `navigate`: 일반 Screen으로 이동하는 Figma Prototype을 만든다.
 - `overlay`: 같은 원본 Screen의 Popup 파생 상태를 여는 Figma Prototype을 만든다.
 - `close-overlay`: Popup 내부에서 실제 Figma Close action을 만든다.
+- `toast`: 화면 크기의 투명 프레임 안에 문구 하나를 하단에 배치하고, `AFTER_TIMEOUT` 트리거로 일정 시간 뒤 스스로 닫히는 실행 가능한 Figma Prototype을 만든다(Popup과 달리 Screen으로 등록하지 않고 Feature에 노드 하나만 딸려 있다, 저장할 때마다 통째로 다시 그린다). `overlayPositionType`처럼 위치를 직접 지정하는 프레임 속성은 Plugin API에서 읽기 전용이라 못 쓰지만, Popup과 같은 트릭(화면 크기 프레임 안에서 직접 배치)으로 우회한다.
 - `describe`: 화면 이동 없는 결과를 Flow와 Spec에 표시한다.
 - Figma 유료 플랜에 의존하는 Variable/Conditional Prototype은 사용하지 않는다.
 - Spec은 실제 Canvas 위치를 기준으로 Element를 위→아래, 같은 줄은 왼쪽→오른쪽 순으로 표시한다.
 
-따라서 기본 Case의 Navigate, Open popup, Close popup은 실행 가능한 Prototype으로 만들고, 조건 Case와 화면 이동 없는 결과는 모든 이해관계자가 클릭 없이 읽을 수 있는 Flow와 Spec으로 전달한다.
+따라서 기본 Case의 Navigate, Open popup, Close popup, Show toast는 실행 가능한 Prototype으로 만들고, 조건 Case와 화면 이동 없는 결과는 모든 이해관계자가 클릭 없이 읽을 수 있는 Flow와 Spec으로 전달한다.
 
 ## Interaction UI 원칙
 
@@ -154,10 +158,10 @@ Sketchy의 목표는 사용법을 읽게 하는 것이 아니라, 가장 적은 
 
 - 컨트롤의 이름은 설명이 아니라 사용자가 얻을 결과를 말한다. 설명 문구가 계속 필요하면 문구를 추가하지 않고 동작이나 이름을 다시 설계한다.
 - 고정된 소수의 배타적 선택은 Radio 또는 Segmented selector, 개수가 늘어나는 대상 목록은 Select, 독립적인 켜기/끄기는 Checkbox 또는 Switch를 사용한다.
-- 한 결과는 대표 시각 결과 하나를 가진다. 일반 Screen에서는 `Go to screen`, `Open popup`, `Describe result` 중 하나이며 Popup 내부에서는 중첩 Popup 대신 `Go to screen`, `Close popup`, `Describe result` 중 하나다. 같은 버튼의 조건 분기는 결과를 추가해 표현하되 범용 `actions[]` 워크플로 엔진으로 확장하지 않는다.
+- 한 결과는 대표 시각 결과 하나를 가진다. 일반 Screen에서는 `Go to screen`, `Open popup`, `Show toast`, `Describe result` 중 하나이며 Popup 내부에서는 중첩 Popup 대신 `Go to screen`, `Close popup`, `Show toast`, `Describe result` 중 하나다. 같은 버튼의 조건 분기는 결과를 추가해 표현하되 범용 `actions[]` 워크플로 엔진으로 확장하지 않는다.
 - 첫 결과는 `When clicked`, 추가 결과는 `Outcome N · Flow and Spec only`로 구분하고 `If` 조건과 함께 Flow와 Spec에 표시한다. 조건부 연결선은 점선으로 그리며 Figma가 판정할 수 없는 조건을 실행되는 것처럼 가장하지 않는다.
 - 저장·요청처럼 대표 결과와 함께 일어나는 비시각 부수효과는 각 결과의 `Additional result`에 적는다.
 - 기본 Case에서 실행 행동으로 노출한 선택지는 실제 Figma Prototype을 만든다. 실행할 수 없는 조건 Case에는 실행되는 것처럼 보이는 이름을 붙이지 않는다.
-- Popup은 원본 Screen을 가리키는 파생 상태(`baseScreenId`)로, 배경 없는 프레임에 Dim과 Popup만 얹고 실제 Overlay로 연결한다 — 원본 화면은 복제하지 않는다. 화면 이동과 혼동하지 않도록 Flow에서는 중립 회색 점선을 사용한다. Plugin API로 위치를 보장할 수 없는 Snackbar는 실행 선택지로 노출하지 않는다.
+- Popup은 원본 Screen을 가리키는 파생 상태(`baseScreenId`)로, 배경 없는 프레임에 Dim과 Popup만 얹고 실제 Overlay로 연결한다 — 원본 화면은 복제하지 않는다. 화면 이동과 혼동하지 않도록 Flow에서는 중립 회색 점선을 사용한다. Toast(Snackbar)는 `overlayPositionType` 같은 프레임 속성 없이도 Popup과 같은 방식(화면 크기 투명 프레임 + 내부 수동 배치 + `AFTER_TIMEOUT` 자동 닫힘)으로 실행 가능하다.
 - Popup Destination은 같은 원본 Screen에서 파생된 상태로 제한한다. Popup 내부 버튼은 Figma의 실제 `CLOSE` 액션을 사용하며 중첩 Popup을 만들지 않는다.
 - 실제 데이터를 삭제하는 동작만 확인을 요구하고 원본 Screen 삭제 시 함께 제거되는 파생 상태와 incoming 연결 수를 알린다. 일반적인 선택, 생성, 연결, 액션 교체에는 확인창이나 별도 설정 화면을 두지 않는다.

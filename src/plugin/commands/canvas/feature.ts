@@ -13,6 +13,7 @@ import {
 } from "../sync-prototype";
 import { id } from "./utils";
 import { createOverlayScreen } from "./screen";
+import { createToastScreen } from "./toast";
 
 export async function syncReaction(
   source: SceneNode & ReactionMixin,
@@ -68,7 +69,9 @@ export async function syncReaction(
           reactions,
           undefined,
           destination?.nodeId,
-          primary?.action.type === "overlay" ? "OVERLAY" : "NAVIGATE",
+          primary?.action.type === "overlay" || primary?.action.type === "toast"
+            ? "OVERLAY"
+            : "NAVIGATE",
         ),
   );
 }
@@ -110,7 +113,9 @@ export async function saveFeature(
         INVALID_DESTINATION:
           action.type === "overlay"
             ? "Choose a popup created from this screen."
-            : "Choose a regular screen as the destination.",
+            : action.type === "toast"
+              ? "Choose a toast created from this screen."
+              : "Choose a regular screen as the destination.",
         NESTED_OVERLAY:
           "Choose another result; a popup cannot open another popup.",
         NOT_INSIDE_POPUP: "Choose Close popup from an element inside a popup.",
@@ -133,6 +138,12 @@ export async function saveFeature(
   let createdOverlay: FrameNode | undefined;
   if (action.type === "overlay" && !destination) {
     const created = await createOverlayScreen(project, element.screenId);
+    destination = created.screen;
+    createdOverlay = created.node;
+    action = { ...action, destinationScreenId: destination.id };
+  }
+  if (action.type === "toast" && !destination) {
+    const created = await createToastScreen(project, element.screenId);
     destination = created.screen;
     createdOverlay = created.node;
     action = { ...action, destinationScreenId: destination.id };

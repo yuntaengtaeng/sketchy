@@ -115,7 +115,7 @@ export type Screen = {
   nodeId: string;
   name: string;
   purpose: string;
-  kind?: "popup";
+  kind?: "popup" | "toast";
   baseScreenId?: string;
 };
 
@@ -255,7 +255,8 @@ export type FeatureAction =
   | { type: "navigate"; destinationScreenId?: string }
   | { type: "overlay"; destinationScreenId?: string }
   | { type: "close-overlay" }
-  | { type: "describe" };
+  | { type: "describe" }
+  | { type: "toast"; destinationScreenId?: string };
 
 export type FeatureTrigger =
   | { type: "click"; elementId: string }

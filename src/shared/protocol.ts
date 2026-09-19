@@ -84,7 +84,8 @@ export type PluginMessage =
         | { type: "navigate"; destinationScreenId?: string }
         | { type: "overlay"; destinationScreenId?: string }
         | { type: "close-overlay" }
-        | { type: "describe" };
+        | { type: "describe" }
+        | { type: "toast"; destinationScreenId?: string };
     }
   | { type: "DELETE_FEATURE"; featureId: string };
 
