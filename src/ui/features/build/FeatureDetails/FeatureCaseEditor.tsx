@@ -6,6 +6,7 @@ import type {
   Project,
 } from "../../../../shared";
 import { post } from "../../../plugin";
+import Button from "../../../components/Button";
 import styles from "./FeatureDetails.module.css";
 
 export type CaseChanges = { condition?: string; description?: string };
@@ -213,15 +214,15 @@ export default function FeatureCaseEditor({
         </label>
       )}
       {feature && (
-        <button
-          type="button"
+        <Button
+          variant="danger"
           className={styles.remove}
           onClick={() =>
             post({ type: "DELETE_FEATURE", featureId: feature.id })
           }
         >
           Remove outcome
-        </button>
+        </Button>
       )}
     </fieldset>
   );

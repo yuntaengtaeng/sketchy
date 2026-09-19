@@ -50,11 +50,6 @@
 
 .remove {
   justify-self: center;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  color: var(--figma-color-text-danger, #a00);
-  text-decoration: underline;
 }
 
 .case > label {

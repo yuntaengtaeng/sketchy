@@ -1,6 +1,7 @@
 import type { Element as SketchyElement, Project } from "../../../../shared";
 import { BLOCK_DEFINITIONS } from "../../../../shared";
 import { post } from "../../../plugin";
+import Button from "../../../components/Button";
 import { BLOCK_OPTIONS } from "../utils/blockRegistry";
 import styles from "./ElementDetails.module.css";
 import FeatureDetails from "../FeatureDetails/FeatureDetails";
@@ -65,14 +66,15 @@ export default function ElementDetails({
         </p>
       )}
       {element.role !== "popup" && (
-        <button
+        <Button
+          variant="danger"
           className={styles.delete}
           onClick={() =>
             post({ type: "DELETE_ELEMENT", elementId: element.id })
           }
         >
           Delete
-        </button>
+        </Button>
       )}
     </section>
   );

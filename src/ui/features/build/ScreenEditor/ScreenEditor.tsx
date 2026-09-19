@@ -1,5 +1,6 @@
 import type { Project, Screen } from "../../../../shared";
 import { post } from "../../../plugin";
+import Button from "../../../components/Button";
 import BlockPicker from "../BlockPicker/BlockPicker";
 import styles from "./ScreenEditor.module.css";
 import NodeList from "../NodeList/NodeList";
@@ -114,7 +115,8 @@ export default function ScreenEditor({
             Duplicate screen
           </button>
         )}
-        <button
+        <Button
+          variant="danger"
           className={styles.delete}
           onClick={() =>
             confirm(
@@ -123,7 +125,7 @@ export default function ScreenEditor({
           }
         >
           Delete {screen.kind ? "state" : "screen"}
-        </button>
+        </Button>
       </section>
     </>
   );
