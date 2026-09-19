@@ -44,7 +44,7 @@
   border: 0;
   background: transparent;
   color: var(--figma-color-text-secondary, #777);
-  font-size: 11px;
+  font-size: var(--text-xs);
 }
 
 .screenSwitcher[data-compact] select {

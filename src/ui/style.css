@@ -14,6 +14,11 @@
   --space-8: 32px;
   --radius-sm: 4px;
   --radius-md: 8px;
+  /* 타이포는 짝수 4단계만, 홀수·소수점 크기를 쓰지 않는다 */
+  --text-xs: 10px;
+  --text-sm: 12px;
+  --text-lg: 16px;
+  --text-xl: 20px;
 }
 
 * {
@@ -25,7 +30,7 @@
 }
 body {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 main {
   padding: 0 var(--space-4) var(--space-4);
@@ -60,12 +65,13 @@ h3,
 p {
   margin: 0 0 var(--space-2);
 }
-h2 {
-  font-size: 13px;
-  letter-spacing: 0.03em;
-}
+h1,
+h2,
 h3 {
-  font-size: 13px;
+  font-size: inherit;
+}
+h2 {
+  letter-spacing: 0.03em;
 }
 label {
   display: grid;

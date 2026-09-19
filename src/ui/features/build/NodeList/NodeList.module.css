@@ -34,7 +34,7 @@
   width: var(--space-5);
   height: var(--space-8);
   border-radius: var(--radius-sm);
-  font-size: 15px;
+  font-size: var(--text-lg);
   color: var(--figma-color-text-secondary, #777);
   cursor: grab;
 }
@@ -72,7 +72,7 @@
   flex-shrink: 0;
   padding: var(--space-1);
   color: var(--figma-color-text-secondary, #777);
-  font-size: 17px;
+  font-size: var(--text-lg);
   line-height: 1;
 }
 
