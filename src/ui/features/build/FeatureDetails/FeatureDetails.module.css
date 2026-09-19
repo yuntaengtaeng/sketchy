@@ -1,8 +1,8 @@
 .case {
   display: grid;
-  gap: 12px;
-  margin: 12px 0;
-  padding: 10px;
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+  padding: var(--space-2);
   border: 1px solid var(--sketchy-line);
 }
 
@@ -15,14 +15,14 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   overflow: hidden;
-  margin-top: 6px;
+  margin-top: var(--space-1);
   border: 1px solid var(--sketchy-line);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
 }
 
 .choices button {
   min-width: 0;
-  padding: 7px 4px;
+  padding: var(--space-2) var(--space-1);
   border: 0;
   border-left: 1px solid var(--sketchy-line);
   border-radius: 0;
@@ -64,8 +64,8 @@
 /* Flow/Canvas의 조건부 연결선(회색 점선)과 같은 색·스타일 */
 .flowMark {
   display: inline-block;
-  width: 14px;
-  margin-right: 5px;
+  width: var(--space-4);
+  margin-right: var(--space-1);
   border-top: 2px dashed #8c8c8c;
   vertical-align: middle;
 }

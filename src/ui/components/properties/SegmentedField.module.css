@@ -1,13 +1,13 @@
 .segmented {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .segmented button {
   flex: 1;
   min-width: 0;
-  padding: 7px 6px;
+  padding: var(--space-2) var(--space-1);
   font-size: 11.5px;
 }
 

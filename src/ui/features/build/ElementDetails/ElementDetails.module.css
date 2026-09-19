@@ -1,11 +1,11 @@
 /* label과 같은 리듬으로 위 여백을 줘서 위 요소에 붙어 보이지 않게 한다 */
 .noInteraction {
-  margin-top: 10px;
+  margin-top: var(--space-2);
 }
 
 .delete {
   display: block;
-  margin: 14px auto 0;
+  margin: var(--space-3) auto 0;
   min-height: 0;
   padding: 0;
   border: 0;

@@ -1,7 +1,7 @@
 .screenPicker {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .screenPicker > :only-child {
@@ -10,12 +10,12 @@
 
 .secondaryAction {
   width: 100%;
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .delete {
   display: block;
-  margin: 14px auto 0;
+  margin: var(--space-3) auto 0;
   min-height: 0;
   padding: 0;
   border: 0;

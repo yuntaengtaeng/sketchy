@@ -1,7 +1,7 @@
 .field {
   display: grid;
-  gap: 5px;
-  margin-top: 10px;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
 }
 
 .label {
@@ -10,12 +10,12 @@
 
 .rows {
   display: grid;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .row {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .row input {
@@ -25,5 +25,5 @@
 .row button {
   flex-shrink: 0;
   min-height: 0;
-  padding: 0 10px;
+  padding: 0 var(--space-2);
 }

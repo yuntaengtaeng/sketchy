@@ -11,7 +11,7 @@
 
 .instance {
   display: flex;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .instance input {

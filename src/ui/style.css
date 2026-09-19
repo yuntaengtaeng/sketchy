@@ -4,6 +4,16 @@
   background: var(--figma-color-bg, #fafafa);
   --sketchy-ink: var(--figma-color-text, #222);
   --sketchy-line: var(--figma-color-border, #888);
+  /* 간격/radius는 4의 배수만, 보더·아웃라인 같은 hairline은 예외 */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
 }
 
 * {
@@ -18,7 +28,7 @@ body {
   font-size: 13px;
 }
 main {
-  padding: 0 16px 16px;
+  padding: 0 var(--space-4) var(--space-4);
   max-width: 420px;
   margin: auto;
 }
@@ -30,15 +40,15 @@ textarea {
   font: inherit;
   color: inherit;
   border: 1px solid var(--sketchy-line);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  padding: 9px;
+  padding: var(--space-2);
 }
 
 button {
   cursor: pointer;
   text-transform: capitalize;
-  min-height: 34px;
+  min-height: var(--space-8);
 }
 button:hover,
 button.active {
@@ -56,14 +66,14 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 section {
-  padding: 18px 0;
+  padding: var(--space-4) 0;
   border-bottom: 1px solid var(--sketchy-line);
 }
 h1,
 h2,
 h3,
 p {
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
 }
 h2 {
   font-size: 13px;
@@ -74,8 +84,8 @@ h3 {
 }
 label {
   display: grid;
-  gap: 5px;
-  margin-top: 10px;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
   color: var(--figma-color-text-secondary, #666);
 }
 input,
@@ -92,8 +102,8 @@ textarea {
   color: var(--figma-color-text-secondary, #777);
 }
 .error {
-  padding: 9px;
-  margin-top: 10px;
+  padding: var(--space-2);
+  margin-top: var(--space-2);
   background: #ffe8e8;
   color: #a00;
 }

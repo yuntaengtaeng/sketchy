@@ -38,7 +38,7 @@
 
 .tip small {
   display: block;
-  margin-bottom: 3px;
+  margin-bottom: var(--space-1);
   color: var(--figma-color-text-secondary, #777);
 }
 
