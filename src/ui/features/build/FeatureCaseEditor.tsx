@@ -50,6 +50,9 @@ export default function FeatureCaseEditor({
   // 시도하면 매번 "Select a destination screen" 오류가 뜬다. 목적지를
   // 고를 때까지는 저장하지 않고 이 draft 상태로만 선택 UI를 보여준다.
   const [draftingNavigate, setDraftingNavigate] = useState(false);
+  // draft 중엔 항상 navigate 하나만 눌린 것으로 취급, 그렇지 않으면 이전
+  // 결과와 draft 상태가 동시에 눌려 보인다
+  const activeChoice = draftingNavigate ? "navigate" : action?.type;
   const destinationAction =
     action?.type === "navigate" ||
     action?.type === "overlay" ||
@@ -109,10 +112,7 @@ export default function FeatureCaseEditor({
             <button
               key={value}
               type="button"
-              aria-pressed={
-                action?.type === value ||
-                (value === "navigate" && draftingNavigate)
-              }
+              aria-pressed={activeChoice === value}
               onClick={() => {
                 if (action?.type === value) return;
                 if (value === "navigate") {
