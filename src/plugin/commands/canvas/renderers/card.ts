@@ -2,8 +2,9 @@ import type { DomainElement } from "../../../../shared";
 import { PART } from "../../../canvas-name.ts";
 import { clampCount, createLabel, hugFrame } from "./shared";
 
-function buildCard(cardType: "basic" | "media" | "stat") {
+function buildCard(cardType: "basic" | "media" | "stat", name: string) {
   const card = hugFrame("VERTICAL");
+  card.name = name;
   card.itemSpacing = 6;
   card.paddingLeft =
     card.paddingRight =
@@ -46,7 +47,7 @@ export function rebuildCards(
   for (const child of [...container.children])
     if (child.getPluginData(PART) === "card-item") child.remove();
   for (let index = 0; index < clampCount(count); index++) {
-    const card = buildCard(cardType);
+    const card = buildCard(cardType, `Card ${index + 1}`);
     card.setPluginData(PART, "card-item");
     container.appendChild(card);
     card.layoutSizingHorizontal = "FILL";

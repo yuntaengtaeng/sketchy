@@ -2,8 +2,12 @@ import type { DomainElement } from "../../../../shared";
 import { PART } from "../../../canvas-name.ts";
 import { clampCount, createLabel, hugFrame } from "./shared";
 
-function buildListItemRow(itemType: "basic" | "leading" | "trailing") {
+function buildListItemRow(
+  itemType: "basic" | "leading" | "trailing",
+  name: string,
+) {
   const row = hugFrame("HORIZONTAL");
+  row.name = name;
   row.counterAxisAlignItems = "CENTER";
   row.itemSpacing = 10;
   row.fills = [];
@@ -44,7 +48,7 @@ export function rebuildListItemRows(
   for (const child of [...container.children])
     if (child.getPluginData(PART) === "list-row") child.remove();
   for (let index = 0; index < clampCount(count); index++) {
-    const row = buildListItemRow(itemType);
+    const row = buildListItemRow(itemType, `Item ${index + 1}`);
     row.setPluginData(PART, "list-row");
     container.appendChild(row);
     row.layoutSizingHorizontal = "FILL";

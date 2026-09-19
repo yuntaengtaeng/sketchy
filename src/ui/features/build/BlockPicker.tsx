@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BLOCK_DEFINITIONS, type BlockType } from "../../../shared";
 import { post } from "../../plugin";
 import styles from "./BlockPicker.module.css";
@@ -31,6 +31,9 @@ const CATEGORIES: { key: string; label: string; blocks: BlockType[] }[] = [
 // radio/switch/select)는 BlockPicker.module.css의 data-block 규칙만으로 그린다.
 // search는 CSS로 각도를 다시 맞추는 대신, 실제 캔버스 렌더링
 // (renderers/search.ts의 createSearchIcon)과 같은 좌표의 SVG를 그대로 쓴다
+const FOCUSABLE_SELECTOR =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
 const COMPOSITE_PREVIEWS: Partial<Record<BlockType, ReactNode>> = {
   search: (
     <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
@@ -95,6 +98,42 @@ export default function BlockPicker({
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0].key);
   const [recent, setRecent] = useState<BlockType>();
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  // 키보드만 쓰는 사용자를 위한 표준 모달 동작: 열리면 시트 안으로 포커스를
+  // 옮기고, Esc로 닫히며, Tab이 시트 밖으로 새지 않게 가둔다. 닫히면 포커스를
+  // 다시 트리거("More…")로 돌려준다
+  useEffect(() => {
+    if (!open) return;
+    sheetRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        setOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable =
+        sheetRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      moreButtonRef.current?.focus();
+    };
+  }, [open]);
 
   const allowed = (block: BlockType) => {
     const definition = BLOCK_DEFINITIONS[block];
@@ -134,6 +173,7 @@ export default function BlockPicker({
         {QUICK_FIXED.filter(allowed).map(cell)}
         {recent && allowed(recent) && cell(recent)}
         <button
+          ref={moreButtonRef}
           className={`${styles.block} ${styles.more}`}
           onClick={() => setOpen(true)}
         >
@@ -146,7 +186,11 @@ export default function BlockPicker({
       {open && (
         <div className={styles.pickerOverlay} onClick={() => setOpen(false)}>
           <div
+            ref={sheetRef}
             className={styles.pickerSheet}
+            role="dialog"
+            aria-modal="true"
+            aria-label={sectionId ? "Add to section" : "Add something"}
             onClick={(event) => event.stopPropagation()}
           >
             <div className={styles.pickerHead}>

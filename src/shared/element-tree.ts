@@ -67,3 +67,22 @@ export function canNestSection<T extends TreeElement>(
       .length + (parent.type === "section" ? 1 : 0);
   return depth < MAX_SECTION_DEPTH;
 }
+
+// 같은 화면에 같은 블록을 여러 번 추가하면 레이어명/NodeList 표시가 전부
+// 동일해 어떤 게 어떤 요소인지 구분할 수 없었다. 화면 안에서 겹치지 않는
+// 이름을 골라 "Button", "Button 2", "Button 3"처럼 자동으로 구분되게 한다
+export function nextElementName<T extends { screenId: string; name: string }>(
+  elements: T[],
+  screenId: string,
+  label: string,
+) {
+  const used = new Set(
+    elements
+      .filter((item) => item.screenId === screenId)
+      .map((item) => item.name),
+  );
+  if (!used.has(label)) return label;
+  let index = 2;
+  while (used.has(`${label} ${index}`)) index++;
+  return `${label} ${index}`;
+}

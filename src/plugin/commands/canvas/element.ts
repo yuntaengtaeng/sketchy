@@ -3,6 +3,7 @@ import {
   canNestSection,
   elementSiblings,
   elementTreeIds,
+  nextElementName,
   type BlockType,
 } from "../../../shared";
 import type { DomainElement, Project } from "../../../shared";
@@ -49,7 +50,11 @@ export async function insertBlock(
   const base = {
     id: elementId,
     screenId,
-    name: BLOCK_DEFINITIONS[block].label,
+    name: nextElementName(
+      project.elements,
+      screenId,
+      BLOCK_DEFINITIONS[block].label,
+    ),
     parentElementId: parentElement?.id,
   };
   // block별로 필요한 필드가 다른 discriminated union이라, 값을 한 번에 못 채우고

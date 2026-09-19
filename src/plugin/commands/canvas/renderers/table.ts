@@ -2,15 +2,25 @@ import type { DomainElement } from "../../../../shared";
 import { PART } from "../../../canvas-name.ts";
 import { clampCount, createLabel, hugFrame } from "./shared";
 
-function buildTableRow(cells: string[], header: boolean) {
+// 헤더/행 프레임과 셀 프레임에 이름을 붙이지 않으면 Figma 레이어 패널·Dev
+// Mode에서 전부 "Frame"으로만 보여 몇 번째 행인지, 어느 컬럼 셀인지 구분할
+// 수 없다. 행은 순번으로, 셀은 소속 컬럼명으로 이름을 붙여 구분 가능하게 한다
+function buildTableRow(
+  cells: string[],
+  header: boolean,
+  rowName: string,
+  columnNames: string[],
+) {
   const row = hugFrame("HORIZONTAL");
+  row.name = rowName;
   row.strokes = [{ type: "SOLID", color: { r: 0.8, g: 0.8, b: 0.8 } }];
   row.strokeWeight = 1;
   row.fills = header
     ? [{ type: "SOLID", color: { r: 0.95, g: 0.95, b: 0.93 } }]
     : [];
-  const cellNodes = cells.map((cell) => {
+  const cellNodes = cells.map((cell, index) => {
     const cellFrame = hugFrame("HORIZONTAL");
+    cellFrame.name = columnNames[index] ?? `Column ${index + 1}`;
     cellFrame.paddingLeft = cellFrame.paddingRight = 8;
     cellFrame.paddingTop = cellFrame.paddingBottom = 6;
     cellFrame.fills = [];
@@ -36,7 +46,7 @@ export function rebuildTable(
 ) {
   for (const child of [...container.children])
     if (child.getPluginData(PART) === "table-row") child.remove();
-  const header = buildTableRow(columns, true);
+  const header = buildTableRow(columns, true, "Header", columns);
   header.setPluginData(PART, "table-row");
   container.appendChild(header);
   header.layoutSizingHorizontal = "FILL";
@@ -44,6 +54,8 @@ export function rebuildTable(
     const row = buildTableRow(
       columns.map(() => "Value"),
       false,
+      `Row ${index + 1}`,
+      columns,
     );
     row.setPluginData(PART, "table-row");
     container.appendChild(row);

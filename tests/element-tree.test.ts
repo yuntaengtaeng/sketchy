@@ -4,6 +4,7 @@ import {
   canNestSection,
   elementAncestors,
   elementSiblings,
+  nextElementName,
 } from "../src/shared/element-tree.ts";
 
 const elements = [
@@ -42,4 +43,15 @@ test("keeps navigation recursive while limiting sections to two levels", () => {
   );
   assert.equal(canNestSection(elements, elements[0]), true);
   assert.equal(canNestSection(elements, elements[1]), false);
+});
+
+test("keeps element names unique per screen so repeated blocks stay distinguishable", () => {
+  const named = [
+    { screenId: "screen", name: "Button" },
+    { screenId: "screen", name: "Button 2" },
+    { screenId: "other-screen", name: "Button" },
+  ];
+  assert.equal(nextElementName(named, "screen", "Button"), "Button 3");
+  assert.equal(nextElementName(named, "screen", "Card"), "Card");
+  assert.equal(nextElementName(named, "other-screen", "Button"), "Button 2");
 });

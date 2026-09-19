@@ -31,6 +31,10 @@ export default function StringListField({
             />
             <button
               type="button"
+              disabled={items.length <= 1}
+              title={
+                items.length <= 1 ? "At least one item is required" : undefined
+              }
               onClick={() => onChange(items.filter((_, i) => i !== index))}
             >
               Remove
