@@ -3,7 +3,7 @@ import {
   type Element,
   type Feature,
   type Project,
-} from "../../../shared/index.ts";
+} from "../../../../shared/index.ts";
 
 export const title = (value: string) => value[0].toUpperCase() + value.slice(1);
 

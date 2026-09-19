@@ -1,6 +1,6 @@
 import type { Feature, Project } from "../../../shared";
 import { download, post } from "../../plugin";
-import { buildProjectMarkdown } from "../spec/describe";
+import { buildProjectMarkdown } from "../spec/utils/describe";
 import styles from "./Flow.module.css";
 
 export default function Flow({

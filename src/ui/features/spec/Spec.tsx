@@ -4,7 +4,7 @@ import {
   elementDetail,
   outlineElements,
   type ElementOutline,
-} from "./describe";
+} from "./utils/describe";
 import styles from "./Spec.module.css";
 
 export default function Spec({

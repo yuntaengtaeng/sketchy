@@ -5,7 +5,7 @@ import {
   buildProjectMarkdown,
   describeFeature,
   outlineElements,
-} from "../../src/ui/features/spec/describe.ts";
+} from "../../src/ui/features/spec/utils/describe.ts";
 import type { Project } from "../../src/shared/index.ts";
 
 const project: Project = {
