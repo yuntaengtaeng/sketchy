@@ -1,4 +1,5 @@
 import { BackNavigation, Header } from "./components/header";
+import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
 import Build from "./features/build/Build";
 import Flow from "./features/flow/Flow";
 import Settings from "./features/settings/Settings";
@@ -26,11 +27,7 @@ export default function App() {
       ) : (
         <Header tab={tab} onChange={selectTab} onSettings={openSettings} />
       )}
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
+      {error && <ErrorMessage>{error}</ErrorMessage>}
       {route.name === "settings" && <Settings settings={project.settings} />}
       {route.name === "workspace" && tab === "build" && (
         <Build

@@ -1,9 +1,3 @@
-.spec h1 {
-  font-size: 20px;
-  border-bottom: 2px solid var(--sketchy-ink);
-  padding-bottom: 8px;
-}
-
 .elements {
   display: grid;
   gap: var(--space-1);

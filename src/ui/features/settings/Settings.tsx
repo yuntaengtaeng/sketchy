@@ -4,6 +4,9 @@ import {
   type ScreenPreset,
 } from "../../../shared";
 import Button from "../../components/Button/Button";
+import Muted from "../../components/Muted/Muted";
+import Section from "../../components/Section/Section";
+import Title from "../../components/Title/Title";
 import CheckedField from "../../components/properties/CheckedField";
 import { post } from "../../plugin";
 import styles from "./Settings.module.css";
@@ -11,9 +14,9 @@ import styles from "./Settings.module.css";
 export default function Settings({ settings }: { settings: ProjectSettings }) {
   return (
     <>
-      <section>
-        <h2>Screen</h2>
-        <p className="muted">Default frame for new screens</p>
+      <Section>
+        <Title>Screen</Title>
+        <Muted>Default frame for new screens</Muted>
         <div className={styles.presets}>
           {(Object.keys(SCREEN_PRESETS) as ScreenPreset[]).map((preset) => {
             const option = SCREEN_PRESETS[preset];
@@ -38,9 +41,9 @@ export default function Settings({ settings }: { settings: ProjectSettings }) {
           })}
         </div>
         <p className={styles.note}>Existing screens keep their current size.</p>
-      </section>
-      <section>
-        <h2>Flow</h2>
+      </Section>
+      <Section>
+        <Title>Flow</Title>
         <CheckedField
           label="Show flow arrows on canvas"
           checked={settings.showFlowArrows}
@@ -54,7 +57,7 @@ export default function Settings({ settings }: { settings: ProjectSettings }) {
         <p className={styles.note}>
           Figma prototype links stay connected either way.
         </p>
-      </section>
+      </Section>
     </>
   );
 }

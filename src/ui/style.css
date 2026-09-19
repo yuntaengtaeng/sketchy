@@ -37,31 +37,3 @@ main {
   max-width: 420px;
   margin: auto;
 }
-
-section {
-  padding: var(--space-4) 0;
-  border-bottom: 1px solid var(--sketchy-line);
-}
-h1,
-h2,
-h3,
-p {
-  margin: 0 0 var(--space-2);
-}
-h1,
-h2,
-h3 {
-  font-size: inherit;
-}
-h2 {
-  letter-spacing: 0.03em;
-}
-.muted {
-  color: var(--figma-color-text-secondary, #777);
-}
-.error {
-  padding: var(--space-2);
-  margin-top: var(--space-2);
-  background: #ffe8e8;
-  color: #a00;
-}

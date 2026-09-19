@@ -1,0 +1,12 @@
+.title {
+  margin: 0 0 var(--space-2);
+  font-size: inherit;
+}
+.md {
+  letter-spacing: 0.03em;
+}
+.lg {
+  font-size: var(--text-xl);
+  border-bottom: 2px solid var(--sketchy-ink);
+  padding-bottom: var(--space-2);
+}

@@ -6,6 +6,7 @@ import type {
 } from "../../../../shared";
 import { elementAncestors, elementSiblings } from "../../../../shared";
 import Button from "../../../components/Button/Button";
+import Section from "../../../components/Section/Section";
 import Select from "../../../components/Select/Select";
 import { post } from "../../../plugin";
 import styles from "./BuildNavigation.module.css";
@@ -31,7 +32,7 @@ export default function BuildNavigation({
   }, [element?.id]);
 
   return (
-    <section className={styles.contextNavigation}>
+    <Section className={styles.contextNavigation}>
       <div className={styles.topRow}>
         {/* element가 선택 안 됐을 때는 breadcrumb이 화면 이름 하나뿐이라
         옆의 화면 전환 셀렉트와 같은 이름이 나란히 중복 표시된다, 그때는
@@ -103,6 +104,6 @@ export default function BuildNavigation({
           </Select>
         </label>
       )}
-    </section>
+    </Section>
   );
 }

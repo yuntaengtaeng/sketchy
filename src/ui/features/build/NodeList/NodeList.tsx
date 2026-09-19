@@ -1,6 +1,9 @@
 import { Fragment, useEffect, useRef, useState, type DragEvent } from "react";
 import type { Element as SketchyElement } from "../../../../shared";
 import Button from "../../../components/Button/Button";
+import Muted from "../../../components/Muted/Muted";
+import Section from "../../../components/Section/Section";
+import Title from "../../../components/Title/Title";
 import { post } from "../../../plugin";
 import styles from "./NodeList.module.css";
 
@@ -52,8 +55,8 @@ export default function NodeList({
   };
 
   return (
-    <section>
-      <h2>{title}</h2>
+    <Section>
+      <Title>{title}</Title>
       <div
         className={styles.nodes}
         // 행 사이 6px gap이나 삽입선(dropLine) 위에서 마우스를 놓으면 그
@@ -158,8 +161,8 @@ export default function NodeList({
         {draggingId && dropAt === nodes.length && (
           <div className={styles.dropLine} aria-hidden="true" />
         )}
-        {!nodes.length && <p className="muted">No elements yet.</p>}
+        {!nodes.length && <Muted>No elements yet.</Muted>}
       </div>
-    </section>
+    </Section>
   );
 }

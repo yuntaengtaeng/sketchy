@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BLOCK_DEFINITIONS, type BlockType } from "../../../../shared";
 import { SEARCH_ICON } from "../../../../shared/icons";
 import Button from "../../../components/Button/Button";
+import Section from "../../../components/Section/Section";
+import Title from "../../../components/Title/Title";
 import { post } from "../../../plugin";
 import styles from "./BlockPicker.module.css";
 
@@ -177,8 +179,8 @@ export default function BlockPicker({
   const activeCategory = CATEGORIES.find((item) => item.key === category)!;
 
   return (
-    <section className={sectionId ? styles.sectionCanvas : undefined}>
-      <h2>{sectionId ? "Add to section" : "Add something"}</h2>
+    <Section className={sectionId ? styles.sectionCanvas : undefined}>
+      <Title>{sectionId ? "Add to section" : "Add something"}</Title>
       <div className={styles.blocks}>
         {QUICK_FIXED.filter(allowed).map(cell)}
         <Button
@@ -232,6 +234,6 @@ export default function BlockPicker({
           </div>
         </div>
       )}
-    </section>
+    </Section>
   );
 }

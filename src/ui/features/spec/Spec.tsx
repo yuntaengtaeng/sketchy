@@ -1,4 +1,8 @@
 import { BLOCK_DEFINITIONS, type Project, type Screen } from "../../../shared";
+import Body from "../../components/Body/Body";
+import Muted from "../../components/Muted/Muted";
+import Section from "../../components/Section/Section";
+import Title from "../../components/Title/Title";
 import {
   describeFeature,
   elementDetail,
@@ -22,23 +26,25 @@ export default function Spec({
     (feature) => feature.screenId === screen?.id,
   );
   return (
-    <section className={styles.spec}>
-      <h1>{screen?.name || "Select a screen"}</h1>
+    <Section className={styles.spec}>
+      <Title as="h1" size="lg">
+        {screen?.name || "Select a screen"}
+      </Title>
       {screen && (
         <>
           {screen.purpose && (
             <>
-              <h2>Purpose</h2>
-              <p>{screen.purpose}</p>
+              <Title>Purpose</Title>
+              <Body>{screen.purpose}</Body>
             </>
           )}
-          <h2>Visible elements · top to bottom</h2>
+          <Title>Visible elements · top to bottom</Title>
           {outline.length ? (
             <ElementList items={outline} />
           ) : (
-            <p className="muted">No elements yet.</p>
+            <Muted>No elements yet.</Muted>
           )}
-          <h2>What users can do</h2>
+          <Title>What users can do</Title>
           {features.length ? (
             <ul>
               {features.map((feature) => (
@@ -46,11 +52,11 @@ export default function Spec({
               ))}
             </ul>
           ) : (
-            <p className="muted">No behavior described yet.</p>
+            <Muted>No behavior described yet.</Muted>
           )}
         </>
       )}
-    </section>
+    </Section>
   );
 }
 
@@ -65,9 +71,7 @@ function ElementList({ items }: { items: ElementOutline[] }) {
               {number}. {element.name} ({BLOCK_DEFINITIONS[element.type].label}
               {detail ? `, ${detail}` : ""})
             </span>
-            {element.description && (
-              <p className="muted">{element.description}</p>
-            )}
+            {element.description && <Muted>{element.description}</Muted>}
             {!!children.length && <ElementList items={children} />}
           </li>
         );

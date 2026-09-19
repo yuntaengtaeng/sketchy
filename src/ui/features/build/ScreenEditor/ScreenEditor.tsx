@@ -2,9 +2,11 @@ import type { Project, Screen } from "../../../../shared";
 import { post } from "../../../plugin";
 import Button from "../../../components/Button/Button";
 import Field from "../../../components/Field/Field";
+import Section from "../../../components/Section/Section";
 import Select from "../../../components/Select/Select";
 import TextInput from "../../../components/TextInput/TextInput";
 import Textarea from "../../../components/Textarea/Textarea";
+import Title from "../../../components/Title/Title";
 import BlockPicker from "../BlockPicker/BlockPicker";
 import styles from "./ScreenEditor.module.css";
 import NodeList from "../NodeList/NodeList";
@@ -14,13 +16,13 @@ import { OnboardingTarget } from "../OnboardingCoachmark/OnboardingCoachmark";
 export function ScreenBrowser({ project }: { project: Project }) {
   const hasScreens = project.screens.some((screen) => !screen.kind);
   return (
-    <section>
-      <h2>Screens</h2>
+    <Section>
+      <Title>Screens</Title>
       <div className={styles.screenPicker}>
         {hasScreens && <ScreenSelect project={project} />}
         <NewScreen project={project} />
       </div>
-    </section>
+    </Section>
   );
 }
 
@@ -66,8 +68,8 @@ export default function ScreenEditor({
 
   return (
     <>
-      <section>
-        <h2>{screen.kind ? "State" : "Screen"}</h2>
+      <Section>
+        <Title>{screen.kind ? "State" : "Screen"}</Title>
         <Field>
           Name
           <TextInput
@@ -97,7 +99,7 @@ export default function ScreenEditor({
             }
           />
         </Field>
-      </section>
+      </Section>
       <OnboardingTarget active={onboardingStep === "add-button"}>
         <BlockPicker screenId={screen.id} />
       </OnboardingTarget>
@@ -108,7 +110,7 @@ export default function ScreenEditor({
           insertedElementId={insertedElementId}
         />
       </OnboardingTarget>
-      <section>
+      <Section>
         {!screen.kind && (
           <Button
             className={styles.secondaryAction}
@@ -130,7 +132,7 @@ export default function ScreenEditor({
         >
           Delete {screen.kind ? "state" : "screen"}
         </Button>
-      </section>
+      </Section>
     </>
   );
 }

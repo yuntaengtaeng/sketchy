@@ -1,0 +1,6 @@
+.error {
+  padding: var(--space-2);
+  margin: var(--space-2) 0;
+  background: #ffe8e8;
+  color: #a00;
+}

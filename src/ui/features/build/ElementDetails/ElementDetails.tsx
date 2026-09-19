@@ -3,8 +3,11 @@ import { BLOCK_DEFINITIONS } from "../../../../shared";
 import { post } from "../../../plugin";
 import Button from "../../../components/Button/Button";
 import Field from "../../../components/Field/Field";
+import Muted from "../../../components/Muted/Muted";
+import Section from "../../../components/Section/Section";
 import TextInput from "../../../components/TextInput/TextInput";
 import Textarea from "../../../components/Textarea/Textarea";
+import Title from "../../../components/Title/Title";
 import { BLOCK_OPTIONS } from "../utils/blockRegistry";
 import styles from "./ElementDetails.module.css";
 import FeatureDetails from "../FeatureDetails/FeatureDetails";
@@ -25,8 +28,8 @@ export default function ElementDetails({
     project.elements.find((item) => item.id === element.parentElementId)
       ?.role === "popup";
   return (
-    <section key={element.id}>
-      <h2>{element.type} details</h2>
+    <Section key={element.id}>
+      <Title>{element.type} details</Title>
       <Field>
         Name
         <TextInput
@@ -64,9 +67,9 @@ export default function ElementDetails({
           </OnboardingTarget>
         )
       ) : (
-        <p className={`muted ${styles.noInteraction}`}>
+        <Muted className={styles.noInteraction}>
           This element doesn't support interactions.
-        </p>
+        </Muted>
       )}
       {element.role !== "popup" && (
         <Button
@@ -79,6 +82,6 @@ export default function ElementDetails({
           Delete
         </Button>
       )}
-    </section>
+    </Section>
   );
 }

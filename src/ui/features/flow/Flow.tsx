@@ -1,5 +1,8 @@
 import type { Feature, Project } from "../../../shared";
 import Button from "../../components/Button/Button";
+import Muted from "../../components/Muted/Muted";
+import Section from "../../components/Section/Section";
+import Title from "../../components/Title/Title";
 import { download, post } from "../../plugin";
 import { buildProjectMarkdown } from "../spec/utils/describe";
 import styles from "./Flow.module.css";
@@ -88,16 +91,16 @@ export default function Flow({
     });
   const screen = project.screens.find((item) => item.id === selectedScreenId);
   return (
-    <section>
+    <Section>
       {!!selected.length && (
         <>
-          <h2>Flow for {screen?.name}</h2>
+          <Title>Flow for {screen?.name}</Title>
           {connections(selected)}
           <hr className={styles.divider} />
         </>
       )}
       <div className={styles.header}>
-        <h2>Project flow</h2>
+        <Title>Project flow</Title>
         <Button
           disabled={!project.screens.length}
           onClick={() =>
@@ -111,10 +114,8 @@ export default function Flow({
           Export as Markdown
         </Button>
       </div>
-      {!project.features.length && (
-        <p className="muted">No behavior described yet.</p>
-      )}
+      {!project.features.length && <Muted>No behavior described yet.</Muted>}
       {connections(project.features)}
-    </section>
+    </Section>
   );
 }
