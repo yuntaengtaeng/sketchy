@@ -69,7 +69,7 @@ interface Feature {
 
 ## Feature와 Screen State의 관계
 
-State는 별도 상태 엔진이 아니라 원본 Screen을 복제한 파생 Screen이다. `baseScreenId`가 원본을 가리키며 Feature의 Action은 이 상태를 목적지로 참조한다. Popup 상태에는 원본 화면, Dim, 편집 가능한 Popup Section이 함께 있어 Flow와 Spec이 실제 시각 결과를 공유한다.
+State는 별도 상태 엔진이 아니라 원본 Screen을 참조하는 파생 Screen이다. `baseScreenId`가 원본을 가리키며 Feature의 Action은 이 상태를 목적지로 참조한다. Popup 상태는 원본 화면을 복제하지 않는다 — 배경이 투명한 프레임에 Dim과 편집 가능한 Popup Section만 놓는다. Figma의 Overlay 프로토타입(무료 기능)이 destination 프레임을 현재 프레임 위에 그대로 얹어 보여주므로, 실제 프리젠테이션에서는 원본 화면 위에 자연스럽게 겹쳐 보인다. 원본을 통째로 복제하면 원본을 나중에 고쳤을 때 복제본이 조용히 어긋나 One Source of Truth를 깨므로 하지 않는다.
 
 ## Feature를 발생시킬 수 있는 요소
 
@@ -158,6 +158,6 @@ Sketchy의 목표는 사용법을 읽게 하는 것이 아니라, 가장 적은 
 - 첫 결과는 `When clicked`, 추가 결과는 `Outcome N · Flow and Spec only`로 구분하고 `If` 조건과 함께 Flow와 Spec에 표시한다. 조건부 연결선은 점선으로 그리며 Figma가 판정할 수 없는 조건을 실행되는 것처럼 가장하지 않는다.
 - 저장·요청처럼 대표 결과와 함께 일어나는 비시각 부수효과는 각 결과의 `Additional result`에 적는다.
 - 기본 Case에서 실행 행동으로 노출한 선택지는 실제 Figma Prototype을 만든다. 실행할 수 없는 조건 Case에는 실행되는 것처럼 보이는 이름을 붙이지 않는다.
-- Popup은 원본 Screen을 복제한 파생 상태(`baseScreenId`)에 Dim과 Popup을 얹고 실제 Overlay로 연결한다. 화면 이동과 혼동하지 않도록 Flow에서는 중립 회색 점선을 사용한다. Plugin API로 위치를 보장할 수 없는 Snackbar는 실행 선택지로 노출하지 않는다.
+- Popup은 원본 Screen을 가리키는 파생 상태(`baseScreenId`)로, 배경 없는 프레임에 Dim과 Popup만 얹고 실제 Overlay로 연결한다 — 원본 화면은 복제하지 않는다. 화면 이동과 혼동하지 않도록 Flow에서는 중립 회색 점선을 사용한다. Plugin API로 위치를 보장할 수 없는 Snackbar는 실행 선택지로 노출하지 않는다.
 - Popup Destination은 같은 원본 Screen에서 파생된 상태로 제한한다. Popup 내부 버튼은 Figma의 실제 `CLOSE` 액션을 사용하며 중첩 Popup을 만들지 않는다.
 - 실제 데이터를 삭제하는 동작만 확인을 요구하고 원본 Screen 삭제 시 함께 제거되는 파생 상태와 incoming 연결 수를 알린다. 일반적인 선택, 생성, 연결, 액션 교체에는 확인창이나 별도 설정 화면을 두지 않는다.

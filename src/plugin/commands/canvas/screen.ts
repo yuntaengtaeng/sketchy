@@ -147,13 +147,14 @@ export async function createOverlayScreen(
     project.screens.filter((screen) => screen.baseScreenId === baseScreenId)
       .length + 1;
   const screenId = id();
-  const { frame, elements } = await cloneScreenContents(
-    project,
-    baseScreenId,
-    screenId,
-    source,
-  );
+
+  // 원본 화면은 복제하지 않는다, Figma Overlay가 알아서 위에 얹어 보여준다
+  const frame = figma.createFrame();
   frame.name = `${baseScreen.name} · Popup ${number}`;
+  frame.resize(source.width, source.height);
+  frame.fills = [];
+  frame.setPluginData("sketchy:type", "screen");
+  frame.setPluginData("sketchy:screen-id", screenId);
 
   const dim = figma.createRectangle();
   dim.name = "Dim";
@@ -161,7 +162,6 @@ export async function createOverlayScreen(
   dim.fills = [{ type: "SOLID", color: { r: 0.1, g: 0.1, b: 0.1 } }];
   dim.opacity = 0.4;
   frame.appendChild(dim);
-  dim.layoutPositioning = "ABSOLUTE";
   dim.x = 0;
   dim.y = 0;
 
@@ -183,7 +183,6 @@ export async function createOverlayScreen(
   popup.setPluginData("sketchy:screen-id", screenId);
   popup.setPluginData("sketchy:element-id", popupElementId);
   frame.appendChild(popup);
-  popup.layoutPositioning = "ABSOLUTE";
   popup.x = (frame.width - popup.width) / 2;
   popup.y = (frame.height - popup.height) / 2;
 
@@ -207,7 +206,6 @@ export async function createOverlayScreen(
     baseScreenId,
   } satisfies Screen;
   project.screens.push(screen);
-  project.elements.push(...elements);
   project.elements.push({
     id: popupElementId,
     nodeId: popup.id,
