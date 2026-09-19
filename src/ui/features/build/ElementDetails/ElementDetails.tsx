@@ -1,7 +1,7 @@
 import type { Element as SketchyElement, Project } from "../../../../shared";
 import { BLOCK_DEFINITIONS } from "../../../../shared";
 import { post } from "../../../plugin";
-import Button from "../../../components/Button";
+import Button from "../../../components/Button/Button";
 import { BLOCK_OPTIONS } from "../utils/blockRegistry";
 import styles from "./ElementDetails.module.css";
 import FeatureDetails from "../FeatureDetails/FeatureDetails";

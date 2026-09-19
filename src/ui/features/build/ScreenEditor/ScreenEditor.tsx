@@ -1,6 +1,6 @@
 import type { Project, Screen } from "../../../../shared";
 import { post } from "../../../plugin";
-import Button from "../../../components/Button";
+import Button from "../../../components/Button/Button";
 import BlockPicker from "../BlockPicker/BlockPicker";
 import styles from "./ScreenEditor.module.css";
 import NodeList from "../NodeList/NodeList";

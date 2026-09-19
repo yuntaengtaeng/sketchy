@@ -6,7 +6,7 @@ import type {
   Project,
 } from "../../../../shared";
 import { post } from "../../../plugin";
-import Button from "../../../components/Button";
+import Button from "../../../components/Button/Button";
 import styles from "./FeatureDetails.module.css";
 
 export type CaseChanges = { condition?: string; description?: string };
