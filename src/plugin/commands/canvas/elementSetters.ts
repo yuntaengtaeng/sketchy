@@ -170,7 +170,7 @@ export async function setListItemType(
   if (!element || element.type !== "listItem" || node?.type !== "FRAME")
     return project;
   element.itemType = itemType;
-  renderListItemType(node, itemType, element.count);
+  renderListItemType(node, itemType, element.count, element.items);
   saveProject(project);
   return project;
 }
@@ -185,7 +185,7 @@ export async function setCardType(
   if (!element || element.type !== "card" || node?.type !== "FRAME")
     return project;
   element.cardType = cardType;
-  renderCardType(node, cardType, element.count);
+  renderCardType(node, cardType, element.count, element.items);
   saveProject(project);
   return project;
 }
@@ -197,7 +197,7 @@ export async function setTableColumns(elementId: string, columns: string[]) {
   if (!element || element.type !== "table" || node?.type !== "FRAME")
     return project;
   element.columns = columns;
-  renderTableColumns(node, columns, element.count);
+  renderTableColumns(node, columns, element.count, element.rows);
   saveProject(project);
   return project;
 }
@@ -218,6 +218,55 @@ export async function setCount(elementId: string, count: number) {
     return project;
   element.count = count;
   renderCount(node, element);
+  saveProject(project);
+  return project;
+}
+
+// count보다 인덱스가 모자란 인스턴스는 렌더러가 placeholder로 채우므로,
+// 여기서는 입력받은 배열을 그대로 저장하고 다시 그리기만 한다
+export async function setCardContent(
+  elementId: string,
+  items: { primary?: string; secondary?: string }[],
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "card" || node?.type !== "FRAME")
+    return project;
+  element.items = items;
+  renderCardType(node, element.cardType ?? "basic", element.count, items);
+  saveProject(project);
+  return project;
+}
+
+export async function setListItemContent(
+  elementId: string,
+  items: { title?: string; subtitle?: string; value?: string }[],
+) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "listItem" || node?.type !== "FRAME")
+    return project;
+  element.items = items;
+  renderListItemType(node, element.itemType ?? "basic", element.count, items);
+  saveProject(project);
+  return project;
+}
+
+export async function setTableRows(elementId: string, rows: string[][]) {
+  const project = readProject();
+  const element = project.elements.find((item) => item.id === elementId);
+  const node = element && (await figma.getNodeByIdAsync(element.nodeId));
+  if (!element || element.type !== "table" || node?.type !== "FRAME")
+    return project;
+  element.rows = rows;
+  renderTableColumns(
+    node,
+    element.columns ?? ["Column 1", "Column 2", "Column 3"],
+    element.count,
+    rows,
+  );
   saveProject(project);
   return project;
 }

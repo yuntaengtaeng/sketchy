@@ -68,10 +68,17 @@ Tabs의 `selectedTab`은 이 Tabs 인스턴스가 지금 어떤 탭이 선택된
 속성(`itemType`/`cardType`/`columns`)이 바뀌면 매번 전체를 지우고
 다시 그린다(부분 diff 대신 전체 rebuild, 개수가 작아 단순함을 우선).
 
+인스턴스별 실제 콘텐츠는 Card/List Item이 `items`(인스턴스당 고정된
+소수의 텍스트 필드, 예: stat은 value/label), Table이 `rows`(행×열
+문자열 행렬)로 각자 자기 모양 그대로 가진다 — 세 블록을 하나의 공통
+데이터 모델로 억지로 묶지 않는다. `count`보다 인덱스가 모자란
+인스턴스는 렌더러가 그 자리만 기존 placeholder("128"/"Title" 등)로
+채운다.
+
 ## Picker UI — Quick add + 카테고리
 
-`BlockPicker.tsx`는 Text/Button/Input/Image 4개 고정 + 마지막으로 고른
-블록 1개(Recent) + `More…`만 항상 보여준다. `More…`를 누르면 열리는
+`BlockPicker.tsx`는 Text/Button/Input/Image/Section 5개 고정 + `More…`만
+항상 보여준다. `More…`를 누르면 열리는
 Picker는 [기능 모델](../product/feature-model.md)의 Trigger 축(트리거
 없음/click/change·submit)과 같은 기준으로 Basic/Interactive/Form 세
 카테고리로 나눈다 — Picker 전용의 새 분류체계를 따로 만들지 않는다. 블록이

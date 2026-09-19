@@ -8,15 +8,18 @@ export {
 } from "./element";
 export {
   setButtonVariant,
+  setCardContent,
   setCardType,
   setChecked,
   setCount,
   setInputPlaceholder,
+  setListItemContent,
   setListItemType,
   setSectionDirection,
   setSelectDisplayState,
   setSelectOptions,
   setTableColumns,
+  setTableRows,
   setTabItems,
   setTabSelection,
   setTextSize,

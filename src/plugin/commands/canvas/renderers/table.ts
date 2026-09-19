@@ -43,6 +43,7 @@ export function rebuildTable(
   container: FrameNode,
   columns: string[],
   count?: number,
+  rows?: string[][],
 ) {
   for (const child of [...container.children])
     if (child.getPluginData(PART) === "table-row") child.remove();
@@ -51,8 +52,9 @@ export function rebuildTable(
   container.appendChild(header);
   header.layoutSizingHorizontal = "FILL";
   for (let index = 0; index < clampCount(count); index++) {
+    const rowValues = rows?.[index];
     const row = buildTableRow(
-      columns.map(() => "Value"),
+      columns.map((_, columnIndex) => rowValues?.[columnIndex] || "Value"),
       false,
       `Row ${index + 1}`,
       columns,
@@ -73,6 +75,7 @@ export function createTableNode(element: DomainElement & { type: "table" }) {
     table,
     element.columns ?? ["Column 1", "Column 2", "Column 3"],
     element.count,
+    element.rows,
   );
   return table;
 }
@@ -81,6 +84,7 @@ export function renderTableColumns(
   node: FrameNode,
   columns: string[],
   count?: number,
+  rows?: string[][],
 ) {
-  rebuildTable(node, columns, count);
+  rebuildTable(node, columns, count, rows);
 }

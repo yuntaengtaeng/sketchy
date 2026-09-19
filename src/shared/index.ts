@@ -174,6 +174,19 @@ export type RepeatCount = { count?: number };
 export type ListItemType = { itemType?: "basic" | "leading" | "trailing" };
 export type CardType = { cardType?: "basic" | "media" | "stat" };
 export type TableColumns = { columns?: string[] };
+// Card는 cardType과 무관하게 항상 큰 텍스트 1개 + 작은 텍스트 1개 구조라
+// (stat=value/label, basic·media=title/description) 인스턴스당 필드 2개로
+// 통일한다, 인덱스가 count보다 모자라면 렌더러가 그 자리만 placeholder를 쓴다
+export type CardContent = {
+  items?: { primary?: string; secondary?: string }[];
+};
+// List Item은 basic/leading이 title/subtitle 2개, trailing만 value가 더 붙는다
+export type ListItemContent = {
+  items?: { title?: string; subtitle?: string; value?: string }[];
+};
+// Table은 원래 행×열 행렬이라 Card/List Item과 다른 모양 그대로 담는다,
+// 억지로 같은 trait로 묶지 않는다
+export type TableRows = { rows?: string[][] };
 
 // BlockType별로 반복되는 "ElementBase & {type} & trait들" 조립을 한 곳에 모은다
 type ElementVariant<
@@ -188,9 +201,9 @@ export type Element =
   | ElementVariant<"image">
   | ElementVariant<"divider">
   | ElementVariant<"section", SectionDirection>
-  | ElementVariant<"listItem", ListItemType & RepeatCount>
-  | ElementVariant<"card", CardType & RepeatCount>
-  | ElementVariant<"table", TableColumns & RepeatCount>
+  | ElementVariant<"listItem", ListItemType & RepeatCount & ListItemContent>
+  | ElementVariant<"card", CardType & RepeatCount & CardContent>
+  | ElementVariant<"table", TableColumns & RepeatCount & TableRows>
   | ElementVariant<"tabs", TabItems>
   | ElementVariant<"select", SelectOptions>
   | ElementVariant<"checkbox", Checked>

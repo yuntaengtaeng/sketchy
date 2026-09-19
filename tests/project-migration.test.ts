@@ -98,3 +98,67 @@ test("drops elements from deleted block types and strips deleted element fields"
     },
   ]);
 });
+
+test("keeps per-instance content on Card/List Item/Table through migration", () => {
+  const project = migrateStoredProject(
+    parseStoredProject(
+      JSON.stringify({
+        settings: { screenPreset: "mobile" },
+        elements: [
+          {
+            id: "stat",
+            nodeId: "1:1",
+            screenId: "screen",
+            name: "Stat",
+            type: "card",
+            cardType: "stat",
+            count: 2,
+            items: [
+              { primary: "128", secondary: "Users" },
+              { primary: "45", secondary: "Orders" },
+            ],
+          },
+          {
+            id: "table",
+            nodeId: "1:2",
+            screenId: "screen",
+            name: "Table",
+            type: "table",
+            columns: ["Name", "Status"],
+            count: 1,
+            rows: [["Alice", "Active"]],
+          },
+        ],
+      }),
+    ),
+  );
+  assert.deepEqual(
+    project.elements.find((element) => element.id === "stat"),
+    {
+      id: "stat",
+      nodeId: "1:1",
+      screenId: "screen",
+      name: "Stat",
+      type: "card",
+      cardType: "stat",
+      count: 2,
+      items: [
+        { primary: "128", secondary: "Users" },
+        { primary: "45", secondary: "Orders" },
+      ],
+    },
+  );
+  assert.deepEqual(
+    project.elements.find((element) => element.id === "table"),
+    {
+      id: "table",
+      nodeId: "1:2",
+      screenId: "screen",
+      name: "Table",
+      type: "table",
+      columns: ["Name", "Status"],
+      count: 1,
+      rows: [["Alice", "Active"]],
+    },
+  );
+});

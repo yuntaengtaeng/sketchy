@@ -122,14 +122,25 @@ export function renderCount(
   element: Element & { type: "listItem" | "card" | "table" },
 ) {
   if (element.type === "listItem")
-    rebuildListItemRows(node, element.itemType ?? "basic", element.count);
+    rebuildListItemRows(
+      node,
+      element.itemType ?? "basic",
+      element.count,
+      element.items,
+    );
   else if (element.type === "card")
-    rebuildCards(node, element.cardType ?? "basic", element.count);
+    rebuildCards(
+      node,
+      element.cardType ?? "basic",
+      element.count,
+      element.items,
+    );
   else
     rebuildTable(
       node,
       element.columns ?? ["Column 1", "Column 2", "Column 3"],
       element.count,
+      element.rows,
     );
 }
 

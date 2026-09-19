@@ -9,15 +9,18 @@ import {
   moveElement,
   reorderElement,
   setButtonVariant,
+  setCardContent,
   setCardType,
   setChecked,
   setCount,
   setInputPlaceholder,
+  setListItemContent,
   setListItemType,
   setSectionDirection,
   setSelectDisplayState,
   setSelectOptions,
   setTableColumns,
+  setTableRows,
   setTabItems,
   setTabSelection,
   setTextSize,
@@ -185,6 +188,12 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       await sync(await setTableColumns(message.elementId, message.columns));
     if (message.type === "SET_COUNT")
       await sync(await setCount(message.elementId, message.count));
+    if (message.type === "SET_CARD_CONTENT")
+      await sync(await setCardContent(message.elementId, message.items));
+    if (message.type === "SET_LIST_ITEM_CONTENT")
+      await sync(await setListItemContent(message.elementId, message.items));
+    if (message.type === "SET_TABLE_ROWS")
+      await sync(await setTableRows(message.elementId, message.rows));
     if (message.type === "DELETE_ELEMENT")
       await sync(await deleteElement(message.elementId), true);
     if (message.type === "MOVE_ELEMENT")

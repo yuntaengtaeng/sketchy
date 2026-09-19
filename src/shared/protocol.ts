@@ -64,6 +64,17 @@ export type PluginMessage =
   | { type: "SET_TABLE_COLUMNS"; elementId: string; columns: string[] }
   | { type: "SET_COUNT"; elementId: string; count: number }
   | {
+      type: "SET_CARD_CONTENT";
+      elementId: string;
+      items: { primary?: string; secondary?: string }[];
+    }
+  | {
+      type: "SET_LIST_ITEM_CONTENT";
+      elementId: string;
+      items: { title?: string; subtitle?: string; value?: string }[];
+    }
+  | { type: "SET_TABLE_ROWS"; elementId: string; rows: string[][] }
+  | {
       type: "SAVE_FEATURE";
       sourceElementId: string;
       featureId?: string;
