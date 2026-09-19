@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { DomainElement, Screen } from "../src/shared/index.ts";
-import { validateFeatureAction } from "../src/core/validate-feature-action.ts";
+import type { DomainElement, Screen } from "../../src/shared/index.ts";
+import { validateFeatureAction } from "../../src/core/validate-feature-action.ts";
 
 const project: {
   settings: { screenPreset: "mobile"; showFlowArrows: true };

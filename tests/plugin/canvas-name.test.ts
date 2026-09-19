@@ -3,7 +3,7 @@ import test from "node:test";
 import {
   adoptCanvasName,
   elementLabelText,
-} from "../src/plugin/canvas-name.ts";
+} from "../../src/plugin/canvas-name.ts";
 
 test("adopts meaningful Canvas names without erasing Sketchy names", () => {
   const item = { name: "Button" };

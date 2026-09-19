@@ -4,8 +4,8 @@ import {
   createEmptyProject,
   type Element,
   type Screen,
-} from "../src/shared/index.ts";
-import { getOnboardingStep } from "../src/ui/features/build/onboarding.ts";
+} from "../../src/shared/index.ts";
+import { getOnboardingStep } from "../../src/ui/features/build/onboarding.ts";
 
 const screen: Screen = {
   id: "screen-1",

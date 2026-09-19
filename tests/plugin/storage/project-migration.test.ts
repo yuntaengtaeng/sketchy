@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   migrateStoredProject,
   parseStoredProject,
-} from "../src/plugin/storage/project-migration.ts";
+} from "../../../src/plugin/storage/project-migration.ts";
 
 test("parses and migrates legacy project actions and interactions", () => {
   const featureProject = migrateStoredProject(

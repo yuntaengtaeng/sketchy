@@ -4,8 +4,9 @@ import {
   buildProjectFlowDiagram,
   buildProjectMarkdown,
   describeFeature,
-} from "../src/ui/features/spec/describe.ts";
-import type { Project } from "../src/shared/index.ts";
+  outlineElements,
+} from "../../src/ui/features/spec/describe.ts";
+import type { Project } from "../../src/shared/index.ts";
 
 const project: Project = {
   settings: { screenPreset: "mobile", showFlowArrows: true },
@@ -135,6 +136,45 @@ test("describes a toast outcome as a real result, not a documentation-only one",
     describeFeature(withToast, withToast.features[0]),
     "Click Buy → Show toast: Added to your wishlist",
   );
+});
+
+test("describes a conditional outcome as a readable sentence", () => {
+  assert.equal(
+    describeFeature(project, {
+      id: "like",
+      screenId: "detail",
+      name: "Like",
+      trigger: { type: "click", elementId: "buy" },
+      action: { type: "describe" },
+      condition: "Not signed in",
+      description: "Add this item to favorites",
+    }),
+    "When Not signed in, Click Buy → Add this item to favorites",
+  );
+});
+
+test("numbers nested elements hierarchically", () => {
+  const outline = outlineElements([
+    {
+      id: "section",
+      screenId: "detail",
+      name: "Section",
+      type: "section",
+      order: 0,
+      nodeId: "1:1",
+    },
+    {
+      id: "button",
+      screenId: "detail",
+      name: "Button",
+      type: "button",
+      parentElementId: "section",
+      order: 1,
+      nodeId: "1:2",
+    },
+  ]);
+  assert.equal(outline[0]?.number, "1");
+  assert.equal(outline[0]?.children[0]?.number, "1-1");
 });
 
 test("falls back to placeholder text for empty screens", () => {

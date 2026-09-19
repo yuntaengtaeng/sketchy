@@ -5,7 +5,7 @@ import {
   elementAncestors,
   elementSiblings,
   nextElementName,
-} from "../src/shared/element-tree.ts";
+} from "../../src/shared/element-tree.ts";
 
 const elements = [
   { id: "outer", screenId: "screen", type: "section", order: 0 },
