@@ -106,14 +106,14 @@ export default function ScreenEditor({
       </OnboardingTarget>
       <section>
         {!screen.kind && (
-          <button
+          <Button
             className={styles.secondaryAction}
             onClick={() =>
               post({ type: "DUPLICATE_SCREEN", screenId: screen.id })
             }
           >
             Duplicate screen
-          </button>
+          </Button>
         )}
         <Button
           variant="danger"
@@ -176,7 +176,7 @@ export function ScreenSelect({
 export function NewScreen({ project }: { project: Project }) {
   const hasScreens = project.screens.some((screen) => !screen.kind);
   return (
-    <button
+    <Button
       onClick={() =>
         post({
           type: "CREATE_SCREEN",
@@ -185,6 +185,6 @@ export function NewScreen({ project }: { project: Project }) {
       }
     >
       {hasScreens ? "+ Screen" : "Create first screen"}
-    </button>
+    </Button>
   );
 }

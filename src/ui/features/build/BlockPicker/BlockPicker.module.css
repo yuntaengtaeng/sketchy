@@ -267,9 +267,7 @@
 }
 
 .pickerClose {
-  min-height: 0;
   padding: var(--space-1);
-  border: 0;
   font-size: 17px;
   line-height: 1;
 }

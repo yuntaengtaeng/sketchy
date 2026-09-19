@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type DragEvent } from "react";
 import type { Element as SketchyElement } from "../../../../shared";
+import Button from "../../../components/Button/Button";
 import { post } from "../../../plugin";
 import styles from "./NodeList.module.css";
 
@@ -127,7 +128,7 @@ export default function NodeList({
               >
                 ⠿
               </span>
-              <button
+              <Button
                 className={styles.nodeSelect}
                 aria-pressed={selectedElementId === item.id}
                 onClick={() =>
@@ -136,11 +137,12 @@ export default function NodeList({
               >
                 <span>{item.name}</span>
                 <small>{item.type}</small>
-              </button>
+              </Button>
               {/* popup 자체는 지울 수 없다(ElementDetails의 Delete와 동일
               규칙), 확인창도 그쪽과 맞춰 없앤다 */}
               {item.role !== "popup" && (
-                <button
+                <Button
+                  variant="plain"
                   className={styles.nodeDelete}
                   aria-label={`Delete ${item.name}`}
                   onClick={() =>
@@ -148,7 +150,7 @@ export default function NodeList({
                   }
                 >
                   ×
-                </button>
+                </Button>
               )}
             </div>
           </Fragment>

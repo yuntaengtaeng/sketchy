@@ -24,12 +24,6 @@
   color: #fff;
 }
 
-.plain {
-  min-height: 0;
-  padding: 0;
-  border: 0;
-}
-
 .settings {
   width: var(--space-8);
   padding: 0;

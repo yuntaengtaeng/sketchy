@@ -1,3 +1,4 @@
+import Button from "../Button/Button";
 import styles from "./StringListField.module.css";
 
 // Tabs의 tabItems, Select의 options가 공유하는 "문자열 목록 편집" 컨트롤,
@@ -29,8 +30,9 @@ export default function StringListField({
                 onChange(next);
               }}
             />
-            <button
-              type="button"
+            <Button
+              variant="plain"
+              className={styles.rowRemove}
               disabled={items.length <= 1}
               title={
                 items.length <= 1 ? "At least one item is required" : undefined
@@ -38,16 +40,15 @@ export default function StringListField({
               onClick={() => onChange(items.filter((_, i) => i !== index))}
             >
               Remove
-            </button>
+            </Button>
           </div>
         ))}
       </div>
-      <button
-        type="button"
+      <Button
         onClick={() => onChange([...items, `${itemLabel} ${items.length + 1}`])}
       >
         + Add
-      </button>
+      </Button>
     </div>
   );
 }

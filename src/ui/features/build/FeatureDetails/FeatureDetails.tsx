@@ -5,6 +5,7 @@ import type {
   Project,
 } from "../../../../shared";
 import { post } from "../../../plugin";
+import Button from "../../../components/Button/Button";
 import FeatureCaseEditor, { type CaseChanges } from "./FeatureCaseEditor";
 
 export default function FeatureDetails({
@@ -43,12 +44,9 @@ export default function FeatureDetails({
         />
       ))}
       {!!features.length && (
-        <button
-          type="button"
-          onClick={() => save(undefined, { type: "describe" })}
-        >
+        <Button onClick={() => save(undefined, { type: "describe" })}>
           + Another outcome
-        </button>
+        </Button>
       )}
     </>
   );

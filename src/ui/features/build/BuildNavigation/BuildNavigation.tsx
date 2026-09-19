@@ -5,6 +5,7 @@ import type {
   Screen,
 } from "../../../../shared";
 import { elementAncestors, elementSiblings } from "../../../../shared";
+import Button from "../../../components/Button/Button";
 import { post } from "../../../plugin";
 import styles from "./BuildNavigation.module.css";
 import { NewScreen, ScreenSelect } from "../ScreenEditor/ScreenEditor";
@@ -36,13 +37,15 @@ export default function BuildNavigation({
         breadcrumb 자체를 비워 셀렉트 하나만 보이게 한다 */}
         {path.length > 0 && (
           <nav className={styles.breadcrumb} aria-label="Current selection">
-            <button
+            <Button
+              variant="plain"
+              className={styles.breadcrumbButton}
               onClick={() =>
                 post({ type: "SELECT_SCREEN", screenId: screen.id })
               }
             >
               {screen.name}
-            </button>
+            </Button>
             {path.map((item) => {
               const current = item.id === element?.id;
               return (
@@ -51,13 +54,15 @@ export default function BuildNavigation({
                   {current ? (
                     <b aria-current="page">{item.name}</b>
                   ) : (
-                    <button
+                    <Button
+                      variant="plain"
+                      className={styles.breadcrumbButton}
                       onClick={() =>
                         post({ type: "SELECT_ELEMENT", elementId: item.id })
                       }
                     >
                       {item.name}
-                    </button>
+                    </Button>
                   )}
                 </span>
               );

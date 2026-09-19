@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Button from "../../../components/Button/Button";
 import type { OnboardingStep } from "../utils/onboarding";
 import styles from "./OnboardingCoachmark.module.css";
 
@@ -40,9 +41,9 @@ export default function OnboardingCoachmark({
           <small>{copy.progress}</small>
           <b>{copy.title}</b>
         </p>
-        <button type="button" className={styles.skip} onClick={onSkip}>
+        <Button variant="plain" className={styles.skip} onClick={onSkip}>
           Skip
-        </button>
+        </Button>
       </aside>
     </>
   );

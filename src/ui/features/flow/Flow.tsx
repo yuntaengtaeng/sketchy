@@ -1,4 +1,5 @@
 import type { Feature, Project } from "../../../shared";
+import Button from "../../components/Button/Button";
 import { download, post } from "../../plugin";
 import { buildProjectMarkdown } from "../spec/utils/describe";
 import styles from "./Flow.module.css";
@@ -32,11 +33,11 @@ export default function Flow({
           : undefined;
       return (
         <div className={styles.connection} key={feature.id}>
-          <button
+          <Button
             onClick={() => post({ type: "SELECT_SCREEN", screenId: source.id })}
           >
             {source.name}
-          </button>
+          </Button>
           <span>
             <small>
               {feature.name}
@@ -55,13 +56,13 @@ export default function Flow({
             </div>
           ) : "destinationScreenId" in action ? (
             destination ? (
-              <button
+              <Button
                 onClick={() =>
                   post({ type: "SELECT_SCREEN", screenId: destination.id })
                 }
               >
                 {destination.name}
-              </button>
+              </Button>
             ) : (
               <div>
                 Choose destination
@@ -97,7 +98,7 @@ export default function Flow({
       )}
       <div className={styles.header}>
         <h2>Project flow</h2>
-        <button
+        <Button
           disabled={!project.screens.length}
           onClick={() =>
             download(
@@ -108,7 +109,7 @@ export default function Flow({
           }
         >
           Export as Markdown
-        </button>
+        </Button>
       </div>
       {!project.features.length && (
         <p className="muted">No behavior described yet.</p>

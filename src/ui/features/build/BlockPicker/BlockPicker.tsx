@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BLOCK_DEFINITIONS, type BlockType } from "../../../../shared";
 import { SEARCH_ICON } from "../../../../shared/icons";
+import Button from "../../../components/Button/Button";
 import { post } from "../../../plugin";
 import styles from "./BlockPicker.module.css";
 
@@ -159,7 +160,7 @@ export default function BlockPicker({
   };
 
   const cell = (block: BlockType) => (
-    <button
+    <Button
       className={styles.block}
       data-block={block}
       key={block}
@@ -170,7 +171,7 @@ export default function BlockPicker({
         {COMPOSITE_PREVIEWS[block]}
       </span>
       <span>{BLOCK_DEFINITIONS[block].label}</span>
-    </button>
+    </Button>
   );
 
   const activeCategory = CATEGORIES.find((item) => item.key === category)!;
@@ -180,7 +181,7 @@ export default function BlockPicker({
       <h2>{sectionId ? "Add to section" : "Add something"}</h2>
       <div className={styles.blocks}>
         {QUICK_FIXED.filter(allowed).map(cell)}
-        <button
+        <Button
           ref={moreButtonRef}
           className={`${styles.block} ${styles.more}`}
           onClick={() => setOpen(true)}
@@ -189,7 +190,7 @@ export default function BlockPicker({
             +
           </span>
           <span>More…</span>
-        </button>
+        </Button>
       </div>
       {open && (
         <div className={styles.pickerOverlay} onClick={() => setOpen(false)}>
@@ -203,23 +204,24 @@ export default function BlockPicker({
           >
             <div className={styles.pickerHead}>
               <b>{sectionId ? "Add to section" : "Add something"}</b>
-              <button
+              <Button
+                variant="plain"
                 className={styles.pickerClose}
                 aria-label="Close"
                 onClick={() => setOpen(false)}
               >
                 ×
-              </button>
+              </Button>
             </div>
             <div className={styles.pickerTabs}>
               {CATEGORIES.map((item) => (
-                <button
+                <Button
                   key={item.key}
                   aria-pressed={item.key === category}
                   onClick={() => setCategory(item.key)}
                 >
                   {item.label}
-                </button>
+                </Button>
               ))}
             </div>
             <div className={styles.pickerBody}>

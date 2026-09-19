@@ -33,7 +33,6 @@ main {
   margin: auto;
 }
 
-button,
 input,
 select,
 textarea {
@@ -45,20 +44,6 @@ textarea {
   padding: var(--space-2);
 }
 
-button {
-  cursor: pointer;
-  text-transform: capitalize;
-  min-height: var(--space-8);
-}
-button:hover,
-button.active {
-  background: var(--figma-color-bg-hover, #eee);
-  color: var(--sketchy-ink);
-}
-button:active {
-  background: var(--figma-color-bg-pressed, #ddd);
-}
-button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {

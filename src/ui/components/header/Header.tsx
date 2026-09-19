@@ -1,3 +1,4 @@
+import Button from "../Button/Button";
 import styles from "./Header.module.css";
 
 export type Tab = "build" | "flow" | "spec";
@@ -16,22 +17,21 @@ export default function Header({
       <b>Sketchy</b>
       <nav className={styles.tabs} aria-label="Views">
         {(["build", "flow", "spec"] as Tab[]).map((item) => (
-          <button
+          <Button
             key={item}
-            className={tab === item ? "active" : ""}
             aria-pressed={tab === item}
             onClick={() => onChange(item)}
           >
             {item}
-          </button>
+          </Button>
         ))}
-        <button
+        <Button
           className={styles.settings}
           aria-label="Settings"
           onClick={onSettings}
         >
           ⚙
-        </button>
+        </Button>
       </nav>
     </header>
   );

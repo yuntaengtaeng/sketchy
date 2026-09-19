@@ -110,9 +110,8 @@ export default function FeatureCaseEditor({
         <span>Result</span>
         <div className={styles.choices}>
           {choices.map(([value, label]) => (
-            <button
+            <Button
               key={value}
-              type="button"
               aria-pressed={activeChoice === value}
               onClick={() => {
                 if (action?.type === value) return;
@@ -134,7 +133,7 @@ export default function FeatureCaseEditor({
               }}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -174,24 +173,22 @@ export default function FeatureCaseEditor({
         </label>
       )}
       {popupSection && (
-        <button
-          type="button"
+        <Button
           onClick={() =>
             post({ type: "SELECT_ELEMENT", elementId: popupSection.id })
           }
         >
           Edit popup
-        </button>
+        </Button>
       )}
       {toastMessageElement && (
-        <button
-          type="button"
+        <Button
           onClick={() =>
             post({ type: "SELECT_ELEMENT", elementId: toastMessageElement.id })
           }
         >
           Edit toast message
-        </button>
+        </Button>
       )}
       {feature && (
         <label>

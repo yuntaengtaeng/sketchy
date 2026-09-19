@@ -1,3 +1,4 @@
+import Button from "../Button/Button";
 import styles from "./Header.module.css";
 
 export default function BackNavigation({
@@ -9,9 +10,9 @@ export default function BackNavigation({
 }) {
   return (
     <header className={styles.header}>
-      <button className={styles.plain} onClick={onBack}>
+      <Button variant="plain" onClick={onBack}>
         ← Back
-      </button>
+      </Button>
       <b>{title}</b>
     </header>
   );

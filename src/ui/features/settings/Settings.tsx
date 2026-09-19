@@ -3,6 +3,7 @@ import {
   type ProjectSettings,
   type ScreenPreset,
 } from "../../../shared";
+import Button from "../../components/Button/Button";
 import CheckedField from "../../components/properties/CheckedField";
 import { post } from "../../plugin";
 import styles from "./Settings.module.css";
@@ -17,7 +18,7 @@ export default function Settings({ settings }: { settings: ProjectSettings }) {
           {(Object.keys(SCREEN_PRESETS) as ScreenPreset[]).map((preset) => {
             const option = SCREEN_PRESETS[preset];
             return (
-              <button
+              <Button
                 key={preset}
                 className={styles.preset}
                 aria-pressed={settings.screenPreset === preset}
@@ -32,7 +33,7 @@ export default function Settings({ settings }: { settings: ProjectSettings }) {
                 <small>
                   {option.width} × {option.height}
                 </small>
-              </button>
+              </Button>
             );
           })}
         </div>

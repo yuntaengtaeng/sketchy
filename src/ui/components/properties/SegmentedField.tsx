@@ -1,3 +1,4 @@
+import Button from "../Button/Button";
 import styles from "./SegmentedField.module.css";
 
 // 고정된 소수의 배타적 선택에 쓰는 공용 컨트롤 (TextSize, Button Width, Select
@@ -18,14 +19,13 @@ export default function SegmentedField<T extends string>({
       {label}
       <div className={styles.segmented}>
         {options.map((option) => (
-          <button
+          <Button
             key={option.value}
-            type="button"
             aria-pressed={option.value === value}
             onClick={() => onChange(option.value)}
           >
             {option.label}
-          </button>
+          </Button>
         ))}
       </div>
     </label>

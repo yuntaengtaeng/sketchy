@@ -72,10 +72,8 @@
   gap: var(--space-1);
 }
 
-.breadcrumb button {
-  min-height: 0;
+.breadcrumbButton {
   padding: var(--space-1);
-  border: 0;
   text-transform: none;
 }
 

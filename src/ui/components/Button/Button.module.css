@@ -1,14 +1,39 @@
-.danger {
+.button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-transform: capitalize;
+  border: 1px solid var(--sketchy-line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: var(--space-2);
+  min-height: var(--space-8);
+}
+
+.button:hover {
+  background: var(--figma-color-bg-hover, #eee);
+  color: var(--sketchy-ink);
+}
+
+.button:active {
+  background: var(--figma-color-bg-pressed, #ddd);
+}
+
+.button:focus-visible {
+  outline: 2px dashed var(--sketchy-ink);
+  outline-offset: 2px;
+}
+
+/* 테두리·배경 없이 텍스트만 있는 가벼운 버튼, 압축된 위치의 보조 액션용
+   .button을 안 받으니 hover/active 배경도 처음부터 없다 */
+.plain {
   border: 0;
   min-height: 0;
   padding: 0;
-  border-radius: 0;
   background: transparent;
-  color: var(--figma-color-text-danger, #a00);
-  text-decoration: underline;
 }
 
-.danger:hover,
-.danger:active {
-  background: transparent;
+.danger {
+  color: var(--figma-color-text-danger, #a00);
+  text-decoration: underline;
 }
