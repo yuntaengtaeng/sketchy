@@ -1,4 +1,5 @@
 import Button from "../Button/Button";
+import TextInput from "../TextInput/TextInput";
 import styles from "./StringListField.module.css";
 
 // Tabs의 tabItems, Select의 options가 공유하는 "문자열 목록 편집" 컨트롤,
@@ -22,7 +23,7 @@ export default function StringListField({
       <div className={styles.rows}>
         {items.map((item, index) => (
           <div className={styles.row} key={index}>
-            <input
+            <TextInput
               defaultValue={item}
               onBlur={(event) => {
                 const next = [...items];

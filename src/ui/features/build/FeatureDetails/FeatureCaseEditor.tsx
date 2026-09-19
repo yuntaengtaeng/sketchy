@@ -7,6 +7,10 @@ import type {
 } from "../../../../shared";
 import { post } from "../../../plugin";
 import Button from "../../../components/Button/Button";
+import Field from "../../../components/Field/Field";
+import Select from "../../../components/Select/Select";
+import TextInput from "../../../components/TextInput/TextInput";
+import Textarea from "../../../components/Textarea/Textarea";
 import styles from "./FeatureDetails.module.css";
 
 export type CaseChanges = { condition?: string; description?: string };
@@ -93,9 +97,9 @@ export default function FeatureCaseEditor({
         )}
       </legend>
       {!!index && feature && (
-        <label>
+        <Field>
           If
-          <input
+          <TextInput
             defaultValue={feature.condition || ""}
             placeholder="e.g. Cannot continue yet"
             onBlur={(event) =>
@@ -104,7 +108,7 @@ export default function FeatureCaseEditor({
               })
             }
           />
-        </label>
+        </Field>
       )}
       <div className={styles.actions}>
         <span>Result</span>
@@ -138,9 +142,9 @@ export default function FeatureCaseEditor({
         </div>
       </div>
       {destinationAction && (
-        <label>
+        <Field>
           Destination
-          <select
+          <Select
             value={destinationAction.destinationScreenId || ""}
             onChange={(event) => {
               if (!event.target.value) return;
@@ -169,8 +173,8 @@ export default function FeatureCaseEditor({
                   {item.name}
                 </option>
               ))}
-          </select>
-        </label>
+          </Select>
+        </Field>
       )}
       {popupSection && (
         <Button
@@ -191,11 +195,11 @@ export default function FeatureCaseEditor({
         </Button>
       )}
       {feature && (
-        <label>
+        <Field>
           {feature.action.type === "describe"
             ? "What happens?"
             : "Additional result"}
-          <textarea
+          <Textarea
             defaultValue={feature.description || ""}
             placeholder={
               feature.action.type === "describe"
@@ -208,7 +212,7 @@ export default function FeatureCaseEditor({
               })
             }
           />
-        </label>
+        </Field>
       )}
       {feature && (
         <Button

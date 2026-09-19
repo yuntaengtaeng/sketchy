@@ -6,6 +6,7 @@ import type {
 } from "../../../../shared";
 import { elementAncestors, elementSiblings } from "../../../../shared";
 import Button from "../../../components/Button/Button";
+import Select from "../../../components/Select/Select";
 import { post } from "../../../plugin";
 import styles from "./BuildNavigation.module.css";
 import { NewScreen, ScreenSelect } from "../ScreenEditor/ScreenEditor";
@@ -88,7 +89,7 @@ export default function BuildNavigation({
         <label className={styles.levelPicker}>
           {/* 부모 이름은 breadcrumb에 이미 나와 있어 여기서 또 말하지 않는다 */}
           Switch
-          <select
+          <Select
             value={element.id}
             onChange={(event) =>
               post({ type: "SELECT_ELEMENT", elementId: event.target.value })
@@ -99,7 +100,7 @@ export default function BuildNavigation({
                 {item.name} · {item.type}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       )}
     </section>

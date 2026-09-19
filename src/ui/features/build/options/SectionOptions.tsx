@@ -1,5 +1,7 @@
 import type { Element as SketchyElement } from "../../../../shared";
 import { post } from "../../../plugin";
+import Field from "../../../components/Field/Field";
+import Select from "../../../components/Select/Select";
 
 export default function SectionOptions({
   element,
@@ -8,9 +10,9 @@ export default function SectionOptions({
 }) {
   const direction = element.type === "section" ? element.direction : "vertical";
   return (
-    <label>
+    <Field>
       Direction
-      <select
+      <Select
         value={direction || "vertical"}
         onChange={(event) =>
           post({
@@ -22,7 +24,7 @@ export default function SectionOptions({
       >
         <option value="vertical">Vertical ↓</option>
         <option value="horizontal">Horizontal →</option>
-      </select>
-    </label>
+      </Select>
+    </Field>
   );
 }

@@ -1,12 +1,14 @@
 import type { Element as SketchyElement } from "../../../../shared";
 import { post } from "../../../plugin";
+import Field from "../../../components/Field/Field";
+import TextInput from "../../../components/TextInput/TextInput";
 
 export default function InputOptions({ element }: { element: SketchyElement }) {
   const placeholder = element.type === "input" ? element.placeholder : "";
   return (
-    <label>
+    <Field>
       Placeholder
-      <input
+      <TextInput
         defaultValue={placeholder}
         placeholder="Type here..."
         onBlur={(event) =>
@@ -17,6 +19,6 @@ export default function InputOptions({ element }: { element: SketchyElement }) {
           })
         }
       />
-    </label>
+    </Field>
   );
 }

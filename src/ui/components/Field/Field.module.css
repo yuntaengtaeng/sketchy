@@ -1,11 +1,14 @@
+.column {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  color: var(--figma-color-text-secondary, #666);
+}
+
 .row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   margin-top: var(--space-2);
   color: var(--figma-color-text, #222);
-}
-
-.row input {
-  width: auto;
 }

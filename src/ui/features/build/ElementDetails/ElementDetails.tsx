@@ -2,6 +2,9 @@ import type { Element as SketchyElement, Project } from "../../../../shared";
 import { BLOCK_DEFINITIONS } from "../../../../shared";
 import { post } from "../../../plugin";
 import Button from "../../../components/Button/Button";
+import Field from "../../../components/Field/Field";
+import TextInput from "../../../components/TextInput/TextInput";
+import Textarea from "../../../components/Textarea/Textarea";
 import { BLOCK_OPTIONS } from "../utils/blockRegistry";
 import styles from "./ElementDetails.module.css";
 import FeatureDetails from "../FeatureDetails/FeatureDetails";
@@ -24,9 +27,9 @@ export default function ElementDetails({
   return (
     <section key={element.id}>
       <h2>{element.type} details</h2>
-      <label>
+      <Field>
         Name
-        <input
+        <TextInput
           defaultValue={element.name}
           onBlur={(event) =>
             post({
@@ -37,10 +40,10 @@ export default function ElementDetails({
             })
           }
         />
-      </label>
-      <label>
+      </Field>
+      <Field>
         Description
-        <textarea
+        <Textarea
           defaultValue={element.description}
           placeholder="What does this show or contain?"
           onBlur={(event) =>
@@ -52,7 +55,7 @@ export default function ElementDetails({
             })
           }
         />
-      </label>
+      </Field>
       {Options && <Options element={element} />}
       {BLOCK_DEFINITIONS[element.type].triggers.length > 0 ? (
         (!screen?.kind || insidePopup) && (

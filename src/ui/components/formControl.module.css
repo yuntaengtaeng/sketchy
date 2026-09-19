@@ -1,0 +1,14 @@
+.control {
+  font: inherit;
+  color: var(--figma-color-text, #222);
+  width: 100%;
+  border: 1px solid var(--sketchy-line);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  padding: var(--space-2);
+}
+
+.control:focus-visible {
+  outline: 2px dashed var(--sketchy-ink);
+  outline-offset: 2px;
+}

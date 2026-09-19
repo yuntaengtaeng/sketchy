@@ -1,4 +1,5 @@
 import { useState } from "react";
+import TextInput from "../TextInput/TextInput";
 import CheckedField from "./CheckedField";
 import styles from "./StringListField.module.css";
 import ownStyles from "./InstanceFieldsField.module.css";
@@ -48,7 +49,7 @@ export default function TableRowsField({
         {visibleRows.map((row, rowIndex) => (
           <div className={ownStyles.instance} key={rowIndex}>
             {columns.map((column, columnIndex) => (
-              <input
+              <TextInput
                 key={columnIndex}
                 defaultValue={row[columnIndex] ?? ""}
                 placeholder={column}

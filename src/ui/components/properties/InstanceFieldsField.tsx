@@ -1,4 +1,5 @@
 import { useState } from "react";
+import TextInput from "../TextInput/TextInput";
 import CheckedField from "./CheckedField";
 import styles from "./StringListField.module.css";
 import ownStyles from "./InstanceFieldsField.module.css";
@@ -45,7 +46,7 @@ export default function InstanceFieldsField<K extends string>({
         {visibleRows.map((row, index) => (
           <div className={ownStyles.instance} key={index}>
             {fields.map((field) => (
-              <input
+              <TextInput
                 key={field.key}
                 defaultValue={row[field.key] ?? ""}
                 placeholder={field.placeholder}

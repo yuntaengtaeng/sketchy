@@ -38,23 +38,6 @@ main {
   margin: auto;
 }
 
-input,
-select,
-textarea {
-  font: inherit;
-  color: inherit;
-  border: 1px solid var(--sketchy-line);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  padding: var(--space-2);
-}
-
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 2px dashed var(--sketchy-ink);
-  outline-offset: 2px;
-}
 section {
   padding: var(--space-4) 0;
   border-bottom: 1px solid var(--sketchy-line);
@@ -72,22 +55,6 @@ h3 {
 }
 h2 {
   letter-spacing: 0.03em;
-}
-label {
-  display: grid;
-  gap: var(--space-1);
-  margin-top: var(--space-2);
-  color: var(--figma-color-text-secondary, #666);
-}
-input,
-select,
-textarea {
-  width: 100%;
-  color: var(--figma-color-text, #222);
-}
-textarea {
-  resize: vertical;
-  min-height: 56px;
 }
 .muted {
   color: var(--figma-color-text-secondary, #777);

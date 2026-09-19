@@ -1,4 +1,5 @@
 import Button from "../Button/Button";
+import Field from "../Field/Field";
 import styles from "./SegmentedField.module.css";
 
 // 고정된 소수의 배타적 선택에 쓰는 공용 컨트롤 (TextSize, Button Width, Select
@@ -15,7 +16,7 @@ export default function SegmentedField<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <label>
+    <Field>
       {label}
       <div className={styles.segmented}>
         {options.map((option) => (
@@ -28,6 +29,6 @@ export default function SegmentedField<T extends string>({
           </Button>
         ))}
       </div>
-    </label>
+    </Field>
   );
 }

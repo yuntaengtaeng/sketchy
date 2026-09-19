@@ -1,6 +1,10 @@
 import type { Project, Screen } from "../../../../shared";
 import { post } from "../../../plugin";
 import Button from "../../../components/Button/Button";
+import Field from "../../../components/Field/Field";
+import Select from "../../../components/Select/Select";
+import TextInput from "../../../components/TextInput/TextInput";
+import Textarea from "../../../components/Textarea/Textarea";
 import BlockPicker from "../BlockPicker/BlockPicker";
 import styles from "./ScreenEditor.module.css";
 import NodeList from "../NodeList/NodeList";
@@ -64,9 +68,9 @@ export default function ScreenEditor({
     <>
       <section>
         <h2>{screen.kind ? "State" : "Screen"}</h2>
-        <label>
+        <Field>
           Name
-          <input
+          <TextInput
             defaultValue={screen.name}
             onBlur={(event) =>
               post({
@@ -77,10 +81,10 @@ export default function ScreenEditor({
               })
             }
           />
-        </label>
-        <label>
+        </Field>
+        <Field>
           Purpose
-          <textarea
+          <Textarea
             defaultValue={screen.purpose}
             placeholder="What can users do here?"
             onBlur={(event) =>
@@ -92,7 +96,7 @@ export default function ScreenEditor({
               })
             }
           />
-        </label>
+        </Field>
       </section>
       <OnboardingTarget active={onboardingStep === "add-button"}>
         <BlockPicker screenId={screen.id} />
@@ -141,7 +145,7 @@ export function ScreenSelect({
   screen?: Screen;
 }) {
   return (
-    <select
+    <Select
       aria-label="Select screen"
       value={screen?.id || ""}
       onChange={(event) =>
@@ -169,7 +173,7 @@ export function ScreenSelect({
             ))}
         </optgroup>
       )}
-    </select>
+    </Select>
   );
 }
 

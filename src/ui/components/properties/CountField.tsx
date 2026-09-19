@@ -1,3 +1,6 @@
+import Field from "../Field/Field";
+import TextInput from "../TextInput/TextInput";
+
 // List Item/Card/Table이 공유하는 반복 개수 컨트롤, 정해진 소수의 배타적
 // 선택이 아니라 작은 범위의 숫자라 Segmented 대신 숫자 입력을 쓴다
 export default function CountField({
@@ -12,9 +15,9 @@ export default function CountField({
   max?: number;
 }) {
   return (
-    <label>
+    <Field>
       Rows
-      <input
+      <TextInput
         type="number"
         min={min}
         max={max}
@@ -28,6 +31,6 @@ export default function CountField({
           if (next !== count) onChange(next);
         }}
       />
-    </label>
+    </Field>
   );
 }
