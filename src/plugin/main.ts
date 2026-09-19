@@ -218,13 +218,13 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         true,
       );
     if (message.type === "SAVE_FEATURE") {
-      const project = await saveFeature(
-        message.sourceElementId,
-        message.action,
-        message.featureId,
-        message.condition,
-        message.description,
-      );
+      const project = await saveFeature({
+        sourceElementId: message.sourceElementId,
+        action: message.action,
+        featureId: message.featureId,
+        condition: message.condition,
+        description: message.description,
+      });
       if (!onboardingComplete) await completeOnboarding();
       await sync(project, true);
     }

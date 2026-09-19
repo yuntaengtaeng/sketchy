@@ -4,6 +4,14 @@ import {
   type FeatureAction,
   type Project,
 } from "../../../shared";
+import {
+  describeFeatureActionIssue,
+  TRIGGER_HINT,
+} from "../../../core/feature-action-issue";
+import {
+  destinationNodeId,
+  resolveReactionTarget,
+} from "../../../core/resolve-reaction-target";
 import { validateFeatureAction } from "../../../core/validate-feature-action";
 import { readProject, saveProject } from "../../storage/project";
 import {
@@ -15,12 +23,10 @@ import { id } from "./utils";
 import { createOverlayScreen } from "./screen";
 import { createToastScreen } from "./toast";
 
-export async function syncReaction(
-  source: SceneNode & ReactionMixin,
-  project: Project,
-  previous: Feature[],
-  sourceElementId: string,
-) {
+type ReactableNode = SceneNode & ReactionMixin;
+
+/** 트리거 요소가 삭제된 목적지를 가리키던 기존 Reaction들을 걷어낸 목록 */
+async function withoutStaleReactions(source: ReactableNode) {
   const destinationIds = source.reactions.flatMap((reaction) =>
     (reaction.actions || (reaction.action ? [reaction.action] : [])).flatMap(
       (action) =>
@@ -33,64 +39,64 @@ export async function syncReaction(
   for (const destinationId of destinationIds)
     if (await figma.getNodeByIdAsync(destinationId))
       existingDestinationIds.add(destinationId);
-  let reactions = withoutMissingDestinations(
-    source.reactions,
-    existingDestinationIds,
-  );
-  for (const feature of previous) {
-    const action = feature.action;
-    if (action.type === "close-overlay") {
-      reactions = updateCloseOverlay(reactions, true);
-      continue;
-    }
-    const destination =
-      "destinationScreenId" in action
-        ? project.screens.find(
-            (screen) => screen.id === action.destinationScreenId,
-          )
-        : undefined;
-    reactions = updateNavigation(reactions, destination?.nodeId);
-  }
-  const primary = project.features.find(
+  return withoutMissingDestinations(source.reactions, existingDestinationIds);
+}
+
+/** 트리거 요소가 가진 이전 Case들이 남긴 Reaction을 하나씩 지운 목록 */
+function withoutPreviousReactions(
+  reactions: readonly Reaction[],
+  project: Project,
+  previous: Feature[],
+) {
+  return previous.reduce((current, feature) => {
+    if (feature.action.type === "close-overlay")
+      return updateCloseOverlay(current, true);
+    return updateNavigation(
+      current,
+      destinationNodeId(project, feature.action),
+    );
+  }, reactions);
+}
+
+/** 이 요소의 대표(조건 없는) Case, 실제 Figma Reaction은 이 Case만 반영한다 */
+function primaryFeature(project: Project, sourceElementId: string) {
+  return project.features.find(
     (feature) =>
       feature.trigger?.elementId === sourceElementId && !feature.condition,
   );
-  const primaryDestinationId =
-    primary && "destinationScreenId" in primary.action
-      ? primary.action.destinationScreenId
-      : undefined;
-  const destination = project.screens.find(
-    (screen) => screen.id === primaryDestinationId,
+}
+
+/** 저장 직후 트리거 요소의 Figma Reaction을 최신 Case 상태와 맞춘다 */
+export async function syncReaction(
+  source: ReactableNode,
+  project: Project,
+  previous: Feature[],
+  sourceElementId: string,
+) {
+  const reactions = withoutPreviousReactions(
+    await withoutStaleReactions(source),
+    project,
+    previous,
+  );
+  const target = resolveReactionTarget(
+    project,
+    primaryFeature(project, sourceElementId),
   );
   await source.setReactionsAsync(
-    primary?.action.type === "close-overlay"
+    target.kind === "close"
       ? updateCloseOverlay(reactions)
       : updateNavigation(
           reactions,
           undefined,
-          destination?.nodeId,
-          primary?.action.type === "overlay" || primary?.action.type === "toast"
-            ? "OVERLAY"
-            : "NAVIGATE",
+          target.nodeId,
+          target.navigation,
         ),
   );
 }
 
-export async function saveFeature(
-  sourceElementId: string,
-  input: FeatureAction,
-  featureId?: string,
-  condition?: string,
-  description?: string,
-) {
-  const project = readProject();
+/** click 트리거를 지원하는 요소와 그 Figma 노드, 아니면 안내 문구와 함께 예외 */
+async function requireTriggerSource(project: Project, sourceElementId: string) {
   const element = project.elements.find((item) => item.id === sourceElementId);
-  let action = input;
-  const destinationScreenId =
-    "destinationScreenId" in action ? action.destinationScreenId : undefined;
-  let destination = project.screens.find(
-    (item) => item.id === destinationScreenId,
-  );
   const source = element && (await figma.getNodeByIdAsync(element.nodeId));
   if (
     !element ||
@@ -100,58 +106,96 @@ export async function saveFeature(
     !source ||
     !("setReactionsAsync" in source)
   )
-    throw new Error("Select a Button, List Item, or Card, then try again.");
-  const issue = validateFeatureAction(project, element, action, true);
-  if (issue)
-    throw new Error(
-      {
-        TRIGGER_NOT_SUPPORTED:
-          "Select a Button, List Item, or Card, then try again.",
-        DESTINATION_REQUIRED: "Choose a destination to continue.",
-        DESTINATION_NOT_FOUND:
-          "The destination no longer exists. Choose another destination.",
-        INVALID_DESTINATION:
-          action.type === "overlay"
-            ? "Choose a popup created from this screen."
-            : action.type === "toast"
-              ? "Choose a toast created from this screen."
-              : "Choose a regular screen as the destination.",
-        NESTED_OVERLAY:
-          "Choose another result; a popup cannot open another popup.",
-        NOT_INSIDE_POPUP: "Choose Close popup from an element inside a popup.",
-      }[issue.code],
-    );
-  const previous = project.features.filter(
-    (feature) => feature.trigger?.elementId === sourceElementId,
+    throw new Error(TRIGGER_HINT);
+  return { element, source: source as ReactableNode };
+}
+
+/** featureId를 지정했는데 그 Case가 이 요소 소유가 아니면 예외 */
+function requireFeatureIndex(
+  project: Project,
+  sourceElementId: string,
+  featureId?: string,
+) {
+  if (!featureId) return -1;
+  const index = project.features.findIndex(
+    (feature) =>
+      feature.id === featureId &&
+      feature.trigger?.elementId === sourceElementId,
   );
-  const featureIndex = featureId
-    ? project.features.findIndex(
-        (feature) =>
-          feature.id === featureId &&
-          feature.trigger?.elementId === sourceElementId,
-      )
-    : -1;
-  if (featureId && featureIndex < 0)
+  if (index < 0)
     throw new Error(
       "This outcome no longer exists. Select the element and try again.",
     );
-  let createdOverlay: FrameNode | undefined;
-  if (action.type === "overlay" && !destination) {
-    const created = await createOverlayScreen(project, element.screenId);
-    destination = created.screen;
-    createdOverlay = created.node;
-    action = { ...action, destinationScreenId: destination.id };
-  }
-  if (action.type === "toast" && !destination) {
-    const created = await createToastScreen(project, element.screenId);
-    destination = created.screen;
-    createdOverlay = created.node;
-    action = { ...action, destinationScreenId: destination.id };
-  }
-  const feature = {
+  return index;
+}
+
+/** overlay, toast가 목적지 없이 선택되면 그 자리에서 Screen을 만들어 붙인다 */
+async function ensureDestination(
+  project: Project,
+  action: FeatureAction,
+  elementScreenId: string,
+  hasDestination: boolean,
+): Promise<{ action: FeatureAction; createdScreen?: FrameNode }> {
+  if (hasDestination || (action.type !== "overlay" && action.type !== "toast"))
+    return { action };
+  const create =
+    action.type === "overlay" ? createOverlayScreen : createToastScreen;
+  const created = await create(project, elementScreenId);
+  return {
+    action: { ...action, destinationScreenId: created.screen.id },
+    createdScreen: created.node,
+  };
+}
+
+/** 클릭 시 사라지는 상태 표시용 데코레이션, 결과가 바뀌면 다시 그려야 하니 지운다 */
+function clearStateIndicator(source: ReactableNode) {
+  if (source.type !== "FRAME") return;
+  source.children
+    .find((child) => child.getPluginData("sketchy:role") === "state-indicator")
+    ?.remove();
+}
+
+/** 트리거 요소에 Case 하나를 저장하고 Figma Reaction까지 맞춘 결과 Project */
+export async function saveFeature({
+  sourceElementId,
+  action: input,
+  featureId,
+  condition,
+  description,
+}: {
+  sourceElementId: string;
+  action: FeatureAction;
+  featureId?: string;
+  condition?: string;
+  description?: string;
+}) {
+  const project = readProject();
+  const { element, source } = await requireTriggerSource(
+    project,
+    sourceElementId,
+  );
+
+  const issue = validateFeatureAction(project, element, input, true);
+  if (issue) throw new Error(describeFeatureActionIssue(issue, input));
+
+  const previous = project.features.filter(
+    (feature) => feature.trigger?.elementId === sourceElementId,
+  );
+  const featureIndex = requireFeatureIndex(project, sourceElementId, featureId);
+  const hasDestination =
+    "destinationScreenId" in input &&
+    !!project.screens.find((screen) => screen.id === input.destinationScreenId);
+  const { action, createdScreen } = await ensureDestination(
+    project,
+    input,
+    element.screenId,
+    hasDestination,
+  );
+
+  const feature: Feature = {
     id: featureId || id(),
     screenId: element.screenId,
-    trigger: { type: "click" as const, elementId: sourceElementId },
+    trigger: { type: "click", elementId: sourceElementId },
     name: element.name,
     condition: condition?.trim() || undefined,
     description: description?.trim() || undefined,
@@ -159,23 +203,19 @@ export async function saveFeature(
   };
   if (featureIndex < 0) project.features.push(feature);
   else project.features[featureIndex] = feature;
-  if (source.type === "FRAME") {
-    source.children
-      .find(
-        (child) => child.getPluginData("sketchy:role") === "state-indicator",
-      )
-      ?.remove();
-  }
+  clearStateIndicator(source);
+
   try {
     await syncReaction(source, project, previous, sourceElementId);
   } catch (error) {
-    createdOverlay?.remove();
+    createdScreen?.remove();
     throw error;
   }
   saveProject(project);
   return project;
 }
 
+/** Case 하나를 지우고 트리거 요소의 Figma Reaction을 남은 Case 기준으로 다시 맞춘 결과 Project */
 export async function deleteFeature(featureId: string) {
   const project = readProject();
   const feature = project.features.find((item) => item.id === featureId);
