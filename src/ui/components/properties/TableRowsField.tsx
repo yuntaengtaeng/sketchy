@@ -3,10 +3,7 @@ import CheckedField from "./CheckedField";
 import styles from "./StringListField.module.css";
 import ownStyles from "./InstanceFieldsField.module.css";
 
-// Table은 Card/List Item과 달리 진짜 행렬(행×가변 개수 열)이라 같은 컨트롤로
-// 묶지 않고, columns 길이만큼 셀을 한 행에 나열하는 전용 그리드를 쓴다.
-// "Same for all"이 켜져 있으면(기본값) 행 하나만 보여주고 그 값을 count만큼
-// 그대로 복제해 저장, 끄면 행마다 각각 입력하는 모드로 돌아간다
+/** Table 전용 행 편집 그리드, count와 columns 길이에 맞춰 셀을 나열 */
 export default function TableRowsField({
   columns,
   count,

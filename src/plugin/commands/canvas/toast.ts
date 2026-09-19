@@ -1,9 +1,7 @@
 import type { Project, Screen } from "../../../shared";
 import { id, loadFont } from "./utils";
 
-// Popup과 같은 파생 Screen 메커니즘을 그대로 쓰되 Dim 없이, AFTER_TIMEOUT으로
-// 스스로 닫힌다. 메시지는 일반 Text 블록 하나라 클릭해서 Name을 고치면 그게
-// 곧 화면에 보이는 문구다 — Toast 전용 편집 UI를 따로 안 만들어도 된다
+/** Popup과 같은 파생 Screen 메커니즘으로 만든 Toast, Dim 없이 AFTER_TIMEOUT으로 자동 닫힘 */
 export async function createToastScreen(
   project: Project,
   baseScreenId: string,
@@ -24,8 +22,7 @@ export async function createToastScreen(
     ).length + 1;
   const screenId = id();
 
-  // overlayPositionType 등 위치 지정 프레임 속성은 Plugin API에서 읽기
-  // 전용이라 Popup과 같은 트릭(화면 크기 투명 프레임 안에서 직접 배치)을 쓴다
+  // overlayPositionType은 읽기 전용이라 화면 크기 투명 프레임 안에서 직접 배치
   const frame = figma.createFrame();
   frame.name = `${baseScreen.name} · Toast ${number}`;
   frame.resize(source.width, source.height);

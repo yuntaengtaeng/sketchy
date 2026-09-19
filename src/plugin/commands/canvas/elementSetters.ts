@@ -222,8 +222,7 @@ export async function setCount(elementId: string, count: number) {
   return project;
 }
 
-// count보다 인덱스가 모자란 인스턴스는 렌더러가 placeholder로 채우므로,
-// 여기서는 입력받은 배열을 그대로 저장하고 다시 그리기만 한다
+// 모자란 인덱스는 렌더러가 placeholder로 채우므로 배열을 그대로 저장
 export async function setCardContent(
   elementId: string,
   items: { primary?: string; secondary?: string }[],

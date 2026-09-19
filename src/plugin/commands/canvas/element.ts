@@ -105,10 +105,7 @@ export async function insertBlock(
   return { project, elementId };
 }
 
-// order는 figma 시각 위치에서 자동 계산되므로(normalizeElementOrder) 노드
-// 트리에서 실제 위치만 바꾸면 다음 sync에서 order가 알아서 따라온다
-// 형제 판정은 실제 Figma 자식 배열(시각적 진실)을 기준으로 하고, model의
-// order 필드(오래됐을 수 있음)는 어떤 요소들이 형제인지 판단할 때만 쓴다
+// 형제 판정 기준은 model.order가 아니라 실제 Figma 자식 배열
 async function visualSiblingsOf(project: Project, elementId: string) {
   const element = project.elements.find((item) => item.id === elementId);
   if (!element) return;

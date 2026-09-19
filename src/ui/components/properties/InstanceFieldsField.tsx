@@ -3,11 +3,7 @@ import CheckedField from "./CheckedField";
 import styles from "./StringListField.module.css";
 import ownStyles from "./InstanceFieldsField.module.css";
 
-// Card/List Item이 공유하는 "고정 개수 인스턴스 × 소수의 텍스트 필드" 모양,
-// 개수 자체는 CountField가 따로 관리해 여기선 건드리지 않는다. "Same for all"이
-// 켜져 있으면(기본값) 입력칸 하나만 보여주고 그 값을 count만큼 그대로 복제해
-// 저장한다 — 인스턴스마다 다른 값을 안 써도 되는 경우가 대다수라 기본은 이거,
-// 끄면 인스턴스별로 각각 입력하는 원래 모드로 돌아간다
+/** Card/List Item 공용 인스턴스별 필드 입력, count는 CountField가 따로 관리 */
 export default function InstanceFieldsField<K extends string>({
   label,
   count,
