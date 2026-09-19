@@ -1,14 +1,15 @@
+import { SEARCH_ICON } from "../../../../shared/icons.ts";
 import { PART } from "../../../canvas-name.ts";
 import { createLabel, hugFrame } from "./shared";
 
-// 돋보기 아이콘. rotation으로 손잡이 각도를 맞추면 회전 기준점 계산이
-// 어긋나기 쉬워(원과 안 이어짐), SVG 좌표를 직접 박아 넣어 원의 오른쪽
-// 아래 45도 지점에서 바깥쪽으로 손잡이가 정확히 이어지게 한다
+// rotation으로 손잡이 각도를 맞추면 회전 기준점 계산이 어긋나기 쉬워(원과
+// 안 이어짐), 좌표를 직접 SVG 문자열에 박아 넣는다, 도형 자체는 SEARCH_ICON
 function createSearchIcon() {
+  const { size, circle, handle, strokeWidth } = SEARCH_ICON;
   return figma.createNodeFromSvg(`
-    <svg width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="4.5" cy="4.5" r="4.2" fill="none" stroke="#666666" stroke-width="1.6" />
-      <line x1="7.6" y1="7.6" x2="13" y2="13" stroke="#666666" stroke-width="1.6" stroke-linecap="round" />
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="${circle.cx}" cy="${circle.cy}" r="${circle.r}" fill="none" stroke="#666666" stroke-width="${strokeWidth}" />
+      <line x1="${handle.x1}" y1="${handle.y1}" x2="${handle.x2}" y2="${handle.y2}" stroke="#666666" stroke-width="${strokeWidth}" stroke-linecap="round" />
     </svg>
   `);
 }

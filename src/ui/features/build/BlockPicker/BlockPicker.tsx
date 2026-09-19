@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BLOCK_DEFINITIONS, type BlockType } from "../../../../shared";
+import { SEARCH_ICON } from "../../../../shared/icons";
 import { post } from "../../../plugin";
 import styles from "./BlockPicker.module.css";
 
@@ -35,29 +36,33 @@ const CATEGORIES: { key: string; label: string; blocks: BlockType[] }[] = [
 // 순수 CSS ::after만으로 표현하기 어려운(자식이 여러 개인) 스와치만 여기서
 // 마크업으로 채운다, 나머지(button/input/image/divider/section/checkbox/
 // radio/switch/select)는 BlockPicker.module.css의 data-block 규칙만으로 그린다.
-// search는 CSS로 각도를 다시 맞추는 대신, 실제 캔버스 렌더링
-// (renderers/search.ts의 createSearchIcon)과 같은 좌표의 SVG를 그대로 쓴다
+// search는 shared/icons.ts의 SEARCH_ICON을 실제 캔버스 렌더러와 공유한다
 const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const COMPOSITE_PREVIEWS: Partial<Record<BlockType, ReactNode>> = {
   search: (
-    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+    <svg
+      width={SEARCH_ICON.size}
+      height={SEARCH_ICON.size}
+      viewBox={`0 0 ${SEARCH_ICON.size} ${SEARCH_ICON.size}`}
+      aria-hidden="true"
+    >
       <circle
-        cx="4.5"
-        cy="4.5"
-        r="4.2"
+        cx={SEARCH_ICON.circle.cx}
+        cy={SEARCH_ICON.circle.cy}
+        r={SEARCH_ICON.circle.r}
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.6"
+        strokeWidth={SEARCH_ICON.strokeWidth}
       />
       <line
-        x1="7.6"
-        y1="7.6"
-        x2="13"
-        y2="13"
+        x1={SEARCH_ICON.handle.x1}
+        y1={SEARCH_ICON.handle.y1}
+        x2={SEARCH_ICON.handle.x2}
+        y2={SEARCH_ICON.handle.y2}
         stroke="currentColor"
-        strokeWidth="1.6"
+        strokeWidth={SEARCH_ICON.strokeWidth}
         strokeLinecap="round"
       />
     </svg>
