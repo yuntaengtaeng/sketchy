@@ -3,8 +3,14 @@ import { BLOCK_DEFINITIONS, type BlockType } from "../../../shared";
 import { post } from "../../plugin";
 import styles from "./BlockPicker.module.css";
 
-// Quick add는 항상 이 4개만 고정, 사용 빈도가 늘어도 이 줄 길이는 안 바뀐다
-const QUICK_FIXED: BlockType[] = ["text", "button", "input", "image"];
+// Quick add는 항상 이 5개만 고정, 사용 빈도가 늘어도 이 줄 길이는 안 바뀐다
+const QUICK_FIXED: BlockType[] = [
+  "text",
+  "button",
+  "input",
+  "image",
+  "section",
+];
 
 // feature-model의 Trigger 축(클릭 없음 / click / change·submit)을 그대로 쓴다,
 // Picker 전용의 새 분류체계를 따로 만들지 않는다
@@ -97,7 +103,6 @@ export default function BlockPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0].key);
-  const [recent, setRecent] = useState<BlockType>();
   const moreButtonRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -145,7 +150,6 @@ export default function BlockPicker({
 
   const insert = (block: BlockType) => {
     post({ type: "INSERT_BLOCK", screenId, block, parentElementId: sectionId });
-    if (!QUICK_FIXED.includes(block)) setRecent(block);
     setOpen(false);
   };
 
@@ -171,7 +175,6 @@ export default function BlockPicker({
       <h2>{sectionId ? "Add to section" : "Add something"}</h2>
       <div className={styles.blocks}>
         {QUICK_FIXED.filter(allowed).map(cell)}
-        {recent && allowed(recent) && cell(recent)}
         <button
           ref={moreButtonRef}
           className={`${styles.block} ${styles.more}`}
