@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { OnboardingStep } from "./onboarding";
+import type { OnboardingStep } from "../utils/onboarding";
 import styles from "./OnboardingCoachmark.module.css";
 
 const COPY: Record<OnboardingStep, { progress: string; title: string }> = {

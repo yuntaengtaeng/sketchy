@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type DragEvent } from "react";
-import type { Element as SketchyElement } from "../../../shared";
-import { post } from "../../plugin";
+import type { Element as SketchyElement } from "../../../../shared";
+import { post } from "../../../plugin";
 import styles from "./NodeList.module.css";
 
 export default function NodeList({

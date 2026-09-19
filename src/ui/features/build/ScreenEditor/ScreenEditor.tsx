@@ -1,10 +1,10 @@
-import type { Project, Screen } from "../../../shared";
-import { post } from "../../plugin";
-import BlockPicker from "./BlockPicker";
+import type { Project, Screen } from "../../../../shared";
+import { post } from "../../../plugin";
+import BlockPicker from "../BlockPicker/BlockPicker";
 import styles from "./ScreenEditor.module.css";
-import NodeList from "./NodeList";
-import type { OnboardingStep } from "./onboarding";
-import { OnboardingTarget } from "./OnboardingCoachmark";
+import NodeList from "../NodeList/NodeList";
+import type { OnboardingStep } from "../utils/onboarding";
+import { OnboardingTarget } from "../OnboardingCoachmark/OnboardingCoachmark";
 
 export function ScreenBrowser({ project }: { project: Project }) {
   const hasScreens = project.screens.some((screen) => !screen.kind);

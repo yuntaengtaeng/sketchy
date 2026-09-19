@@ -1,10 +1,10 @@
-import type { Element as SketchyElement, Project } from "../../../shared";
-import { BLOCK_DEFINITIONS } from "../../../shared";
-import { post } from "../../plugin";
-import { BLOCK_OPTIONS } from "./blockRegistry";
+import type { Element as SketchyElement, Project } from "../../../../shared";
+import { BLOCK_DEFINITIONS } from "../../../../shared";
+import { post } from "../../../plugin";
+import { BLOCK_OPTIONS } from "../utils/blockRegistry";
 import styles from "./ElementDetails.module.css";
-import FeatureDetails from "./FeatureDetails";
-import { OnboardingTarget } from "./OnboardingCoachmark";
+import FeatureDetails from "../FeatureDetails/FeatureDetails";
+import { OnboardingTarget } from "../OnboardingCoachmark/OnboardingCoachmark";
 
 export default function ElementDetails({
   project,

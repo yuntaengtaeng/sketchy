@@ -4,12 +4,14 @@ import type {
   Screen,
 } from "../../../shared";
 import { post } from "../../plugin";
-import BuildNavigation from "./BuildNavigation";
-import ElementDetails from "./ElementDetails";
-import { getOnboardingStep } from "./onboarding";
-import OnboardingCoachmark, { OnboardingTarget } from "./OnboardingCoachmark";
-import ScreenEditor, { ScreenBrowser } from "./ScreenEditor";
-import SectionEditor from "./SectionEditor";
+import BuildNavigation from "./BuildNavigation/BuildNavigation";
+import ElementDetails from "./ElementDetails/ElementDetails";
+import { getOnboardingStep } from "./utils/onboarding";
+import OnboardingCoachmark, {
+  OnboardingTarget,
+} from "./OnboardingCoachmark/OnboardingCoachmark";
+import ScreenEditor, { ScreenBrowser } from "./ScreenEditor/ScreenEditor";
+import SectionEditor from "./SectionEditor/SectionEditor";
 
 type Props = {
   project: Project;

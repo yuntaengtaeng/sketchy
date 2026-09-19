@@ -3,8 +3,8 @@ import type {
   Feature,
   FeatureAction,
   Project,
-} from "../../../shared";
-import { post } from "../../plugin";
+} from "../../../../shared";
+import { post } from "../../../plugin";
 import FeatureCaseEditor, { type CaseChanges } from "./FeatureCaseEditor";
 
 export default function FeatureDetails({

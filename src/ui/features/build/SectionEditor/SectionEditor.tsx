@@ -1,7 +1,7 @@
-import type { Element as SketchyElement, Project } from "../../../shared";
-import { canNestSection } from "../../../shared";
-import BlockPicker from "./BlockPicker";
-import NodeList from "./NodeList";
+import type { Element as SketchyElement, Project } from "../../../../shared";
+import { canNestSection } from "../../../../shared";
+import BlockPicker from "../BlockPicker/BlockPicker";
+import NodeList from "../NodeList/NodeList";
 
 export default function SectionEditor({
   project,

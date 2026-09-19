@@ -3,7 +3,7 @@ import {
   type Element,
   type Project,
   type Screen,
-} from "../../../shared/index.ts";
+} from "../../../../shared/index.ts";
 
 export type OnboardingStep =
   | "create-screen"

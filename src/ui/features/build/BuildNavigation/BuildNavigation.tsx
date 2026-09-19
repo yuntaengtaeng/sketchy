@@ -3,11 +3,11 @@ import type {
   Element as SketchyElement,
   Project,
   Screen,
-} from "../../../shared";
-import { elementAncestors, elementSiblings } from "../../../shared";
-import { post } from "../../plugin";
+} from "../../../../shared";
+import { elementAncestors, elementSiblings } from "../../../../shared";
+import { post } from "../../../plugin";
 import styles from "./BuildNavigation.module.css";
-import { NewScreen, ScreenSelect } from "./ScreenEditor";
+import { NewScreen, ScreenSelect } from "../ScreenEditor/ScreenEditor";
 
 export default function BuildNavigation({
   project,

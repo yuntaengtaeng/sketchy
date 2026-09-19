@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BLOCK_DEFINITIONS, type BlockType } from "../../../shared";
-import { post } from "../../plugin";
+import { BLOCK_DEFINITIONS, type BlockType } from "../../../../shared";
+import { post } from "../../../plugin";
 import styles from "./BlockPicker.module.css";
 
 // Quick add는 항상 이 5개만 고정, 사용 빈도가 늘어도 이 줄 길이는 안 바뀐다
