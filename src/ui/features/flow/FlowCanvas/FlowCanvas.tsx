@@ -18,6 +18,12 @@ import {
   type FlowNode,
 } from "../utils/buildFlowDiagram";
 import { elbowPath } from "../utils/elbowPath";
+import {
+  centeredTransform,
+  fullscreenSize,
+  popoverPosition,
+  zoomedTransform,
+} from "../utils/flowViewport";
 import styles from "./FlowCanvas.module.css";
 
 const CONTENT_W = 1100;
@@ -34,36 +40,26 @@ const FULLSCREEN_MAX = { width: 1800, height: 1200 };
 
 // 이 사용자의 모니터 크기에 맞춘 전체화면 패널 크기, 너무 작거나 크지 않게 clamp
 function fullscreenUiSize() {
-  return {
-    width: Math.min(
-      FULLSCREEN_MAX.width,
-      Math.max(
-        FULLSCREEN_MIN.width,
-        window.screen.availWidth - FULLSCREEN_MARGIN,
-      ),
-    ),
-    height: Math.min(
-      FULLSCREEN_MAX.height,
-      Math.max(
-        FULLSCREEN_MIN.height,
-        window.screen.availHeight - FULLSCREEN_MARGIN,
-      ),
-    ),
-  };
+  return fullscreenSize({
+    available: {
+      width: window.screen.availWidth,
+      height: window.screen.availHeight,
+    },
+    margin: FULLSCREEN_MARGIN,
+    min: FULLSCREEN_MIN,
+    max: FULLSCREEN_MAX,
+  });
 }
 
 // 클릭 지점 근처에 뜨도록, 화면 밖으로 나가지 않게 팝오버 좌표 보정
 function clampPopover(x: number, y: number) {
-  return {
-    x: Math.min(
-      Math.max(x + POPOVER_MARGIN, POPOVER_MARGIN),
-      window.innerWidth - POPOVER_W - POPOVER_MARGIN,
-    ),
-    y: Math.min(
-      Math.max(y + POPOVER_MARGIN, POPOVER_MARGIN),
-      window.innerHeight - 96,
-    ),
-  };
+  return popoverPosition({
+    anchor: { x, y },
+    viewport: { width: window.innerWidth, height: window.innerHeight },
+    popoverWidth: POPOVER_W,
+    margin: POPOVER_MARGIN,
+    bottomLimit: 96,
+  });
 }
 
 // Project의 화면 흐름을 드래그와 줌으로 탐색하는 전체화면 캔버스
@@ -120,11 +116,10 @@ export default function FlowCanvas({
   const centerContent = () => {
     const overlay = overlayRef.current;
     if (!overlay) return;
-    transform.current = {
-      tx: (overlay.clientWidth - CONTENT_W) / 2,
-      ty: (overlay.clientHeight - CONTENT_H) / 2,
-      scale: 1,
-    };
+    transform.current = centeredTransform({
+      viewport: { width: overlay.clientWidth, height: overlay.clientHeight },
+      content: { width: CONTENT_W, height: CONTENT_H },
+    });
     applyTransform();
   };
 
@@ -154,15 +149,13 @@ export default function FlowCanvas({
 
   // pivot 아래의 캔버스 좌표가 확대/축소 후에도 같은 화면 위치에 남도록 tx/ty 보정
   const zoomTo = (nextScale: number, pivotX: number, pivotY: number) => {
-    const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
-    const { tx, ty, scale: prevScale } = transform.current;
-    const cx = (pivotX - tx) / prevScale;
-    const cy = (pivotY - ty) / prevScale;
-    transform.current = {
-      scale,
-      tx: pivotX - cx * scale,
-      ty: pivotY - cy * scale,
-    };
+    transform.current = zoomedTransform({
+      current: transform.current,
+      nextScale,
+      pivot: { x: pivotX, y: pivotY },
+      minScale: MIN_SCALE,
+      maxScale: MAX_SCALE,
+    });
     applyTransform();
   };
 
