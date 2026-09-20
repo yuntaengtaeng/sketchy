@@ -31,12 +31,20 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: var(--space-5);
+  width: var(--space-8);
   height: var(--space-8);
   border-radius: var(--radius-sm);
   font-size: var(--text-lg);
   color: var(--figma-color-text-secondary, #777);
   cursor: grab;
+}
+
+.fixedPosition {
+  flex-shrink: 0;
+  width: var(--space-8);
+  color: var(--figma-color-text-secondary, #777);
+  font-size: var(--text-xs);
+  text-align: center;
 }
 
 .dragHandle:hover {

@@ -10,6 +10,14 @@ export const MAX_SECTION_DEPTH = 2;
 // element-tree는 BlockType에 의존하지 않는 범용 유틸이라 문자열로 직접 나열
 const CONTAINER_TYPES = new Set(["section", "header", "footer"]);
 
+// 화면 가장자리에 고정되는 최상위 요소 판정
+export function isFixedScreenEdgeElement(element: TreeElement) {
+  return (
+    !element.parentElementId &&
+    (element.type === "header" || element.type === "footer")
+  );
+}
+
 export function elementAncestors<T extends TreeElement>(
   elements: T[],
   element: T,

@@ -7,6 +7,7 @@ import {
   defaultSectionDirection,
   duplicateScreenElements,
   isContainerElement,
+  isFixedScreenEdgeElement,
   projectWithoutScreen,
   sectionLayout,
 } from "../../src/shared/index.ts";
@@ -31,6 +32,21 @@ test("isContainerElement recognizes section, header, and footer only", () => {
   assert.equal(isContainerElement({ ...base, type: "header" }), true);
   assert.equal(isContainerElement({ ...base, type: "footer" }), true);
   assert.equal(isContainerElement({ ...base, type: "button" }), false);
+});
+
+test("only top-level headers and footers have fixed screen positions", () => {
+  const base = { id: "e1", screenId: "home" };
+  assert.equal(isFixedScreenEdgeElement({ ...base, type: "header" }), true);
+  assert.equal(isFixedScreenEdgeElement({ ...base, type: "footer" }), true);
+  assert.equal(isFixedScreenEdgeElement({ ...base, type: "button" }), false);
+  assert.equal(
+    isFixedScreenEdgeElement({
+      ...base,
+      type: "header",
+      parentElementId: "section",
+    }),
+    false,
+  );
 });
 
 test("a new project defaults to a mobile screen", () => {

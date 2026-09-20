@@ -6,6 +6,7 @@ import {
   elementSiblings,
   elementTreeIds,
   isContainerElement,
+  isFixedScreenEdgeElement,
   nextElementName,
   type BlockType,
 } from "../../../shared";
@@ -165,24 +166,37 @@ async function visualSiblingsOf(project: Project, elementId: string) {
   const visualSiblings = parent.children.filter((child) =>
     siblingElementIds.has(child.getPluginData("sketchy:element-id")),
   );
-  return { parent, node: node as SceneNode, visualSiblings };
+  return { element, parent, node: node as SceneNode, visualSiblings };
 }
 
+// 화면 고정 요소를 제외한 시각적 형제 목록 구성
+function movableVisualSiblings(project: Project, siblings: SceneNode[]) {
+  return siblings.filter((node) => {
+    const elementId = node.getPluginData("sketchy:element-id");
+    const element = project.elements.find((item) => item.id === elementId);
+    return element && !isFixedScreenEdgeElement(element);
+  });
+}
+
+// 키보드 방향에 따라 이동 가능한 형제 사이의 순서 변경
 export async function moveElement(elementId: string, direction: "up" | "down") {
   const project = readProject();
   const resolved = await visualSiblingsOf(project, elementId);
   if (!resolved) return project;
-  const { parent, node, visualSiblings } = resolved;
-  const index = visualSiblings.indexOf(node);
+  const { element, parent, node, visualSiblings } = resolved;
+  if (isFixedScreenEdgeElement(element)) return project;
+  const movableSiblings = movableVisualSiblings(project, visualSiblings);
+  const index = movableSiblings.indexOf(node);
   const swapIndex = direction === "up" ? index - 1 : index + 1;
-  if (index === -1 || swapIndex < 0 || swapIndex >= visualSiblings.length)
+  if (index === -1 || swapIndex < 0 || swapIndex >= movableSiblings.length)
     return project;
-  const reordered = [...visualSiblings];
+  const reordered = [...movableSiblings];
   [reordered[index], reordered[swapIndex]] = [
     reordered[swapIndex],
     reordered[index],
   ];
   applyOrder(parent, reordered);
+  pinHeaderAndFooter(parent, project.elements);
   return project;
 }
 
@@ -192,17 +206,20 @@ export async function reorderElement(elementId: string, toIndex: number) {
   const project = readProject();
   const resolved = await visualSiblingsOf(project, elementId);
   if (!resolved) return project;
-  const { parent, node, visualSiblings } = resolved;
-  const fromIndex = visualSiblings.indexOf(node);
+  const { element, parent, node, visualSiblings } = resolved;
+  if (isFixedScreenEdgeElement(element)) return project;
+  const movableSiblings = movableVisualSiblings(project, visualSiblings);
+  const fromIndex = movableSiblings.indexOf(node);
   const clampedToIndex = Math.max(
     0,
-    Math.min(toIndex, visualSiblings.length - 1),
+    Math.min(toIndex, movableSiblings.length - 1),
   );
   if (fromIndex === -1 || fromIndex === clampedToIndex) return project;
-  const reordered = [...visualSiblings];
+  const reordered = [...movableSiblings];
   const [moved] = reordered.splice(fromIndex, 1);
   reordered.splice(clampedToIndex, 0, moved);
   applyOrder(parent, reordered);
+  pinHeaderAndFooter(parent, project.elements);
   return project;
 }
 
