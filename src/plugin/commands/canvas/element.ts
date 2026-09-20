@@ -10,6 +10,7 @@ import {
   type BlockType,
 } from "../../../shared";
 import type { DomainElement, Project } from "../../../shared";
+import { defaultAutoChildren } from "../../../core/default-auto-children.ts";
 import {
   normalizeElementOrder,
   readProject,
@@ -17,7 +18,6 @@ import {
 } from "../../storage/project";
 import { focusNode, id, loadFont } from "./utils";
 import { createElementNode, renderElementName } from "./element-render";
-import { defaultAutoChildren } from "./defaultAutoChild.ts";
 import {
   applyOrder,
   pinEdgeToScreen,
@@ -113,12 +113,13 @@ export async function insertBlock(
   const node = createElementNode(element, parentNode as FrameNode);
   project.elements.push({ ...element, nodeId: node.id });
   if (node.type === "FRAME")
-    for (const child of defaultAutoChildren(
+    for (const child of defaultAutoChildren({
       block,
-      project.elements,
+      elements: project.elements,
       screenId,
-      elementId,
-    )) {
+      parentElementId: elementId,
+      createId: id,
+    })) {
       const childNode = createElementNode(child, node);
       // Header의 뒤로가기는 아이콘 버튼 크기, 테두리 없이 텍스트만 가운데
       if (
