@@ -1,96 +1,47 @@
 .contextNavigation {
-  padding: 0 0 12px;
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  border: 1px solid var(--sketchy-line);
+  border-radius: var(--radius-sm);
 }
 
 .topRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding-top: var(--space-3);
-}
-
-.breadcrumb {
-  display: flex;
-  flex: 1;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   min-width: 0;
   align-items: center;
-  gap: var(--space-1);
-  overflow-x: auto;
-  padding-bottom: var(--space-2);
-  white-space: nowrap;
-  scrollbar-width: thin;
+  gap: var(--space-2);
 }
 
-.screenSwitcher {
-  display: flex;
+.topRow select {
+  min-width: 0;
+  padding: var(--space-1);
+}
+
+.topRow button {
   flex-shrink: 0;
-  align-items: center;
-  gap: var(--space-1);
+  white-space: nowrap;
 }
 
-/* breadcrumb이 있을 때만 구분선을 붙여 두 컨트롤을 시각적으로 나눈다 */
-.screenSwitcher:not(:only-child) {
-  padding-left: 8px;
-  border-left: 1px solid var(--sketchy-line);
-}
-
-/* 요소 안에 들어와 있을 때는 breadcrumb(뎁스 확인·이동)이 메인이라,
-화면 전환은 같은 크기의 버튼/셀렉트로 나란히 두지 않고 옅은 텍스트
-링크 수준으로 눌러서 보조라는 걸 분명히 한다 */
-.screenSwitcher[data-compact] select,
-.screenSwitcher[data-compact] button {
-  min-height: 0;
-  padding: var(--space-1) var(--space-1);
-  border: 0;
-  background: transparent;
-  color: var(--figma-color-text-secondary, #777);
+.controlLabel {
+  color: var(--figma-color-text-secondary, #666);
   font-size: var(--text-xs);
-}
-
-.screenSwitcher[data-compact] select {
-  max-width: 64px;
-}
-
-.screenSwitcher[data-compact] select:hover,
-.screenSwitcher[data-compact] button:hover {
-  background: var(--figma-color-bg-hover, #eee);
-}
-
-.screenSwitcher select {
-  max-width: 120px;
-  padding: var(--space-1);
-}
-
-.breadcrumb::-webkit-scrollbar {
-  display: block;
-  height: 4px;
-}
-
-.breadcrumb span {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.breadcrumbButton {
-  padding: var(--space-1);
-  text-transform: none;
-}
-
-.breadcrumb b {
-  padding: var(--space-1);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .levelPicker {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   align-items: center;
-  margin-top: var(--space-1);
-  gap: var(--space-1);
-  color: var(--figma-color-text-secondary, #666);
+  margin-top: var(--space-2);
+  gap: var(--space-2);
 }
 
 .levelPicker select {
   padding: var(--space-1);
+}
+
+.screenButton {
+  color: var(--figma-color-text-secondary, #666);
+  white-space: nowrap;
 }
