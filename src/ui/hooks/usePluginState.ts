@@ -1,15 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { createEmptyProject, type Project, type UiMessage } from "../../shared";
 import { post } from "../plugin";
+import { createPluginUiState, pluginStateReducer } from "./pluginState";
 
 /** STATE, ERROR 플러그인 메시지를 구독해 UI가 그릴 프로젝트 상태로 변환 */
 export function usePluginState(initialProject: Project = createEmptyProject()) {
-  const [project, setProject] = useState(initialProject);
-  const [screenId, setScreenId] = useState<string>();
-  const [elementId, setElementId] = useState<string>();
-  const [error, setError] = useState("");
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean>();
-  const [insertedElementId, setInsertedElementId] = useState<string>();
+  const [state, dispatch] = useReducer(
+    pluginStateReducer,
+    initialProject,
+    createPluginUiState,
+  );
 
   useEffect(() => {
     let errorTimer: ReturnType<typeof setTimeout>;
@@ -17,23 +17,19 @@ export function usePluginState(initialProject: Project = createEmptyProject()) {
     onmessage = ({ data }) => {
       const message = data.pluginMessage as UiMessage;
       if (message?.type === "STATE") {
-        setProject(message.project);
-        setScreenId(message.selectedScreenId);
-        setElementId(message.selectedElementId);
-        setOnboardingComplete(message.onboardingComplete);
+        dispatch(message);
         if (message.insertedElementId) {
           clearTimeout(highlightTimer);
-          setInsertedElementId(message.insertedElementId);
           highlightTimer = setTimeout(
-            () => setInsertedElementId(undefined),
+            () => dispatch({ type: "CLEAR_INSERTED_ELEMENT" }),
             1200,
           );
         }
       }
       if (message?.type === "ERROR") {
         clearTimeout(errorTimer);
-        setError(message.message);
-        errorTimer = setTimeout(() => setError(""), 8000);
+        dispatch(message);
+        errorTimer = setTimeout(() => dispatch({ type: "CLEAR_ERROR" }), 8000);
       }
     };
     post({ type: "READY" });
@@ -43,12 +39,5 @@ export function usePluginState(initialProject: Project = createEmptyProject()) {
     };
   }, []);
 
-  return {
-    project,
-    screenId,
-    elementId,
-    error,
-    onboardingComplete,
-    insertedElementId,
-  };
+  return state;
 }
