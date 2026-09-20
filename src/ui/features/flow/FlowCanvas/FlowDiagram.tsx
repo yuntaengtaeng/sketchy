@@ -41,7 +41,7 @@ export default function FlowDiagram({
           markerHeight={7}
           orient="auto-start-reverse"
         >
-          <path d="M0,0 L8,4 L0,8 z" fill="rgba(255,255,255,0.55)" />
+          <path d="M0,0 L8,4 L0,8 z" fill="var(--flow-line-strong)" />
         </marker>
       </defs>
 
