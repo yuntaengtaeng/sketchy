@@ -127,6 +127,7 @@ export async function insertBlock(
         childNode.type === "FRAME"
       ) {
         childNode.resize(40, 40);
+        childNode.layoutSizingHorizontal = "FIXED";
         childNode.strokes = [];
         childNode.primaryAxisAlignItems = "CENTER";
         childNode.counterAxisAlignItems = "CENTER";
