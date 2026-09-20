@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   centeredTransform,
+  fittedTransform,
   fullscreenSize,
   popoverPosition,
   zoomedTransform,
@@ -47,6 +48,19 @@ test("centering uses the viewport and content dimensions", () => {
       content: { width: 500, height: 300 },
     }),
     { tx: 200, ty: 200, scale: 1 },
+  );
+});
+
+test("fit keeps the requested bounds inside the viewport padding", () => {
+  assert.deepEqual(
+    fittedTransform({
+      viewport: { width: 800, height: 600 },
+      bounds: { x: 100, y: 50, width: 400, height: 200 },
+      padding: 40,
+      minScale: 0.5,
+      maxScale: 2,
+    }),
+    { tx: -140, ty: 30, scale: 1.8 },
   );
 });
 

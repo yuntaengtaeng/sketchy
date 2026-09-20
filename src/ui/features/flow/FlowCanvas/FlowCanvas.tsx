@@ -12,8 +12,9 @@ import { useFadeClose } from "../../../hooks/useFadeClose";
 import { useOutsideClick } from "../../../hooks/useOutsideClick";
 import { post, resizeUi } from "../../../plugin";
 import { buildFlowDiagram, type FlowNode } from "../utils/buildFlowDiagram";
+import { flowFocus } from "../utils/flowFocus";
 import {
-  centeredTransform,
+  fittedTransform,
   fullscreenSize,
   popoverPosition,
   zoomedTransform,
@@ -23,7 +24,9 @@ import styles from "./FlowCanvas.module.css";
 
 const CONTENT_W = 1100;
 const CONTENT_H = 820;
-const MIN_SCALE = 0.5;
+const DIAGRAM_W = 480;
+const FIT_PADDING = 64;
+const MIN_SCALE = 0.25;
 const MAX_SCALE = 2;
 const ZOOM_STEP = 0.2;
 const POPOVER_W = 220;
@@ -72,13 +75,27 @@ export default function FlowCanvas({
   const transform = useRef({ tx: 0, ty: 0, scale: 1 });
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const [zoomPercent, setZoomPercent] = useState(100);
-  const [selected, setSelected] = useState<FlowNode>();
+  const [selectedId, setSelectedId] = useState<string>();
   const [popover, setPopover] = useState<{ x: number; y: number }>();
   // 실제로 커진 뒤에만 보여줘서, 아직 작은 패널 안에서 뜨는 순간을 감춘다
   const [visible, setVisible] = useState(false);
   const closeStarted = useRef(false);
+  const selected = diagram.nodes.find((node) => node.id === selectedId);
+  const focus = useMemo(
+    () => (selectedId ? flowFocus(project, selectedId) : undefined),
+    [project, selectedId],
+  );
+  const attentionCount =
+    diagram.nodes.filter((node) => node.needsAttention).length +
+    diagram.chips.filter((chip) => chip.kind === "unlinked").length;
 
-  useOutsideClick(popoverRef, () => setPopover(undefined));
+  // 팝오버와 연결 집중 상태 해제
+  const dismissSelection = () => {
+    setSelectedId(undefined);
+    setPopover(undefined);
+  };
+
+  useOutsideClick(popoverRef, dismissSelection);
 
   const { closing, close: fadeOutThenClose } = useFadeClose(
     onClose,
@@ -96,7 +113,7 @@ export default function FlowCanvas({
   };
 
   const selectNode = (node: FlowNode, anchorX: number, anchorY: number) => {
-    setSelected(node);
+    setSelectedId(node.id);
     setPopover(clampPopover(anchorX, anchorY));
   };
 
@@ -108,12 +125,21 @@ export default function FlowCanvas({
     setZoomPercent(Math.round(scale * 100));
   };
 
-  const centerContent = () => {
+  const fitContent = () => {
     const overlay = overlayRef.current;
     if (!overlay) return;
-    transform.current = centeredTransform({
+    const diagramHeight = (DIAGRAM_W * diagram.height) / diagram.width;
+    transform.current = fittedTransform({
       viewport: { width: overlay.clientWidth, height: overlay.clientHeight },
-      content: { width: CONTENT_W, height: CONTENT_H },
+      bounds: {
+        x: (CONTENT_W - DIAGRAM_W) / 2,
+        y: (CONTENT_H - diagramHeight) / 2,
+        width: DIAGRAM_W,
+        height: diagramHeight,
+      },
+      padding: FIT_PADDING,
+      minScale: MIN_SCALE,
+      maxScale: MAX_SCALE,
     });
     applyTransform();
   };
@@ -123,7 +149,7 @@ export default function FlowCanvas({
     const { width, height } = fullscreenUiSize();
     void resizeUi(width, height).then(() => {
       if (cancelled) return;
-      centerContent();
+      fitContent();
       setVisible(true);
     });
     return () => {
@@ -140,7 +166,7 @@ export default function FlowCanvas({
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected]);
+  }, [selectedId]);
 
   // pivot 아래의 캔버스 좌표가 확대/축소 후에도 같은 화면 위치에 남도록 tx/ty 보정
   const zoomTo = (nextScale: number, pivotX: number, pivotY: number) => {
@@ -159,6 +185,7 @@ export default function FlowCanvas({
     if (target.closest("[data-no-drag]") || target.closest(`.${styles.node}`)) {
       return;
     }
+    dismissSelection();
     dragStart.current = {
       x: event.clientX - transform.current.tx,
       y: event.clientY - transform.current.ty,
@@ -219,6 +246,11 @@ export default function FlowCanvas({
           <div className={styles.hint}>
             Drag to move, scroll to zoom, Esc to close
           </div>
+          {!!attentionCount && (
+            <div className={styles.attentionText}>
+              {attentionCount} need attention
+            </div>
+          )}
         </div>
         <button
           className={styles.close}
@@ -238,15 +270,16 @@ export default function FlowCanvas({
         <button type="button" onClick={() => zoomAtCenter(ZOOM_STEP)}>
           +
         </button>
-        <button type="button" onClick={centerContent} aria-label="Reset view">
-          ⟲
+        <button className={styles.fit} type="button" onClick={fitContent}>
+          Fit
         </button>
       </div>
 
       <div ref={contentRef} className={styles.content}>
         <FlowDiagram
           diagram={diagram}
-          selectedId={selected?.id}
+          selectedId={selectedId}
+          focus={focus}
           onSelect={selectNode}
         />
       </div>
@@ -258,7 +291,7 @@ export default function FlowCanvas({
           project={project}
           x={popover.x}
           y={popover.y}
-          onDismiss={() => setPopover(undefined)}
+          onDismiss={dismissSelection}
         />
       )}
     </div>
@@ -306,6 +339,9 @@ const ScreenPopover = forwardRef<
         </span>
         <span>{incomingCount} incoming</span>
       </div>
+      {node.needsAttention && (
+        <div className={styles.attentionText}>No incoming connection</div>
+      )}
     </div>
   );
 });

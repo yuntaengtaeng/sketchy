@@ -2,6 +2,7 @@ import type {
   FlowDiagram as Diagram,
   FlowNode,
 } from "../utils/buildFlowDiagram";
+import type { FlowFocus } from "../utils/flowFocus";
 import { edgeLabelPosition } from "../utils/edgeLabelPosition";
 import { elbowPath } from "../utils/elbowPath";
 import styles from "./FlowCanvas.module.css";
@@ -10,10 +11,12 @@ import styles from "./FlowCanvas.module.css";
 export default function FlowDiagram({
   diagram,
   selectedId,
+  focus,
   onSelect,
 }: {
   diagram: Diagram;
   selectedId?: string;
+  focus?: FlowFocus;
   onSelect: (node: FlowNode, anchorX: number, anchorY: number) => void;
 }) {
   return (
@@ -39,7 +42,14 @@ export default function FlowDiagram({
       {diagram.edges.map((edge) => {
         const label = edgeLabelPosition(edge);
         return (
-          <g key={edge.id}>
+          <g
+            key={edge.id}
+            className={
+              focus && !focus.featureIds.has(edge.featureId)
+                ? styles.dimmed
+                : undefined
+            }
+          >
             <path
               className={[styles.edge, edge.dashed && styles.dashed]
                 .filter(Boolean)
@@ -60,7 +70,16 @@ export default function FlowDiagram({
       })}
 
       {diagram.chips.map((chip) => (
-        <g key={chip.id} className={styles.chip}>
+        <g
+          key={chip.id}
+          className={[
+            styles.chip,
+            chip.kind === "unlinked" && styles.attention,
+            focus && !focus.featureIds.has(chip.id) && styles.dimmed,
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
           <rect
             x={chip.x}
             y={chip.y}
@@ -82,6 +101,10 @@ export default function FlowDiagram({
         <g
           key={node.id}
           className={[styles.node, node.id === selectedId && styles.selected]
+            .concat(
+              node.needsAttention ? [styles.attention] : [],
+              focus && !focus.screenIds.has(node.id) ? [styles.dimmed] : [],
+            )
             .filter(Boolean)
             .join(" ")}
           tabIndex={0}

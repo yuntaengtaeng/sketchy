@@ -6,6 +6,7 @@ test("straight edge label sits beside the vertical midpoint", () => {
   assert.deepEqual(
     edgeLabelPosition({
       id: "straight",
+      featureId: "straight",
       points: [
         { x: 20, y: 10 },
         { x: 20, y: 50 },
@@ -27,6 +28,7 @@ test("branch and loop labels use their visible routing segment", () => {
   assert.deepEqual(
     edgeLabelPosition({
       id: "branch",
+      featureId: "branch",
       points,
       label: "Branch",
       dashed: true,
@@ -36,6 +38,7 @@ test("branch and loop labels use their visible routing segment", () => {
   assert.deepEqual(
     edgeLabelPosition({
       id: "loop",
+      featureId: "loop",
       points,
       label: "Loop",
       dashed: false,

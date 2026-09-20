@@ -25,6 +25,7 @@ export type FlowNode = {
   y: number;
   w: number;
   h: number;
+  needsAttention: boolean;
 };
 export type FlowChip = {
   id: string;
@@ -37,6 +38,7 @@ export type FlowChip = {
 };
 export type FlowEdge = {
   id: string;
+  featureId: string;
   points: { x: number; y: number }[];
   label: string;
   dashed: boolean;
@@ -68,6 +70,7 @@ type Branch = {
 
 type LoopOptions = {
   id: string;
+  featureId: string;
   label: string;
   exit: { x: number; y: number };
   exitFromLeft: boolean;
@@ -82,10 +85,18 @@ export function buildFlowDiagram(
 ): FlowDiagram {
   const mainScreens = project.screens.filter((screen) => !screen.kind);
   const rowIndex = new Map(mainScreens.map((screen, i) => [screen.id, i]));
+  const incomingScreenIds = new Set(
+    project.features.flatMap((feature) => {
+      if (!("destinationScreenId" in feature.action)) return [];
+      return feature.action.destinationScreenId
+        ? [feature.action.destinationScreenId]
+        : [];
+    }),
+  );
   // 화면 ID에 대응하는 행의 세로 좌표 계산
   const rowY = (id: string) => MARGIN_TOP + (rowIndex.get(id) ?? 0) * ROW_GAP;
 
-  const nodes: FlowNode[] = mainScreens.map((screen) => ({
+  const nodes: FlowNode[] = mainScreens.map((screen, index) => ({
     id: screen.id,
     name: screen.name,
     purpose: screen.purpose,
@@ -93,6 +104,7 @@ export function buildFlowDiagram(
     y: rowY(screen.id),
     w: NODE_W,
     h: NODE_H,
+    needsAttention: index > 0 && !incomingScreenIds.has(screen.id),
   }));
 
   const chips: FlowChip[] = [];
@@ -103,6 +115,7 @@ export function buildFlowDiagram(
   // 인접하지 않은 navigate와 팝업 복귀용 화면 간 우회 경로 추가
   function addLoop({
     id,
+    featureId,
     label,
     exit,
     exitFromLeft,
@@ -121,7 +134,7 @@ export function buildFlowDiagram(
           { x: laneX, y: entry.y },
           entry,
         ];
-    edges.push({ id, points, label, dashed: false });
+    edges.push({ id, featureId, points, label, dashed: false });
   }
 
   for (const screen of mainScreens) {
@@ -149,6 +162,7 @@ export function buildFlowDiagram(
           const x = NODE_X + NODE_W / 2;
           edges.push({
             id: feature.id,
+            featureId: feature.id,
             points: [
               { x, y: rowY(screen.id) + NODE_H },
               { x, y: rowY(destinationId) },
@@ -160,6 +174,7 @@ export function buildFlowDiagram(
           const y = rowY(screen.id) + NODE_H / 2;
           addLoop({
             id: feature.id,
+            featureId: feature.id,
             label: feature.name,
             exit: { x: NODE_X, y },
             exitFromLeft: true,
@@ -225,6 +240,7 @@ export function buildFlowDiagram(
       const turnX = NODE_X + NODE_W + STUB;
       edges.push({
         id: `${branch.feature.id}-connector`,
+        featureId: branch.feature.id,
         points: [
           { x: NODE_X + NODE_W, y: nodeY },
           { x: turnX, y: nodeY },
@@ -245,6 +261,7 @@ export function buildFlowDiagram(
         const corridorY = rowY(screen.id) - LOOP_CLEARANCE;
         addLoop({
           id: `${inner.id}-return`,
+          featureId: inner.id,
           label: inner.name,
           exit: { x: chipX + w / 2, y },
           exitFromLeft: false,

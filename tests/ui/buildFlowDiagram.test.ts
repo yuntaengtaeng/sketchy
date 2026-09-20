@@ -73,6 +73,18 @@ test("only main screens (no popup/toast) become nodes", () => {
   );
 });
 
+test("screens after the first without incoming connections need attention", () => {
+  const diagram = buildFlowDiagram(
+    {
+      ...project,
+      features: project.features.filter((item) => item.id !== "f1"),
+    },
+    measure,
+  );
+  assert.equal(diagram.nodes[0].needsAttention, false);
+  assert.equal(diagram.nodes[1].needsAttention, true);
+});
+
 test("navigate to the immediate next row is a two-point chain edge", () => {
   const diagram = buildFlowDiagram(project, measure);
   const chain = diagram.edges.find((e) => e.id === "f1")!;
