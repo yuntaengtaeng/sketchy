@@ -24,28 +24,105 @@ const button: Element = {
 test("guides a first-time user through the first interaction", () => {
   const project = createEmptyProject();
   assert.equal(
-    getOnboardingStep(project, undefined, undefined, false),
+    getOnboardingStep({
+      project,
+      onboardingComplete: false,
+      view: "build",
+    }),
     "create-screen",
   );
 
   project.screens.push(screen);
   assert.equal(
-    getOnboardingStep(project, undefined, undefined, false),
+    getOnboardingStep({
+      project,
+      onboardingComplete: false,
+      view: "build",
+    }),
     "select-screen",
   );
   assert.equal(
-    getOnboardingStep(project, screen, undefined, false),
+    getOnboardingStep({
+      project,
+      screen,
+      onboardingComplete: false,
+      view: "build",
+    }),
     "add-button",
   );
 
   project.elements.push(button);
   assert.equal(
-    getOnboardingStep(project, screen, undefined, false),
+    getOnboardingStep({
+      project,
+      screen,
+      onboardingComplete: false,
+      view: "build",
+    }),
     "select-element",
   );
   assert.equal(
-    getOnboardingStep(project, screen, button, false),
+    getOnboardingStep({
+      project,
+      screen,
+      element: button,
+      onboardingComplete: false,
+      view: "build",
+    }),
     "choose-result",
   );
-  assert.equal(getOnboardingStep(project, screen, button, true), undefined);
+  assert.equal(
+    getOnboardingStep({
+      project,
+      screen,
+      element: button,
+      onboardingComplete: true,
+      view: "build",
+    }),
+    undefined,
+  );
+});
+
+test("continues the first success through flow and spec", () => {
+  const project = createEmptyProject();
+  project.screens.push(screen);
+  project.elements.push(button);
+  project.features.push({
+    id: "feature-1",
+    screenId: screen.id,
+    name: "Continue",
+    trigger: { type: "click", elementId: button.id },
+    action: { type: "describe" },
+  });
+
+  assert.equal(
+    getOnboardingStep({
+      project,
+      screen,
+      element: button,
+      onboardingComplete: false,
+      view: "build",
+    }),
+    "view-flow",
+  );
+  assert.equal(
+    getOnboardingStep({
+      project,
+      screen,
+      element: button,
+      onboardingComplete: false,
+      view: "flow",
+    }),
+    "view-spec",
+  );
+  assert.equal(
+    getOnboardingStep({
+      project,
+      screen,
+      element: button,
+      onboardingComplete: false,
+      view: "spec",
+    }),
+    "view-flow",
+  );
 });

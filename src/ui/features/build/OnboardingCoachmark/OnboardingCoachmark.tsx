@@ -4,14 +4,16 @@ import type { OnboardingStep } from "../utils/onboarding";
 import styles from "./OnboardingCoachmark.module.css";
 
 const COPY: Record<OnboardingStep, { progress: string; title: string }> = {
-  "create-screen": { progress: "1 of 3", title: "Create your first screen" },
-  "select-screen": { progress: "1 of 3", title: "Select a screen" },
-  "add-button": { progress: "2 of 3", title: "Add a Button" },
+  "create-screen": { progress: "1 of 5", title: "Create your first screen" },
+  "select-screen": { progress: "1 of 5", title: "Select a screen" },
+  "add-button": { progress: "2 of 5", title: "Add a Button" },
   "select-element": {
-    progress: "3 of 3",
+    progress: "3 of 5",
     title: "Select the interactive element",
   },
-  "choose-result": { progress: "3 of 3", title: "Choose a result" },
+  "choose-result": { progress: "3 of 5", title: "Choose a result" },
+  "view-flow": { progress: "4 of 5", title: "View the project flow" },
+  "view-spec": { progress: "5 of 5", title: "Review the live spec" },
 };
 
 export function OnboardingTarget({

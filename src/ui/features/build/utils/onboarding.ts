@@ -10,15 +10,29 @@ export type OnboardingStep =
   | "select-screen"
   | "add-button"
   | "select-element"
-  | "choose-result";
+  | "choose-result"
+  | "view-flow"
+  | "view-spec";
 
-export function getOnboardingStep(
-  project: Project,
-  screen: Screen | undefined,
-  element: Element | undefined,
-  onboardingComplete: boolean | undefined,
-): OnboardingStep | undefined {
+// 현재 프로젝트와 보기에서 다음 첫 성공 단계 선택
+export function getOnboardingStep({
+  project,
+  screen,
+  element,
+  onboardingComplete,
+  view,
+}: {
+  project: Project;
+  screen?: Screen;
+  element?: Element;
+  onboardingComplete?: boolean;
+  view: "build" | "flow" | "spec";
+}): OnboardingStep | undefined {
   if (onboardingComplete === undefined || onboardingComplete) return;
+
+  if (project.features.length)
+    return view === "flow" ? "view-spec" : "view-flow";
+  if (view !== "build") return;
 
   const hasScreens = project.screens.some((item) => !item.kind);
   if (!hasScreens) return "create-screen";

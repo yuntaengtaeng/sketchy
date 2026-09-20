@@ -73,7 +73,7 @@ test("only main screens (no popup/toast) become nodes", () => {
   );
 });
 
-test("screens after the first without incoming connections need attention", () => {
+test("missing purpose or incoming connections needs attention", () => {
   const diagram = buildFlowDiagram(
     {
       ...project,
@@ -81,8 +81,23 @@ test("screens after the first without incoming connections need attention", () =
     },
     measure,
   );
-  assert.equal(diagram.nodes[0].needsAttention, false);
+  assert.equal(diagram.nodes[0].needsAttention, true);
   assert.equal(diagram.nodes[1].needsAttention, true);
+  assert.equal(diagram.nodes[1].incomingMissing, true);
+});
+
+test("screen purpose is carried into the flow node", () => {
+  const purposeful: Project = {
+    ...project,
+    screens: project.screens.map((screen) =>
+      screen.id === "home"
+        ? { ...screen, purpose: "Help customers start their order" }
+        : screen,
+    ),
+  };
+  const diagram = buildFlowDiagram(purposeful, measure);
+  assert.equal(diagram.nodes[0].purpose, "Help customers start their order");
+  assert.equal(diagram.nodes[0].needsAttention, false);
 });
 
 test("navigate to the immediate next row is a two-point chain edge", () => {

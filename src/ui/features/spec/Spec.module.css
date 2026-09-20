@@ -1,8 +1,26 @@
+.spec {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.overview,
+.block,
+.attention {
+  display: grid;
+  gap: var(--space-2);
+}
+
 .elements {
   display: grid;
   gap: var(--space-1);
+  margin: 0;
   padding-left: 0;
   list-style: none;
+}
+
+.elements li {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .elements .elements {
@@ -18,9 +36,28 @@
   font-size: var(--text-xs);
 }
 
+.purpose {
+  display: grid;
+  gap: var(--space-1);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--sketchy-line);
+}
+
+.purpose strong {
+  font-size: var(--text-xs);
+}
+
 .attention {
   border-left: 2px dashed var(--sketchy-line);
   padding-left: var(--space-3);
+}
+
+.block > :first-child,
+.attention > :first-child,
+.purpose > :last-child,
+.elements li > p,
+.behaviors li > p {
+  margin: 0;
 }
 
 .attention ul,

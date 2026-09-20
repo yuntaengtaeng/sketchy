@@ -4,22 +4,19 @@ import {
   type Project,
   type Screen,
 } from "../../../shared";
-import { post } from "../../plugin";
 import BuildNavigation from "./BuildNavigation/BuildNavigation";
 import ElementDetails from "./ElementDetails/ElementDetails";
-import { getOnboardingStep } from "./utils/onboarding";
-import OnboardingCoachmark, {
-  OnboardingTarget,
-} from "./OnboardingCoachmark/OnboardingCoachmark";
+import { OnboardingTarget } from "./OnboardingCoachmark/OnboardingCoachmark";
 import ScreenEditor, { ScreenBrowser } from "./ScreenEditor/ScreenEditor";
 import SectionEditor from "./SectionEditor/SectionEditor";
+import type { OnboardingStep } from "./utils/onboarding";
 
 type Props = {
   project: Project;
   screen?: Screen;
   element?: SketchyElement;
   insertedElementId?: string;
-  onboardingComplete?: boolean;
+  onboardingStep?: OnboardingStep;
 };
 
 export default function Build({
@@ -27,34 +24,18 @@ export default function Build({
   screen,
   element,
   insertedElementId,
-  onboardingComplete,
+  onboardingStep,
 }: Props) {
-  const onboardingStep = getOnboardingStep(
-    project,
-    screen,
-    element,
-    onboardingComplete,
-  );
-  const coachmark = (
-    <OnboardingCoachmark
-      step={onboardingStep}
-      onSkip={() => post({ type: "DISMISS_ONBOARDING" })}
-    />
-  );
-
   if (!screen)
     return (
-      <>
-        <OnboardingTarget
-          active={
-            onboardingStep === "create-screen" ||
-            onboardingStep === "select-screen"
-          }
-        >
-          <ScreenBrowser project={project} />
-        </OnboardingTarget>
-        {coachmark}
-      </>
+      <OnboardingTarget
+        active={
+          onboardingStep === "create-screen" ||
+          onboardingStep === "select-screen"
+        }
+      >
+        <ScreenBrowser project={project} />
+      </OnboardingTarget>
     );
   return (
     <>
@@ -87,7 +68,6 @@ export default function Build({
           onboardingStep={onboardingStep}
         />
       )}
-      {coachmark}
     </>
   );
 }

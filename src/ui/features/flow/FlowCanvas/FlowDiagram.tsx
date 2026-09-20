@@ -7,6 +7,12 @@ import { edgeLabelPosition } from "../utils/edgeLabelPosition";
 import { elbowPath } from "../utils/elbowPath";
 import styles from "./FlowCanvas.module.css";
 
+// Flow Node에 맞는 한 줄 Purpose 문구 구성
+function purposeLabel(purpose: string) {
+  const label = purpose.trim() || "Purpose missing";
+  return label.length > 32 ? `${label.slice(0, 31)}…` : label;
+}
+
 // Flow diagram 데이터를 접근 가능한 SVG로 표시
 export default function FlowDiagram({
   diagram,
@@ -119,11 +125,20 @@ export default function FlowDiagram({
         >
           <rect x={node.x} y={node.y} width={node.w} height={node.h} rx={4} />
           <text
+            className={styles.nodeName}
             x={node.x + node.w / 2}
-            y={node.y + node.h / 2 + 4}
+            y={node.y + node.h / 2 - 4}
             textAnchor="middle"
           >
             {node.name}
+          </text>
+          <text
+            className={styles.nodePurpose}
+            x={node.x + node.w / 2}
+            y={node.y + node.h / 2 + 14}
+            textAnchor="middle"
+          >
+            {purposeLabel(node.purpose)}
           </text>
         </g>
       ))}

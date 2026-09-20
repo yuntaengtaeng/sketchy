@@ -139,10 +139,15 @@
     stroke-width 0.12s ease,
     filter 0.12s ease;
 }
-.node text {
+.nodeName {
   fill: #17181a;
   font-size: 12px;
   font-weight: 600;
+}
+.nodePurpose {
+  fill: #686a70;
+  font-size: 9px;
+  font-weight: 400;
 }
 .node.selected rect {
   stroke: #ffffff;

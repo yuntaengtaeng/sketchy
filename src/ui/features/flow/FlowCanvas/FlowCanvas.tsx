@@ -329,7 +329,9 @@ const ScreenPopover = forwardRef<
         ×
       </button>
       <div className={styles.name}>{node.name}</div>
-      {node.purpose && <div className={styles.purpose}>{node.purpose}</div>}
+      <div className={styles.purpose}>
+        {node.purpose.trim() || "Purpose missing"}
+      </div>
       <div className={styles.stats}>
         <span>
           {elementCount === 1 ? "1 element" : `${elementCount} elements`}
@@ -339,7 +341,7 @@ const ScreenPopover = forwardRef<
         </span>
         <span>{incomingCount} incoming</span>
       </div>
-      {node.needsAttention && (
+      {node.incomingMissing && (
         <div className={styles.attentionText}>No incoming connection</div>
       )}
     </div>

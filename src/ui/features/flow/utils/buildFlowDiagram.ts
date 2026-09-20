@@ -3,8 +3,8 @@ import { toastLabel } from "./groupConnections.ts";
 
 const NODE_X = 40;
 const NODE_W = 160;
-const NODE_H = 48;
-const ROW_GAP = 120;
+const NODE_H = 64;
+const ROW_GAP = 136;
 const MARGIN_TOP = 10;
 const CHIP_H = 44;
 const CHIP_GAP_Y = 10;
@@ -25,6 +25,7 @@ export type FlowNode = {
   y: number;
   w: number;
   h: number;
+  incomingMissing: boolean;
   needsAttention: boolean;
 };
 export type FlowChip = {
@@ -96,16 +97,20 @@ export function buildFlowDiagram(
   // 화면 ID에 대응하는 행의 세로 좌표 계산
   const rowY = (id: string) => MARGIN_TOP + (rowIndex.get(id) ?? 0) * ROW_GAP;
 
-  const nodes: FlowNode[] = mainScreens.map((screen, index) => ({
-    id: screen.id,
-    name: screen.name,
-    purpose: screen.purpose,
-    x: NODE_X,
-    y: rowY(screen.id),
-    w: NODE_W,
-    h: NODE_H,
-    needsAttention: index > 0 && !incomingScreenIds.has(screen.id),
-  }));
+  const nodes: FlowNode[] = mainScreens.map((screen, index) => {
+    const incomingMissing = index > 0 && !incomingScreenIds.has(screen.id);
+    return {
+      id: screen.id,
+      name: screen.name,
+      purpose: screen.purpose,
+      x: NODE_X,
+      y: rowY(screen.id),
+      w: NODE_W,
+      h: NODE_H,
+      incomingMissing,
+      needsAttention: !screen.purpose.trim() || incomingMissing,
+    };
+  });
 
   const chips: FlowChip[] = [];
   const edges: FlowEdge[] = [];

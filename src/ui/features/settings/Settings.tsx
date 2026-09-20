@@ -11,7 +11,13 @@ import CheckedField from "../../components/properties/CheckedField";
 import { post } from "../../plugin";
 import styles from "./Settings.module.css";
 
-export default function Settings({ settings }: { settings: ProjectSettings }) {
+export default function Settings({
+  settings,
+  onRestartTour,
+}: {
+  settings: ProjectSettings;
+  onRestartTour: () => void;
+}) {
   return (
     <>
       <Section>
@@ -57,6 +63,19 @@ export default function Settings({ settings }: { settings: ProjectSettings }) {
         <p className={styles.note}>
           Figma prototype links stay connected either way.
         </p>
+      </Section>
+      <Section>
+        <Title>Product tour</Title>
+        <Muted>See how Build, Flow, and Spec work together</Muted>
+        <Button
+          className={styles.restart}
+          onClick={() => {
+            post({ type: "RESTART_ONBOARDING" });
+            onRestartTour();
+          }}
+        >
+          Take the tour again
+        </Button>
       </Section>
     </>
   );

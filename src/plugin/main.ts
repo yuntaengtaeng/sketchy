@@ -44,6 +44,7 @@ let onboardingComplete = false;
 let redrawTimer: ReturnType<typeof setTimeout>;
 let suppressTimer: ReturnType<typeof setTimeout>;
 const ONBOARDING_KEY = "sketchy:onboarding-complete";
+const ONBOARDING_STARTED_KEY = "sketchy:onboarding-started";
 
 async function completeOnboarding() {
   onboardingComplete = true;
@@ -117,17 +118,31 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       const project = readProject();
       const savedOnboardingComplete =
         (await figma.clientStorage.getAsync(ONBOARDING_KEY)) === true;
+      const onboardingStarted =
+        (await figma.clientStorage.getAsync(ONBOARDING_STARTED_KEY)) === true;
       const hasExistingProject =
         project.screens.length > 0 ||
         project.elements.length > 0 ||
         project.features.length > 0;
-      onboardingComplete = savedOnboardingComplete || hasExistingProject;
-      if (hasExistingProject && !savedOnboardingComplete)
+      onboardingComplete =
+        savedOnboardingComplete || (hasExistingProject && !onboardingStarted);
+      if (!hasExistingProject && !onboardingStarted)
+        await figma.clientStorage.setAsync(ONBOARDING_STARTED_KEY, true);
+      if (onboardingComplete && !savedOnboardingComplete)
         await figma.clientStorage.setAsync(ONBOARDING_KEY, true);
       await sync(project, true);
     }
-    if (message.type === "DISMISS_ONBOARDING") {
+    if (
+      message.type === "DISMISS_ONBOARDING" ||
+      message.type === "COMPLETE_ONBOARDING"
+    ) {
       await completeOnboarding();
+      await sync();
+    }
+    if (message.type === "RESTART_ONBOARDING") {
+      onboardingComplete = false;
+      await figma.clientStorage.setAsync(ONBOARDING_KEY, false);
+      await figma.clientStorage.setAsync(ONBOARDING_STARTED_KEY, true);
       await sync();
     }
     if (message.type === "RESIZE_UI")
@@ -227,7 +242,6 @@ figma.ui.onmessage = async (message: PluginMessage) => {
         condition: message.condition,
         description: message.description,
       });
-      if (!onboardingComplete) await completeOnboarding();
       await sync(project, true);
     }
     if (message.type === "DELETE_FEATURE")
