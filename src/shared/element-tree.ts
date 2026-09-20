@@ -7,6 +7,8 @@ export type TreeElement = {
 };
 
 export const MAX_SECTION_DEPTH = 2;
+// element-tree는 BlockType에 의존하지 않는 범용 유틸이라 문자열로 직접 나열
+const CONTAINER_TYPES = new Set(["section", "header", "footer"]);
 
 export function elementAncestors<T extends TreeElement>(
   elements: T[],
@@ -63,8 +65,9 @@ export function canNestSection<T extends TreeElement>(
   parent: T,
 ) {
   const depth =
-    elementAncestors(elements, parent).filter((item) => item.type === "section")
-      .length + (parent.type === "section" ? 1 : 0);
+    elementAncestors(elements, parent).filter((item) =>
+      CONTAINER_TYPES.has(item.type),
+    ).length + (CONTAINER_TYPES.has(parent.type) ? 1 : 0);
   return depth < MAX_SECTION_DEPTH;
 }
 

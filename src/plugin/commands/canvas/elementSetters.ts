@@ -1,3 +1,4 @@
+import { isContainerElement } from "../../../shared";
 import { readProject, saveProject } from "../../storage/project";
 import {
   renderButtonVariant,
@@ -36,7 +37,7 @@ export async function setSectionDirection(
   const project = readProject();
   const element = project.elements.find((item) => item.id === elementId);
   const node = element && (await figma.getNodeByIdAsync(element.nodeId));
-  if (!element || element.type !== "section" || node?.type !== "FRAME")
+  if (!element || !isContainerElement(element) || node?.type !== "FRAME")
     return project;
   element.direction = direction;
   const children = await Promise.all(

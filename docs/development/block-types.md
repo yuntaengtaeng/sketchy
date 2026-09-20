@@ -78,11 +78,21 @@ Tabs의 `selectedTab`은 이 Tabs 인스턴스가 지금 어떤 탭이 선택된
 ## Picker UI — Quick add + 카테고리
 
 `BlockPicker.tsx`는 Text/Button/Input/Image/Section 5개 고정 + `More…`만
-항상 보여준다. `More…`를 누르면 열리는
-Picker는 [기능 모델](../product/feature-model.md)의 Trigger 축(트리거
-없음/click/change·submit)과 같은 기준으로 Basic/Interactive/Form 세
-카테고리로 나눈다 — Picker 전용의 새 분류체계를 따로 만들지 않는다. 블록이
-늘어나도 Quick add 줄 길이는 고정이라 Build 패널이 계속 길어지지 않는다.
+항상 보여준다. `More…`를 누르면 열리는 Picker는
+[기능 모델](../product/feature-model.md)의 Trigger 축(트리거
+없음/click/change·submit)에 화면 골격을 이루는 Layout 축 하나를 더해
+Basic/Layout/Interactive/Form 네 카테고리로 나눈다 — 이 네 개 밖의 새
+분류체계는 만들지 않는다. Layout은 Header/Footer처럼 화면 어디에
+놓이는지 자체가 정체성인 블록만 담는다(단순 컨테이너인 Section은 자체
+트리거 없음 기준 그대로 Basic에 남는다). 블록이 늘어나도 Quick add 줄
+길이는 고정이라 Build 패널이 계속 길어지지 않는다.
+
+Header/Footer는 삽입될 때 `element.ts`의 `pinHeaderAndFooter`가 같은
+부모 안에서 Header를 맨 앞, Footer를 맨 뒤로 다시 쌓아, 그 사이에 있는
+다른 요소가 자연히 메인 콘텐츠 영역이 되게 한다(Material Design의
+Top App Bar/Main Content/Bottom Bar 구조 참고). Sidebar(콘텐츠 옆
+고정 배치)는 화면 최상위를 가로로 쪼개는 더 큰 구조 변경이 필요해
+이번 범위에서는 지원하지 않는다.
 
 ## 새 블록을 추가하는 절차
 

@@ -5,6 +5,7 @@ import {
 } from "../../shared/index.ts";
 import { readingOrder } from "../reading-order.ts";
 import { adoptCanvasName, elementLabelText } from "../canvas-name.ts";
+import { syncScreenEdgePadding } from "../commands/canvas/headerFooterLayout.ts";
 import {
   migrateStoredProject,
   parseStoredProject,
@@ -75,6 +76,9 @@ export async function cleanProject(project: Project) {
           ?.remove();
       return element;
     });
+  // Figma 단축키로 지운 Header/Footer도 반영되는 화면 패딩 재동기화
+  for (const { node } of screenLookups)
+    if (node?.type === "FRAME") syncScreenEdgePadding(node, elements);
   const orderChanged = await normalizeElementOrder({
     ...project,
     screens,

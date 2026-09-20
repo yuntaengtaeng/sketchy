@@ -1,7 +1,8 @@
-import type {
-  Element as SketchyElement,
-  Project,
-  Screen,
+import {
+  isContainerElement,
+  type Element as SketchyElement,
+  type Project,
+  type Screen,
 } from "../../../shared";
 import { post } from "../../plugin";
 import BuildNavigation from "./BuildNavigation/BuildNavigation";
@@ -68,7 +69,7 @@ export default function Build({
             element={element}
             onboarding={onboardingStep === "choose-result"}
           />
-          {element.type === "section" ? (
+          {isContainerElement(element) ? (
             <SectionEditor
               project={project}
               screenId={screen.id}

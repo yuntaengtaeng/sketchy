@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { BLOCK_DEFINITIONS, type BlockType } from "../../../../shared";
+import {
+  BLOCK_DEFINITIONS,
+  CONTAINER_BLOCK_TYPES,
+  type BlockType,
+} from "../../../../shared";
 import { SEARCH_ICON } from "../../../../shared/icons";
 import Button from "../../../components/Button/Button";
 import Section from "../../../components/Section/Section";
@@ -16,13 +20,18 @@ const QUICK_FIXED: BlockType[] = [
   "section",
 ];
 
-// feature-model의 Trigger 축(클릭 없음 / click / change·submit)을 그대로 쓴다,
-// Picker 전용의 새 분류체계를 따로 만들지 않는다
+// feature-model의 Trigger 축(클릭 없음 / click / change·submit) + 화면 골격을
+// 이루는 Layout, 이 네 카테고리 밖의 새 분류체계는 만들지 않는다
 const CATEGORIES: { key: string; label: string; blocks: BlockType[] }[] = [
   {
     key: "basic",
     label: "Basic",
     blocks: ["text", "image", "divider", "section"],
+  },
+  {
+    key: "layout",
+    label: "Layout",
+    blocks: ["header", "footer"],
   },
   {
     key: "interactive",
@@ -36,9 +45,7 @@ const CATEGORIES: { key: string; label: string; blocks: BlockType[] }[] = [
   },
 ];
 
-// 순수 CSS ::after만으로 표현하기 어려운(자식이 여러 개인) 스와치만 여기서
-// 마크업으로 채운다, 나머지(button/input/image/divider/section/checkbox/
-// radio/switch/select)는 BlockPicker.module.css의 data-block 규칙만으로 그린다.
+// 여러 자식이 필요한 스와치만 마크업으로 채우고 나머지는 CSS data-block 규칙으로 그림
 // search는 shared/icons.ts의 SEARCH_ICON을 실제 캔버스 렌더러와 공유한다
 const FOCUSABLE_SELECTOR =
   'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
@@ -152,7 +159,8 @@ export default function BlockPicker({
     const definition = BLOCK_DEFINITIONS[block];
     return (
       !sectionId ||
-      (definition.canAddToSection && (block !== "section" || allowSection))
+      (definition.canAddToSection &&
+        (!CONTAINER_BLOCK_TYPES.includes(block) || allowSection))
     );
   };
 

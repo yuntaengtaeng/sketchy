@@ -50,6 +50,20 @@ export const BLOCK_DEFINITIONS = {
     triggers: [],
     nameSlot: "none",
   },
+  // Header/Footer는 기본 방향만 다른 Section 변형, 화면 맨 위/아래 고정은
+  // insertBlock의 pinHeaderAndFooter가 담당한다
+  header: {
+    label: "Header",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "none",
+  },
+  footer: {
+    label: "Footer",
+    canAddToSection: true,
+    triggers: [],
+    nameSlot: "none",
+  },
   // List Item, Card만 Button처럼 click 트리거를 바로 연결한다, 나머지는 지금은
   // 순수 시각 요소로만 추가하고 트리거는 블록별로 나중에 확장한다
   listItem: {
@@ -109,6 +123,13 @@ export const BLOCK_DEFINITIONS = {
 } satisfies Record<string, BlockDefinition>;
 
 export type BlockType = keyof typeof BLOCK_DEFINITIONS;
+
+// direction을 갖는 세 컨테이너 타입, BlockType 단계(아직 Element가 없을 때)의 기준
+export const CONTAINER_BLOCK_TYPES: BlockType[] = [
+  "section",
+  "header",
+  "footer",
+];
 
 export type Screen = {
   id: string;
@@ -204,6 +225,8 @@ export type Element =
   | ElementVariant<"image">
   | ElementVariant<"divider">
   | ElementVariant<"section", SectionDirection>
+  | ElementVariant<"header", SectionDirection>
+  | ElementVariant<"footer", SectionDirection>
   | ElementVariant<"listItem", ListItemType & RepeatCount & ListItemContent>
   | ElementVariant<"card", CardType & RepeatCount & CardContent>
   | ElementVariant<"table", TableColumns & RepeatCount & TableRows>
@@ -238,6 +261,24 @@ export function duplicateScreenElements(
       },
     ];
   });
+}
+
+// section/header/footer 공통, 각자 자연스러운 기본 방향
+export function defaultSectionDirection(
+  type: BlockType,
+): "vertical" | "horizontal" {
+  return type === "header" || type === "footer" ? "horizontal" : "vertical";
+}
+
+// direction을 공유하는 세 컨테이너 타입 판별, Element/DomainElement 겸용
+export function isContainerElement<T extends { type: BlockType }>(
+  element: T,
+): element is T & SectionDirection {
+  return (
+    element.type === "section" ||
+    element.type === "header" ||
+    element.type === "footer"
+  );
 }
 
 export function sectionLayout(direction: "vertical" | "horizontal") {

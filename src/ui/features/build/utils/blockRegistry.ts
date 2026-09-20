@@ -4,9 +4,9 @@ import ButtonOptions from "../options/ButtonOptions";
 import CardOptions from "../options/CardOptions";
 import CheckboxOptions from "../options/CheckboxOptions";
 import InputOptions from "../options/InputOptions";
+import LayoutDirectionOptions from "../options/LayoutDirectionOptions";
 import ListItemOptions from "../options/ListItemOptions";
 import RadioOptions from "../options/RadioOptions";
-import SectionOptions from "../options/SectionOptions";
 import SelectOptions from "../options/SelectOptions";
 import SwitchOptions from "../options/SwitchOptions";
 import TableOptions from "../options/TableOptions";
@@ -21,7 +21,8 @@ export const BLOCK_OPTIONS: Partial<
   text: TextOptions,
   button: ButtonOptions,
   input: InputOptions,
-  section: SectionOptions,
+  section: LayoutDirectionOptions,
+  footer: LayoutDirectionOptions,
   listItem: ListItemOptions,
   card: CardOptions,
   table: TableOptions,

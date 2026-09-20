@@ -1,8 +1,11 @@
 import {
   BLOCK_DEFINITIONS,
+  CONTAINER_BLOCK_TYPES,
   canNestSection,
+  defaultSectionDirection,
   elementSiblings,
   elementTreeIds,
+  isContainerElement,
   nextElementName,
   type BlockType,
 } from "../../../shared";
@@ -14,6 +17,13 @@ import {
 } from "../../storage/project";
 import { focusNode, id, loadFont } from "./utils";
 import { createElementNode, renderElementName } from "./element-render";
+import { defaultAutoChildren } from "./defaultAutoChild.ts";
+import {
+  applyOrder,
+  pinEdgeToScreen,
+  pinHeaderAndFooter,
+  syncScreenEdgePadding,
+} from "./headerFooterLayout.ts";
 
 export async function insertBlock(
   screenId: string,
@@ -35,16 +45,16 @@ export async function insertBlock(
     : frame;
   if (
     parentElement &&
-    (parentElement.type !== "section" || parentNode?.type !== "FRAME")
+    (!isContainerElement(parentElement) || parentNode?.type !== "FRAME")
   )
-    throw new Error("Select a section, then add the block again.");
+    throw new Error("Select a container, then add the block again.");
   if (
-    block === "section" &&
+    CONTAINER_BLOCK_TYPES.includes(block) &&
     parentElement &&
     !canNestSection(project.elements, parentElement)
   )
     throw new Error(
-      "Choose the screen or a top-level section; sections can only be nested one level.",
+      "Choose the screen or a top-level container; containers can only be nested one level.",
     );
   const elementId = id();
   const base = {
@@ -64,7 +74,13 @@ export async function insertBlock(
       case "button":
         return { ...base, type: block, buttonVariant };
       case "section":
-        return { ...base, type: block, direction: "vertical" };
+      case "header":
+      case "footer":
+        return {
+          ...base,
+          type: block,
+          direction: defaultSectionDirection(block),
+        };
       case "tabs":
         return {
           ...base,
@@ -96,6 +112,37 @@ export async function insertBlock(
   })();
   const node = createElementNode(element, parentNode as FrameNode);
   project.elements.push({ ...element, nodeId: node.id });
+  if (node.type === "FRAME")
+    for (const child of defaultAutoChildren(
+      block,
+      project.elements,
+      screenId,
+      elementId,
+    )) {
+      const childNode = createElementNode(child, node);
+      // Header의 뒤로가기는 아이콘 버튼 크기, 테두리 없이 텍스트만 가운데
+      if (
+        block === "header" &&
+        child.type === "button" &&
+        childNode.type === "FRAME"
+      ) {
+        childNode.resize(40, 40);
+        childNode.strokes = [];
+        childNode.primaryAxisAlignItems = "CENTER";
+        childNode.counterAxisAlignItems = "CENTER";
+      }
+      project.elements.push({ ...child, nodeId: childNode.id });
+    }
+  if (parentNode?.type === "FRAME")
+    pinHeaderAndFooter(parentNode, project.elements);
+  // Header에 새 블록 추가 시 기존 자식은 왼쪽 고정, 새 블록은 오른쪽 끝 배치
+  if (parentElement?.type === "header" && parentNode?.type === "FRAME")
+    parentNode.primaryAxisAlignItems = "SPACE_BETWEEN";
+  if (!parentElementId) {
+    if (block === "header" || block === "footer")
+      pinEdgeToScreen(node, frame, block === "header" ? "top" : "bottom");
+    syncScreenEdgePadding(frame, project.elements);
+  }
   // 새 Element는 order가 비어있어 그대로 저장하면 뒤이은 sync의 cleanProject가
   // order 정규화만으로 또 revision을 올려, 추가 한 번이 push 두 번(선행 409 포함)을
   // 만든다. 저장 전에 미리 정규화해 이 revision을 하나로 합친다
@@ -119,12 +166,6 @@ async function visualSiblingsOf(project: Project, elementId: string) {
     siblingElementIds.has(child.getPluginData("sketchy:element-id")),
   );
   return { parent, node: node as SceneNode, visualSiblings };
-}
-
-// insertChild의 self-move index 계산이 믿을 수 없어(제자리 no-op 확인됨),
-// 대신 원하는 최종 순서대로 appendChild를 반복해 끝에서부터 다시 쌓는다
-function applyOrder(parent: FrameNode, order: SceneNode[]) {
-  for (const sibling of order) parent.appendChild(sibling);
 }
 
 export async function moveElement(elementId: string, direction: "up" | "down") {
@@ -204,6 +245,7 @@ export async function deleteElement(elementId: string) {
   project.features = project.features.filter(
     (item) => !item.trigger?.elementId || !removed.has(item.trigger.elementId),
   );
+  // Header/Footer 삭제 시 화면 패딩 복원은 뒤이은 sync의 cleanProject 담당
   saveProject(project);
   return project;
 }

@@ -66,7 +66,10 @@ export function createElementNode(element: DomainElement, parent: FrameNode) {
   node.setPluginData("sketchy:screen-id", element.screenId);
   node.setPluginData("sketchy:element-id", element.id);
   parent.appendChild(node);
-  if (node.type === "FRAME") node.layoutSizingHorizontal = "FILL";
+  // 가로 컨테이너(Header/Footer 등) 안에서는 폭 꽉 채우기가 아니라 자기 크기 유지가 자연스럽다
+  if (node.type === "FRAME")
+    node.layoutSizingHorizontal =
+      parent.layoutMode === "HORIZONTAL" ? "FIXED" : "FILL";
   return node;
 }
 
@@ -155,7 +158,8 @@ export function renderSectionDirection(
   node.counterAxisSizingMode = layout.counterAxisSizingMode;
   for (const child of children)
     if (child.node?.type === "FRAME") {
-      child.node.layoutSizingHorizontal = "FILL";
+      child.node.layoutSizingHorizontal =
+        direction === "horizontal" ? "FIXED" : "FILL";
       child.node.layoutSizingVertical = "FIXED";
       if (child.element.type === "button" || child.element.type === "input")
         child.node.minHeight = 40;

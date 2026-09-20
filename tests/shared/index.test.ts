@@ -4,7 +4,9 @@ import test from "node:test";
 import {
   BLOCK_DEFINITIONS,
   createEmptyProject,
+  defaultSectionDirection,
   duplicateScreenElements,
+  isContainerElement,
   projectWithoutScreen,
   sectionLayout,
 } from "../../src/shared/index.ts";
@@ -14,6 +16,21 @@ test("a horizontal section keeps its width and hugs its height", () => {
   const layout = sectionLayout("horizontal");
   assert.equal(layout.primaryAxisSizingMode, "FIXED");
   assert.equal(layout.counterAxisSizingMode, "AUTO");
+});
+
+test("header and footer default to horizontal, section to vertical", () => {
+  assert.equal(defaultSectionDirection("header"), "horizontal");
+  assert.equal(defaultSectionDirection("footer"), "horizontal");
+  assert.equal(defaultSectionDirection("section"), "vertical");
+  assert.equal(defaultSectionDirection("button"), "vertical");
+});
+
+test("isContainerElement recognizes section, header, and footer only", () => {
+  const base = { id: "e1", nodeId: "1:1", screenId: "home", name: "Row" };
+  assert.equal(isContainerElement({ ...base, type: "section" }), true);
+  assert.equal(isContainerElement({ ...base, type: "header" }), true);
+  assert.equal(isContainerElement({ ...base, type: "footer" }), true);
+  assert.equal(isContainerElement({ ...base, type: "button" }), false);
 });
 
 test("a new project defaults to a mobile screen", () => {
