@@ -44,9 +44,10 @@ export default function Flow({
             disabled={!project.screens.length}
             onClick={() => setCanvasOpen(true)}
           >
-            View as Canvas
+            Open flow map
           </Button>
           <Button
+            variant="plain"
             disabled={!project.screens.length}
             onClick={() =>
               download(
@@ -56,7 +57,7 @@ export default function Flow({
               )
             }
           >
-            Export as Markdown
+            Download spec
           </Button>
         </div>
       </div>

@@ -5,8 +5,8 @@ type Variant = "default" | "plain" | "danger";
 
 const VARIANT_CLASSES: Record<Variant, (keyof typeof styles)[]> = {
   default: ["button"],
-  plain: ["plain"],
-  danger: ["plain", "danger"],
+  plain: ["button", "plain"],
+  danger: ["button", "plain", "danger"],
 };
 
 /** 역할별로 통일된 시각 처리를 갖는 공용 버튼, 위치 지정은 className으로 각자 유지 */

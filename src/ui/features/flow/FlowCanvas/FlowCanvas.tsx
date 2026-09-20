@@ -11,19 +11,14 @@ import { DEFAULT_UI_SIZE, type Project } from "../../../../shared";
 import { useFadeClose } from "../../../hooks/useFadeClose";
 import { useOutsideClick } from "../../../hooks/useOutsideClick";
 import { post, resizeUi } from "../../../plugin";
-import {
-  buildFlowDiagram,
-  type FlowDiagram,
-  type FlowEdge,
-  type FlowNode,
-} from "../utils/buildFlowDiagram";
-import { elbowPath } from "../utils/elbowPath";
+import { buildFlowDiagram, type FlowNode } from "../utils/buildFlowDiagram";
 import {
   centeredTransform,
   fullscreenSize,
   popoverPosition,
   zoomedTransform,
 } from "../utils/flowViewport";
+import FlowDiagram from "./FlowDiagram";
 import styles from "./FlowCanvas.module.css";
 
 const CONTENT_W = 1100;
@@ -249,7 +244,7 @@ export default function FlowCanvas({
       </div>
 
       <div ref={contentRef} className={styles.content}>
-        <FlowSvg
+        <FlowDiagram
           diagram={diagram}
           selectedId={selected?.id}
           onSelect={selectNode}
@@ -315,131 +310,3 @@ const ScreenPopover = forwardRef<
   );
 });
 ScreenPopover.displayName = "ScreenPopover";
-
-// diagram 데이터를 노드, 칩, 엣지 SVG 요소로 그리는 렌더러
-function FlowSvg({
-  diagram,
-  selectedId,
-  onSelect,
-}: {
-  diagram: FlowDiagram;
-  selectedId?: string;
-  onSelect: (node: FlowNode, anchorX: number, anchorY: number) => void;
-}) {
-  return (
-    <svg
-      viewBox={`0 0 ${diagram.width} ${diagram.height}`}
-      role="img"
-      aria-label="Screen flow diagram"
-    >
-      <defs>
-        <marker
-          id="flow-arrow"
-          viewBox="0 0 8 8"
-          refX={7}
-          refY={4}
-          markerWidth={7}
-          markerHeight={7}
-          orient="auto-start-reverse"
-        >
-          <path d="M0,0 L8,4 L0,8 z" fill="rgba(255,255,255,0.55)" />
-        </marker>
-      </defs>
-
-      {diagram.edges.map((edge) => {
-        const label = edgeLabelPosition(edge);
-        return (
-          <g key={edge.id}>
-            <path
-              className={[styles.edge, edge.dashed && styles.dashed]
-                .filter(Boolean)
-                .join(" ")}
-              markerEnd="url(#flow-arrow)"
-              d={elbowPath(edge.points, edge.points.length > 2 ? 10 : 0)}
-            />
-            <text
-              className={styles.edgeLabel}
-              x={label.x}
-              y={label.y}
-              textAnchor={label.anchor}
-            >
-              {edge.label}
-            </text>
-          </g>
-        );
-      })}
-
-      {diagram.chips.map((chip) => (
-        <g key={chip.id} className={styles.chip}>
-          <rect
-            x={chip.x}
-            y={chip.y}
-            width={chip.w}
-            height={chip.h}
-            rx={chip.h / 2}
-          />
-          <text
-            x={chip.x + chip.w / 2}
-            y={chip.y + chip.h / 2 + 4}
-            textAnchor="middle"
-          >
-            {chip.name}
-          </text>
-        </g>
-      ))}
-
-      {diagram.nodes.map((node) => (
-        <g
-          key={node.id}
-          className={[styles.node, node.id === selectedId && styles.selected]
-            .filter(Boolean)
-            .join(" ")}
-          tabIndex={0}
-          onClick={(event) => onSelect(node, event.clientX, event.clientY)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              const rect = event.currentTarget.getBoundingClientRect();
-              onSelect(node, rect.left + rect.width / 2, rect.top);
-            }
-          }}
-        >
-          <rect x={node.x} y={node.y} width={node.w} height={node.h} rx={4} />
-          <text
-            x={node.x + node.w / 2}
-            y={node.y + node.h / 2 + 4}
-            textAnchor="middle"
-          >
-            {node.name}
-          </text>
-        </g>
-      ))}
-    </svg>
-  );
-}
-
-// 엣지 모양(직선/분기/우회)에 따라 라벨을 겹치지 않는 자리에 가로로 배치
-function edgeLabelPosition(edge: FlowEdge): {
-  x: number;
-  y: number;
-  anchor: "start" | "middle" | "end";
-} {
-  const points = edge.points;
-  if (points.length === 2) {
-    return {
-      x: points[0].x + 8,
-      y: (points[0].y + points[1].y) / 2,
-      anchor: "start",
-    };
-  }
-  if (edge.dashed) {
-    const [a, b] = points.slice(-2);
-    return { x: (a.x + b.x) / 2, y: b.y - 8, anchor: "middle" };
-  }
-  const laneX = Math.min(...points.map((point) => point.x));
-  const laneYs = points
-    .filter((point) => point.x === laneX)
-    .map((point) => point.y);
-  const midY = (Math.min(...laneYs) + Math.max(...laneYs)) / 2;
-  return { x: laneX - 6, y: midY, anchor: "end" };
-}
