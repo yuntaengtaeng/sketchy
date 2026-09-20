@@ -1,4 +1,4 @@
-import type { Project } from "../../../../shared";
+import type { Project } from "../shared";
 
 export type ScreenSummary = {
   elementCount: number;
@@ -6,7 +6,7 @@ export type ScreenSummary = {
   incomingCount: number;
 };
 
-// 화면 하나의 요소, 동작, 들어오는 연결 개수 집계
+// 화면별 요소, 동작, 유입 연결 개수 집계
 export function screenSummary(
   project: Project,
   screenId: string,

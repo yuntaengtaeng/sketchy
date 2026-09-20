@@ -66,6 +66,15 @@ type Branch = {
   popupScreenId?: string;
 };
 
+type LoopOptions = {
+  id: string;
+  label: string;
+  exit: { x: number; y: number };
+  exitFromLeft: boolean;
+  corridorY: number;
+  targetScreenId: string;
+};
+
 // Project 데이터를 캔버스 좌표의 노드, 칩, 엣지로 배치하는 순수 레이아웃 계산
 export function buildFlowDiagram(
   project: Project,
@@ -73,6 +82,7 @@ export function buildFlowDiagram(
 ): FlowDiagram {
   const mainScreens = project.screens.filter((screen) => !screen.kind);
   const rowIndex = new Map(mainScreens.map((screen, i) => [screen.id, i]));
+  // 화면 ID에 대응하는 행의 세로 좌표 계산
   const rowY = (id: string) => MARGIN_TOP + (rowIndex.get(id) ?? 0) * ROW_GAP;
 
   const nodes: FlowNode[] = mainScreens.map((screen) => ({
@@ -90,15 +100,15 @@ export function buildFlowDiagram(
   let loopCount = 0;
   let maxX = NODE_X + NODE_W;
 
-  // 두 화면 행을 잇는 우회 경로, 인접하지 않은 navigate와 팝업 복귀에 함께 쓴다
-  function addLoop(
-    id: string,
-    label: string,
-    exit: { x: number; y: number },
-    exitFromLeft: boolean,
-    corridorY: number,
-    targetScreenId: string,
-  ) {
+  // 인접하지 않은 navigate와 팝업 복귀용 화면 간 우회 경로 추가
+  function addLoop({
+    id,
+    label,
+    exit,
+    exitFromLeft,
+    corridorY,
+    targetScreenId,
+  }: LoopOptions) {
     const laneX = LANE_X - loopCount * LANE_STEP;
     loopCount++;
     const entry = { x: NODE_X - 2, y: rowY(targetScreenId) + NODE_H / 2 };
@@ -148,14 +158,14 @@ export function buildFlowDiagram(
           });
         } else {
           const y = rowY(screen.id) + NODE_H / 2;
-          addLoop(
-            feature.id,
-            feature.name,
-            { x: NODE_X, y },
-            true,
-            y,
-            destinationId,
-          );
+          addLoop({
+            id: feature.id,
+            label: feature.name,
+            exit: { x: NODE_X, y },
+            exitFromLeft: true,
+            corridorY: y,
+            targetScreenId: destinationId,
+          });
         }
         continue;
       }
@@ -233,14 +243,14 @@ export function buildFlowDiagram(
         const destinationId = inner.action.destinationScreenId;
         if (!destinationId || !rowIndex.has(destinationId)) continue;
         const corridorY = rowY(screen.id) - LOOP_CLEARANCE;
-        addLoop(
-          `${inner.id}-return`,
-          inner.name,
-          { x: chipX + w / 2, y },
-          false,
+        addLoop({
+          id: `${inner.id}-return`,
+          label: inner.name,
+          exit: { x: chipX + w / 2, y },
+          exitFromLeft: false,
           corridorY,
-          destinationId,
-        );
+          targetScreenId: destinationId,
+        });
       }
     });
   }

@@ -6,6 +6,7 @@ import {
   useState,
   type PointerEvent,
 } from "react";
+import { screenSummary } from "../../../../core/screen-summary";
 import { DEFAULT_UI_SIZE, type Project } from "../../../../shared";
 import { useFadeClose } from "../../../hooks/useFadeClose";
 import { useOutsideClick } from "../../../hooks/useOutsideClick";
@@ -17,7 +18,6 @@ import {
   type FlowNode,
 } from "../utils/buildFlowDiagram";
 import { elbowPath } from "../utils/elbowPath";
-import { screenSummary } from "../utils/screenSummary";
 import styles from "./FlowCanvas.module.css";
 
 const CONTENT_W = 1100;

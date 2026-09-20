@@ -7,6 +7,38 @@ import {
 import { PART } from "../../../canvas-name.ts";
 import { createLabel } from "./shared";
 
+// 요소 종류에 맞는 기본 높이 계산
+function frameHeight(element: DomainElement) {
+  if (isContainerElement(element)) return 64;
+  if (element.type === "image") return 160;
+  if (element.type === "divider") return 1;
+  return 40;
+}
+
+// 요소 종류에 맞는 테두리 계산
+function frameStrokes(element: DomainElement): Paint[] {
+  if (isContainerElement(element)) {
+    return [{ type: "SOLID", color: { r: 0.75, g: 0.75, b: 0.75 } }];
+  }
+  if (
+    element.type === "image" ||
+    element.type === "button" ||
+    element.type === "input"
+  ) {
+    return [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.2 } }];
+  }
+  return [];
+}
+
+// 요소 상태에 맞는 배경색 계산
+function frameColor(element: DomainElement, filledButton: boolean): RGB {
+  if (element.type === "divider" || filledButton) {
+    return { r: 0.15, g: 0.15, b: 0.15 };
+  }
+  if (element.type === "image") return { r: 0.92, g: 0.92, b: 0.9 };
+  return { r: 1, g: 1, b: 1 };
+}
+
 // text 외 전용 구조가 없는 타입이 쓰는 공용 프레임(테두리 한 줄 또는 컨테이너)
 export function createGenericFrame(element: DomainElement) {
   const node = figma.createFrame();
@@ -16,7 +48,7 @@ export function createGenericFrame(element: DomainElement) {
   const direction = isContainer
     ? element.direction || defaultSectionDirection(element.type)
     : undefined;
-  node.resize(272, isContainer ? 64 : isImage ? 160 : isDivider ? 1 : 40);
+  node.resize(272, frameHeight(element));
   node.layoutMode = direction
     ? sectionLayout(direction).layoutMode
     : "HORIZONTAL";
@@ -31,17 +63,12 @@ export function createGenericFrame(element: DomainElement) {
       : "MIN";
   node.itemSpacing = isContainer ? 12 : 0;
   node.paddingTop = node.paddingBottom = isContainer ? 12 : 0;
-  node.paddingLeft = node.paddingRight = isContainer
-    ? 12
-    : element.type === "input" || element.type === "button"
+  node.paddingLeft = node.paddingRight =
+    isContainer || element.type === "input" || element.type === "button"
       ? 12
       : 0;
   node.cornerRadius = isDivider ? 0 : 4;
-  node.strokes = isContainer
-    ? [{ type: "SOLID", color: { r: 0.75, g: 0.75, b: 0.75 } }]
-    : isImage || element.type === "button" || element.type === "input"
-      ? [{ type: "SOLID", color: { r: 0.2, g: 0.2, b: 0.2 } }]
-      : [];
+  node.strokes = frameStrokes(element);
   if (isContainer) node.dashPattern = [4, 4];
   const filledButton =
     element.type === "button" &&
@@ -49,12 +76,7 @@ export function createGenericFrame(element: DomainElement) {
   node.fills = [
     {
       type: "SOLID",
-      color:
-        isDivider || filledButton
-          ? { r: 0.15, g: 0.15, b: 0.15 }
-          : isImage
-            ? { r: 0.92, g: 0.92, b: 0.9 }
-            : { r: 1, g: 1, b: 1 },
+      color: frameColor(element, filledButton),
     },
   ];
   // 컨테이너는 안에 실제 콘텐츠가 쌓이므로 라벨 텍스트 없이 레이어 이름만 사용

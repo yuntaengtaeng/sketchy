@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { screenSummary } from "../../src/ui/features/flow/utils/screenSummary.ts";
+import { screenSummary } from "../../src/core/screen-summary.ts";
 import type { Project } from "../../src/shared/index.ts";
 
 const project: Project = {

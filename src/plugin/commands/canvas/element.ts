@@ -144,9 +144,7 @@ export async function insertBlock(
       pinEdgeToScreen(node, frame, block === "header" ? "top" : "bottom");
     syncScreenEdgePadding(frame, project.elements);
   }
-  // 새 Element는 order가 비어있어 그대로 저장하면 뒤이은 sync의 cleanProject가
-  // order 정규화만으로 또 revision을 올려, 추가 한 번이 push 두 번(선행 409 포함)을
-  // 만든다. 저장 전에 미리 정규화해 이 revision을 하나로 합친다
+  // order 정규화를 저장 전에 실행, 뒤이은 sync가 다시 저장하지 않게 방지
   await normalizeElementOrder(project);
   saveProject(project);
   figma.currentPage.selection = [parentNode as FrameNode];
