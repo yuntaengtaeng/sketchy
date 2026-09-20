@@ -1,12 +1,15 @@
-import type { Feature, Project } from "../../../shared";
+import type { Project } from "../../../shared";
 import Button from "../../components/Button/Button";
 import Muted from "../../components/Muted/Muted";
 import Section from "../../components/Section/Section";
 import Title from "../../components/Title/Title";
-import { download, post } from "../../plugin";
+import { download } from "../../plugin";
 import { buildProjectMarkdown } from "../spec/utils/describe";
+import ConnectionList from "./ConnectionList/ConnectionList";
+import { groupConnections } from "./utils/groupConnections";
 import styles from "./Flow.module.css";
 
+// 선택된 화면과 관련된 연결, 프로젝트 전체 흐름을 화면별로 묶어 보여주는 탭
 export default function Flow({
   project,
   selectedScreenId,
@@ -21,81 +24,13 @@ export default function Flow({
         !!feature.action.destinationScreenId &&
         feature.action.destinationScreenId === selectedScreenId),
   );
-  const connections = (features: Feature[]) =>
-    features.map((feature) => {
-      const source = project.screens.find(
-        (screen) => screen.id === feature.screenId,
-      );
-      if (!source) return null;
-      const action = feature.action;
-      const destination =
-        "destinationScreenId" in action
-          ? project.screens.find(
-              (screen) => screen.id === action.destinationScreenId,
-            )
-          : undefined;
-      return (
-        <div className={styles.connection} key={feature.id}>
-          <Button
-            onClick={() => post({ type: "SELECT_SCREEN", screenId: source.id })}
-          >
-            {source.name}
-          </Button>
-          <span>
-            <small>
-              {feature.name}
-              {feature.condition ? ` · When ${feature.condition}` : ""}
-            </small>
-            →
-          </span>
-          {action.type === "toast" ? (
-            <div>
-              Show toast:{" "}
-              {project.elements.find(
-                (item) =>
-                  item.screenId === destination?.id && item.type === "text",
-              )?.name || "Not described"}
-              {feature.description && <small>{feature.description}</small>}
-            </div>
-          ) : "destinationScreenId" in action ? (
-            destination ? (
-              <Button
-                onClick={() =>
-                  post({ type: "SELECT_SCREEN", screenId: destination.id })
-                }
-              >
-                {destination.name}
-              </Button>
-            ) : (
-              <div>
-                Choose destination
-                <small> not linked</small>
-              </div>
-            )
-          ) : action.type === "close-overlay" ? (
-            <div>
-              Close popup
-              {feature.description && <small>{feature.description}</small>}
-            </div>
-          ) : (
-            <div>
-              {feature.description || "Outcome not described"}
-              <small>Not interactive</small>
-            </div>
-          )}
-          {"destinationScreenId" in action &&
-            action.type !== "toast" &&
-            feature.description && <small>{feature.description}</small>}
-        </div>
-      );
-    });
   const screen = project.screens.find((item) => item.id === selectedScreenId);
   return (
     <Section>
       {!!selected.length && (
         <>
           <Title>Flow for {screen?.name}</Title>
-          {connections(selected)}
+          <ConnectionList groups={groupConnections(project, selected)} />
           <hr className={styles.divider} />
         </>
       )}
@@ -115,7 +50,7 @@ export default function Flow({
         </Button>
       </div>
       {!project.features.length && <Muted>No behavior described yet.</Muted>}
-      {connections(project.features)}
+      <ConnectionList groups={groupConnections(project, project.features)} />
     </Section>
   );
 }
