@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Project } from "../../../shared";
 import Button from "../../components/Button/Button";
 import Muted from "../../components/Muted/Muted";
@@ -6,6 +7,7 @@ import Title from "../../components/Title/Title";
 import { download } from "../../plugin";
 import { buildProjectMarkdown } from "../spec/utils/describe";
 import ConnectionList from "./ConnectionList/ConnectionList";
+import FlowCanvas from "./FlowCanvas/FlowCanvas";
 import { groupConnections } from "./utils/groupConnections";
 import styles from "./Flow.module.css";
 
@@ -17,6 +19,7 @@ export default function Flow({
   project: Project;
   selectedScreenId?: string;
 }) {
+  const [canvasOpen, setCanvasOpen] = useState(false);
   const selected = project.features.filter(
     (feature) =>
       feature.screenId === selectedScreenId ||
@@ -36,21 +39,32 @@ export default function Flow({
       )}
       <div className={styles.header}>
         <Title>Project flow</Title>
-        <Button
-          disabled={!project.screens.length}
-          onClick={() =>
-            download(
-              "sketchy-spec.md",
-              buildProjectMarkdown(project),
-              "text/markdown",
-            )
-          }
-        >
-          Export as Markdown
-        </Button>
+        <div className={styles.actions}>
+          <Button
+            disabled={!project.screens.length}
+            onClick={() => setCanvasOpen(true)}
+          >
+            View as Canvas
+          </Button>
+          <Button
+            disabled={!project.screens.length}
+            onClick={() =>
+              download(
+                "sketchy-spec.md",
+                buildProjectMarkdown(project),
+                "text/markdown",
+              )
+            }
+          >
+            Export as Markdown
+          </Button>
+        </div>
       </div>
       {!project.features.length && <Muted>No behavior described yet.</Muted>}
       <ConnectionList groups={groupConnections(project, project.features)} />
+      {canvasOpen && (
+        <FlowCanvas project={project} onClose={() => setCanvasOpen(false)} />
+      )}
     </Section>
   );
 }

@@ -119,6 +119,9 @@ export type Screen = {
   baseScreenId?: string;
 };
 
+// figma.showUI에서 준 초기 패널 크기, 전체화면 캔버스를 닫을 때 이 크기로 되돌린다
+export const DEFAULT_UI_SIZE = { width: 360, height: 720 };
+
 export type ScreenPreset = "mobile" | "tablet" | "desktop";
 
 export const SCREEN_PRESETS: Record<

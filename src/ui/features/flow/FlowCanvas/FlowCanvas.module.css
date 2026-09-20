@@ -1,0 +1,236 @@
+/* 캔버스는 앱의 밝은/어두운 테마와 무관하게 항상 어두운 하나의 세계로 고정 */
+/* 실제 패널 크기가 바뀐 뒤에만(visible) 드러나므로, 그 전까지는 완전히 숨어 있는다 */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  overflow: hidden;
+  background: radial-gradient(120% 100% at 50% 0%, #101012 0%, #0a0a0b 60%);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  opacity: 0;
+  transform: scale(0.96);
+  pointer-events: none;
+}
+.overlay.dragging {
+  cursor: grabbing;
+}
+.overlay.visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  transition:
+    opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.overlay.closing {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.topbar {
+  position: absolute;
+  top: max(var(--space-4), env(safe-area-inset-top, 0px));
+  left: var(--space-4);
+  right: var(--space-4);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: #f2f2f0;
+}
+.topbar b {
+  font-size: var(--text-sm);
+}
+.hint {
+  color: #8b8d92;
+  font-size: var(--text-xs);
+  margin-top: 2px;
+}
+
+.close {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(20, 20, 22, 0.6);
+  color: #f2f2f0;
+  border-radius: var(--radius-sm);
+  width: var(--space-6);
+  height: var(--space-6);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.close:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.zoom {
+  position: absolute;
+  right: var(--space-4);
+  bottom: max(var(--space-4), env(safe-area-inset-bottom, 0px));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  background: rgba(20, 20, 22, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  backdrop-filter: blur(6px);
+}
+.zoom button {
+  border: 0;
+  background: transparent;
+  color: #f2f2f0;
+  width: var(--space-6);
+  height: var(--space-6);
+  font-size: 13px;
+  line-height: 1;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.zoom button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+.zoomLevel {
+  min-width: 34px;
+  text-align: center;
+  color: #a6a8ad;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1100px;
+  height: 820px;
+  transform-origin: 0 0;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.09) 1.4px,
+    transparent 1.4px
+  );
+  background-size: 28px 28px;
+  will-change: transform;
+}
+.content svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 480px;
+  height: auto;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+}
+
+.node rect {
+  fill: #f2f2f0;
+  stroke: #46484d;
+  stroke-width: 1.4;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+  transition:
+    stroke-width 0.12s ease,
+    filter 0.12s ease;
+}
+.node text {
+  fill: #17181a;
+  font-size: 12px;
+  font-weight: 600;
+}
+.node.selected rect {
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 7px rgba(255, 255, 255, 0.5));
+}
+.node {
+  cursor: pointer;
+}
+.node:hover rect {
+  stroke-width: 2.2;
+}
+
+.chip rect {
+  fill: rgba(255, 255, 255, 0.14);
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 1.2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+.chip text {
+  fill: #cfd0d3;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.edge {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.4;
+  fill: none;
+  stroke-linecap: round;
+}
+.edge.dashed {
+  stroke-dasharray: 4 3;
+}
+.edgeLabel {
+  fill: #cfd0d3;
+  font-size: 10px;
+}
+
+.popover {
+  position: fixed;
+  z-index: 3;
+  width: 220px;
+  background: rgba(20, 20, 22, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-left: 3px solid rgba(255, 255, 255, 0.55);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  backdrop-filter: blur(6px);
+  font-size: var(--text-sm);
+  pointer-events: auto;
+  cursor: text;
+  user-select: text;
+}
+.popoverClose {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border: 0;
+  background: transparent;
+  color: #8b8d92;
+  width: 20px;
+  height: 20px;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+.popoverClose:hover {
+  color: #f2f2f0;
+}
+.name {
+  font-weight: 700;
+  color: #ffffff;
+  padding-right: var(--space-4);
+}
+.purpose {
+  color: #b9bbc0;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+.stats {
+  display: grid;
+  gap: 2px;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  color: #a6a8ad;
+  font-size: var(--text-xs);
+}

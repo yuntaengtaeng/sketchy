@@ -1,4 +1,4 @@
-import type { PluginMessage, Project } from "../shared";
+import { DEFAULT_UI_SIZE, type PluginMessage, type Project } from "../shared";
 import {
   createScreen,
   deleteFeature,
@@ -37,7 +37,7 @@ import {
   updateProjectSettings,
 } from "./storage/project";
 
-figma.showUI(__html__, { width: 360, height: 720, themeColors: true });
+figma.showUI(__html__, { ...DEFAULT_UI_SIZE, themeColors: true });
 
 let suppressDocumentChange = false;
 let onboardingComplete = false;
@@ -130,6 +130,8 @@ figma.ui.onmessage = async (message: PluginMessage) => {
       await completeOnboarding();
       await sync();
     }
+    if (message.type === "RESIZE_UI")
+      figma.ui.resize(message.width, message.height);
     if (message.type === "UPDATE_PROJECT_SETTINGS") {
       // Flow 화살표 표시 여부만 Canvas 다시 그리기가 필요하다, 화면 크기
       // 프리셋 같은 나머지 설정은 이후 새 화면에만 적용돼 다시 그릴 필요가 없다

@@ -3,6 +3,7 @@ import type { BlockType, Project, ProjectSettings } from "./index.ts";
 export type PluginMessage =
   | { type: "READY" }
   | { type: "DISMISS_ONBOARDING" }
+  | { type: "RESIZE_UI"; width: number; height: number }
   | { type: "UPDATE_PROJECT_SETTINGS"; settings: ProjectSettings }
   | { type: "CREATE_SCREEN"; name: string }
   | { type: "DUPLICATE_SCREEN"; screenId: string }
